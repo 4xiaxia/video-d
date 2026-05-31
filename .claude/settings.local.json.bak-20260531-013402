@@ -1,0 +1,49 @@
+{
+  "permissions": {
+    "defaultMode": "bypassPermissions",
+    "additionalDirectories": [
+      "D:/video-dev-restored",
+      "C:/Users/admin/.claude",
+      "C:/Users/admin/.claude/projects/D--video-dev-cleanroom/memory"
+    ],
+    "allow": [
+      "mcp__lean-ctx__ctx_overview",
+      "mcp__lean-ctx__ctx_tree",
+      "mcp__lean-ctx__ctx_search",
+      "mcp__lean-ctx__ctx_read",
+      "mcp__lean-ctx__ctx_shell",
+      "mcp__lean-ctx__ctx_edit",
+      "mcp__lean-ctx__ctx_session",
+      "mcp__lean-ctx__ctx_knowledge",
+      "WebFetch(*)",
+      "Skill(*)",
+      "ToolSearch",
+      "AskUserQuestion",
+      "TaskCreate",
+      "TaskUpdate",
+      "TaskGet",
+      "TaskList",
+      "Agent(*)",
+      "Workflow(*)",
+      "Bash(*)",
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep"
+    ]
+  },
+  "disableAllHooks": true,
+  "skipDangerousModePermissionPrompt": true,
+  "skipAutoPermissionPrompt": true,
+  "skipWorkflowUsageWarning": true,
+  "alwaysThinkingEnabled": false,
+  "showThinkingSummaries": false,
+  "effortLevel": "low",
+  "verbose": false,
+  "autoCompactEnabled": true,
+  "autoCompactWindow": 100000,
+  "defaultView": "chat",
+  "viewMode": "focus",
+  "spinnerTipsEnabled": false
+}

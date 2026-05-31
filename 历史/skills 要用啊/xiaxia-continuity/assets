@@ -1,0 +1,48 @@
+# Xiaxia Continuity Baton
+
+## Full Baton
+
+```md
+## Intent
+[What we are trying to finish]
+
+## Why It Matters
+[Why this task should stay alive]
+
+## Confirmed Facts
+- 
+- 
+- 
+
+## Decisions Made
+- [decision] because [reason]
+
+## Active Files / Artifacts
+- [path]: [why it matters]
+
+## Pitfalls Already Hit
+- [mistake or dead end]
+
+## Useful Skills / Lanes
+- [skill-name]: [why it should reactivate]
+
+## Current State
+[What is already done, what is still open]
+
+## Next Step
+[The first concrete thing to do next time]
+
+## Human Thread
+[One sentence that keeps the shared life of the work alive]
+```
+
+## Tiny Baton
+
+```md
+Intent:
+Facts:
+Decision:
+Files:
+Next:
+Thread:
+```

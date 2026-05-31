@@ -1,0 +1,19 @@
+{
+  "name": "xiaxia-anchor-marking",
+  "type": "workflow",
+  "source": "CoPaw project records, especially 123-埋点标记规范.md and later 埋点版 design documents",
+  "created": "2026-05-04",
+  "canonical_home": "E:\\duihua\\codex-room\\skills-packs\\xiaxia-anchor-marking",
+  "purpose": "Turn Xiaxia's anchor/打点/埋点 marking practice into a reusable, project-agnostic design-to-code annotation workflow for construction, regression, and handoff.",
+  "evidence_files": [
+    "H:\\weavbot\\开发文档日志\\前端优化参考意见（copaw项目）与本项目相似度80%\\123-埋点标记规范.md",
+    "H:\\weavbot\\开发文档日志\\前端优化参考意见（copaw项目）与本项目相似度80%\\124-配置台详细设计埋点版.md",
+    "H:\\weavbot\\开发文档日志\\前端优化参考意见（copaw项目）与本项目相似度80%\\127-对话通信频道详细设计.md",
+    "H:\\weavbot\\开发文档日志\\前端优化参考意见（copaw项目）与本项目相似度80%\\129-应用市场与技能管理详细设计.md",
+    "H:\\weavbot\\开发文档日志\\前端优化参考意见（copaw项目）与本项目相似度80%\\132-Copilot-API 授权登录详细设计.md"
+  ],
+  "core_symbols": ["📌", "⚡", "💾", "🔄", "🔌", "📡", "🔐", "⚠️", "📦", "🎨", "🧩"],
+  "last_updated": "2026-05-04",
+  "generalized_on": "2026-05-04",
+  "generalization_note": "Upgraded from old-project marking reuse into a general skill for any project with UI/API/data/event/risk seams, while explicitly forbidding anchors from becoming runtime truth."
+}

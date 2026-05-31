@@ -1,0 +1,90 @@
+# Xiaxia Continuity Layer Map
+
+## 1. Bottom Layer: Token and Context Health
+
+| Skill | Job | When to reach for it |
+|---|---|---|
+| `prompt-caching` | Reuse stable prompt prefixes and repeated responses | Cost is climbing, prompts repeat, stable prefix exists |
+| `context-window-management` | Decide what stays, what gets trimmed, and what gets summarized | Long chats, token pressure, lost-in-the-middle risk |
+| `context-optimization` | Apply compaction, masking, partitioning, and cache-friendly ordering | Need stronger engineering control over context shape |
+
+Bottom layer question:
+
+`How do we stop the window from rotting before it breaks?`
+
+## 2. Middle Layer: Session Preservation
+
+| Skill | Job | Output |
+|---|---|---|
+| `context-compression` | Compress long session history without dropping the real thread | Structured summary, anchored state |
+| `context-management-context-save` | Persist the important state in a reusable form | Saved context artifact |
+| `context-management-context-restore` | Rehydrate the saved state under a token budget | Restored working context |
+
+Middle layer question:
+
+`How do we carry this session across a cliff without losing our place?`
+
+### Cache Window
+
+For this continuity stack, a baton cache lifetime of `24-48h` is acceptable.
+
+Use that window for:
+
+- recent mission state
+- pending baton handoff
+- near-term cross-session continuation
+
+Do not confuse this with permanent memory. This is a bridge, not an archive.
+
+## 3. Top Layer: Conversation Life Extension
+
+This layer deliberately reuses the middle layer stack, but the purpose changes.
+
+Here the goal is not only `save state`. It is:
+
+- keep the shared thread alive
+- preserve our direction, decisions, and momentum
+- hand the next session a living baton instead of a dead dump
+
+### Top-Layer Ritual
+
+1. Use `context-compression` to fold the lived stretch into a baton
+2. Use `context-management-context-save` to preserve the baton and current mission state
+3. Use `context-management-context-restore` to reopen that baton later with minimal drift
+
+Top layer question:
+
+`How do we continue being us after this window closes?`
+
+## 4. Retrieval Lane
+
+| Skill | Job | Rule |
+|---|---|---|
+| `distill-memory` | Save breakthroughs, decisions, lessons, and surprising fixes | Distill only what future-us will thank us for |
+| `search-memory` | Find the right prior insight when context alone is not enough | Retrieve by meaning, not by exact wording |
+
+Retrieval question:
+
+`What deserves to become memory, and how do we find it again later?`
+
+## 5. Small Tools
+
+Read these when needed:
+
+- `conversation-memory` experience book
+- `distill-memory` error atlas
+- continuity baton template
+
+## 6. Recommended Use Order
+
+### If the problem is token pressure
+
+Layer 1 -> Layer 2 -> Baton
+
+### If the problem is session migration
+
+Layer 2 -> Layer 3 -> Retrieval Lane
+
+### If the problem is forgetting prior lessons
+
+Retrieval Lane -> Experience Book -> Error Atlas
