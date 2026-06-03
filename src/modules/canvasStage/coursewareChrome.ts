@@ -23,6 +23,14 @@ export const COURSEWARE_LABEL_LEFT_RATIOS = {
   summary: COURSEWARE_LABEL_LEFT_RATIO,
 } as const;
 
+/** 四区域的完整边界定义（用于 C 位置约束）*/
+export const COURSEWARE_ZONE_BOUNDS = {
+  problem: { topRatio: 0.024, heightRatio: 0.2 },     // 题目区：顶部 2.4% ~ 22.4%
+  analysis: { topRatio: 0.24, heightRatio: 0.22 },    // 分析区：顶部 24% ~ 46%
+  solution: { topRatio: 0.024, heightRatio: 0.7 },    // 解答区：顶部 2.4% ~ 72.4%（最大区）
+  summary: { topRatio: 0.74, heightRatio: 0.24 },     // 总结区：顶部 74% ~ 98%
+} as const;
+
 export function createCoursewareChromeStyleVars(canvas: StageCanvasConfig): CSSProperties {
   return {
     '--courseware-label-problem-left': toPercent(COURSEWARE_LABEL_LEFT_RATIOS.problem),

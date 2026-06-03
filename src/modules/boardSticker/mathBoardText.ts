@@ -73,6 +73,22 @@ export function normalizeElementaryBoardHandwritingText(text: string): string {
     .replace(/\\times\b/g, '×')
     .replace(/\\div\b/g, '÷')
     .replace(/\\cdot\b/g, '·')
+    // @xiaxia-2026-06-02: 补全手写字体已支持但转换表漏网的 LaTeX 命令（症状B：LaTeX残留）
+    // 这些 Unicode 符号均在 HANDWRITING_EXTRA_SYMBOLS 白名单内，转换后走手写字体路、不再残留
+    // ^\circ 上标形式必须先于裸 \circ 处理，否则会留下孤立的 ^
+    .replace(/\^\s*\{?\s*\\circ\s*\}?/g, '°')
+    .replace(/\\circ\b/g, '°')
+    .replace(/\\degree\b/g, '°')
+    .replace(/\\angle\b/g, '∠')
+    .replace(/\\pm\b/g, '±')
+    .replace(/\\mp\b/g, '∓')
+    .replace(/\\perp\b/g, '⊥')
+    .replace(/\\parallel\b/g, '∥')
+    .replace(/\\triangle\b/g, '△')
+    .replace(/\\odot\b/g, '⊙')
+    .replace(/\\therefore\b/g, '∴')
+    .replace(/\\because\b/g, '∵')
+    .replace(/\\propto\b/g, '∝')
     .replace(/\s+/g, ' ')
     .trim();
 

@@ -13,6 +13,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import type { StageCanvasConfig, TimelineClip } from '../domain/teachingProject';
 import { getBoardRevealProgress } from '../modules/boardReveal';
 import { compareBoardClipLayerOrder } from '../modules/boardOrdering';
+import { COURSEWARE_ZONE_BOUNDS } from '../modules/canvasStage/coursewareChrome';
 import {
   DEFAULT_BOARD_STICKER_WIDTH_PERCENT,
   DEFAULT_BOARD_STICKER_X_PERCENT,
@@ -23,9 +24,58 @@ import {
   resolveBoardTextDisplayRoute,
   useBoardStickerDragController,
 } from '../modules/boardSticker';
-import { isPlayheadInsideTimelineWindowWithPinnedEnd } from '../modules/timeline/timelineWindow';
+import { isPlayheadInsideTimelineWindowWithPinnedEnd, isPlayheadInsideTimelineWindowWithStaticHold } from '../modules/timeline/timelineWindow';
 import { BoardTextSticker } from './BoardTextSticker';
 import type { BoardClipPatch } from './drawboardStageTypes';
+
+/**
+ * 根据 chainKey 获取 C 应该落在的四区域
+ * template-open / template-pre / step-N / template-end → 对应的区域
+ */
+function getZoneNameFromChainKey(chainKey: string | undefined): keyof typeof COURSEWARE_ZONE_BOUNDS {
+  if (chainKey === 'template-open') return 'problem';
+  if (chainKey === 'template-pre') return 'analysis';
+  if (chainKey === 'template-end') return 'summary';
+  if (chainKey?.startsWith('step-')) return 'solution';
+  return 'solution'; // 默认解答区
+}
+
+/**
+ * 约束 C 的位置到指定区域内（自动对齐）
+ * @param yPercent 原始 y 百分比
+ * @param widthPercent C 的宽度百分比（用于计算下边界）
+ * @param zone 目标区域配置
+ * @returns 约束后的 yPercent
+ */
+function constrainYPercentToZone(
+  yPercent: number,
+  widthPercent: number,
+  zone: { topRatio: number; heightRatio: number },
+): number {
+  const zoneTopPercent = zone.topRatio * 100;
+  const zoneBottomPercent = (zone.topRatio + zone.heightRatio) * 100;
+
+  // C 的下边界估算（简单假设高度 ≈ 宽度的 1/2，因为文字框通常 w > h）
+  const estimatedHeightPercent = (widthPercent / 2) * 0.6; // 保守估计
+  const cBottomPercent = yPercent + estimatedHeightPercent;
+
+  // 如果 C 顶部已超出下界，向上移
+  if (yPercent > zoneBottomPercent - estimatedHeightPercent) {
+    return Math.max(zoneTopPercent, zoneBottomPercent - estimatedHeightPercent);
+  }
+
+  // 如果 C 底部已超出下界，顶部向上移
+  if (cBottomPercent > zoneBottomPercent) {
+    return zoneBottomPercent - estimatedHeightPercent;
+  }
+
+  // 如果 C 顶部已超出上界，向下移
+  if (yPercent < zoneTopPercent) {
+    return zoneTopPercent;
+  }
+
+  return yPercent;
+}
 
 export function AutoHandwritingLayer({
   boardClips,
@@ -59,7 +109,7 @@ export function AutoHandwritingLayer({
   // z-index follows the original A/C writing anchor, not the draggable B lifetime.
   const visibleBoardClips = useMemo(() => {
     return boardClips
-      .filter((clip) => isPlayheadInsideTimelineWindowWithPinnedEnd(playheadMs, clip.startMs, clip.endMs))
+      .filter((clip) => isPlayheadInsideTimelineWindowWithStaticHold(playheadMs, clip.startMs, clip.endMs))
       .sort(compareBoardClipLayerOrder);
   }, [boardClips, playheadMs]); // 使用useMemo缓存结果
 
@@ -98,14 +148,22 @@ export function AutoHandwritingLayer({
             ? frozenRevealRef.current.progress
             : liveRevealProgress;
 
+        const widthPercent = previewPatch?.widthPercent ?? clip.widthPercent ?? DEFAULT_BOARD_STICKER_WIDTH_PERCENT;
+        let yPercent = previewPatch?.yPercent ?? clip.yPercent ?? DEFAULT_BOARD_STICKER_Y_PERCENT;
+
+        // 问题1 修复：根据 chainKey 约束 C 到对应的四区域
+        const zoneName = getZoneNameFromChainKey(clip.chainKey);
+        const zone = COURSEWARE_ZONE_BOUNDS[zoneName];
+        yPercent = constrainYPercentToZone(yPercent, widthPercent, zone);
+
         return {
           color: clip.color ?? '#111111',
           fontSize: getBoardStickerFontSize(previewPatch?.fontSize ?? clip.fontSize, boardFontSize),
           label: clip.label.trim(),
           revealProgress,
-          widthPercent: previewPatch?.widthPercent ?? clip.widthPercent ?? DEFAULT_BOARD_STICKER_WIDTH_PERCENT,
+          widthPercent,
           xPercent: previewPatch?.xPercent ?? clip.xPercent ?? DEFAULT_BOARD_STICKER_X_PERCENT,
-          yPercent: previewPatch?.yPercent ?? clip.yPercent ?? DEFAULT_BOARD_STICKER_Y_PERCENT,
+          yPercent,
         };
       }),
       recordingCanvas: recordingCanvasRef.current,
@@ -129,7 +187,13 @@ export function AutoHandwritingLayer({
           const fontSize = getBoardStickerFontSize(previewPatch?.fontSize ?? clip.fontSize, boardFontSize);
           const widthPercent = previewPatch?.widthPercent ?? clip.widthPercent ?? DEFAULT_BOARD_STICKER_WIDTH_PERCENT;
           const xPercent = previewPatch?.xPercent ?? clip.xPercent ?? DEFAULT_BOARD_STICKER_X_PERCENT;
-          const yPercent = previewPatch?.yPercent ?? clip.yPercent ?? DEFAULT_BOARD_STICKER_Y_PERCENT;
+          let yPercent = previewPatch?.yPercent ?? clip.yPercent ?? DEFAULT_BOARD_STICKER_Y_PERCENT;
+
+          // 问题1 修复：根据 chainKey 约束 C 到对应的四区域
+          const zoneName = getZoneNameFromChainKey(clip.chainKey);
+          const zone = COURSEWARE_ZONE_BOUNDS[zoneName];
+          yPercent = constrainYPercentToZone(yPercent, widthPercent, zone);
+
           const liveRevealProgress = readBoardClipRevealProgress(clip, playheadMs);
           const revealProgress =
             draggingClipId === clip.id && frozenRevealRef.current?.clipId === clip.id

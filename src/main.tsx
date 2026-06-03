@@ -8,7 +8,6 @@ import { CStickerStandalonePage } from './standalone/CStickerStandalonePage';
 import { DrawboardCoreStandalonePage } from './standalone/DrawboardCoreStandalonePage';
 import { DrawboardHybridPrototypePage } from './standalone/DrawboardHybridPrototypePage';
 import { KonvaProofPage } from './standalone/KonvaProofPage';
-import { TldrawProofPage } from './standalone/TldrawProofPage';
 import 'antd/dist/reset.css';
 import './styles.css';
 
@@ -30,8 +29,6 @@ function resolveEntry() {
       return <DrawboardHybridPrototypePage />;
     case 'konva-proof':
       return <KonvaProofPage />;
-    case 'tldraw-proof':
-      return <TldrawProofPage />;
     default:
       return <App />;
   }

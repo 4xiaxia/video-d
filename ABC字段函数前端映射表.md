@@ -6,7 +6,7 @@
 | --- | --- |
 | 批注日期 | 2026-05-30 |
 | 原记录状态 | 部分有效 |
-| 当前真相文件 | `当前项目全局认知图与批注说明.md` |
+| 当前真相文件 | `认知图-核心逻辑动态图.md`（原 `当前项目全局认知图与批注说明.md` 已归档至 `历史/`） |
 | 仍然有效 | 主链字段映射、rows/voiceText/boardSlice/chainKey/TTS/BoardEvent/TimelineClip/C visual 字段/预览临时态等映射关系仍然有效，是当前系统非常关键的贯穿知识。 |
 | 已被覆盖 | “tldraw 主舞台金手指隔离”这类表述不再适合作为当前正式舞台的唯一实现口径；现在更准确的说法是分层舞台路径下的 overlay/C-content/base 分离。 |
 | 为什么覆盖 | 正式主舞台已经切到 drawboard 路线，Konva proof 也已经建立；映射真相仍在，但具体承载实现不能再只写成 tldraw 时代的说法。 |
@@ -36,8 +36,8 @@
 | `TtsSentenceResult.durationMs` | `applyTtsSentenceResults` / `createSentenceTimingMap` | A主时钟 | `VoiceWorkspace` / `TeachingTimeline` | 句级时长累积为播放时间轴 | TTS网关返回 | BoardEvent生成 | 是 | 生效 | 2026-05-29 |
 | `BoardEvent.startMs/endMs` | `createBoardEventsFromTtsUnits` | B寿命窗口来源 | `VoiceWorkspace`（生成） | 由句序+时长累积，非UI随意写 | timeline-factory | mapBoardEventsToTimelineClips | 是 | 生效 | 2026-05-29 |
 | `TimelineClip.startMs/endMs` | `mapBoardEventsToTimelineClips` / `updateBoardTiming` | B寿命窗口 | `VoiceTrack` / `TimelineClipBlock` | B控制显示窗口，超A尾部仅静态留场 | 生成器 + 时间轴编辑 | 播放过滤/显示 | 是 | 生效 | 2026-05-29 |
-| `TimelineClip.label` | `mapBoardEventsToTimelineClips` | C演员文本 | `AutoHandwritingLayer` / `TldrawStagePreview` | label -> 可见文本（随reveal） | timeline-factory/编辑器 | 舞台渲染层 | 是 | 生效 | 2026-05-29 |
-| `xPercent/yPercent/widthPercent` | `updateBoardClip` / tldraw shape patch | C站位 | `BoardClipInspector` / `TldrawStagePreview` | 百分比坐标，舞台尺寸自适配 | C编辑入口 | 舞台映射 | 是 | 生效 | 2026-05-29 |
+| `TimelineClip.label` | `mapBoardEventsToTimelineClips` | C演员文本 | `AutoHandwritingLayer` | label -> 可见文本（随reveal） | timeline-factory/编辑器 | 舞台渲染层 | 是 | 生效 | 2026-05-29 |
+| `xPercent/yPercent/widthPercent` | `updateBoardClip` / C视觉 patch | C站位 | `BoardClipInspector` / `AutoHandwritingLayer` | 百分比坐标，舞台尺寸自适配 | C编辑入口 | 舞台映射 | 是 | 生效 | 2026-05-29 |
 | `drawSpeed` | `updateBoardClip` / `getBoardRevealProgress` | C演绎参数 | `BoardClipInspector` | 仅影响 reveal 速度，不改 A/B | C编辑入口 | reveal计算 | 是 | 生效 | 2026-05-29 |
 | `layoutPreviewDraft.items[].groupKey` | `/api/agent/board-layout-preview` | C-Agent视觉分区 | `BoardPreviewCard` | 强制四区标签：题目/分析/解答/总结 | 预览网关（临时态） | 只读预览 | 是 | 生效 | 2026-05-29（四区硬约束） |
 | `layoutPreviewDraft` | `syncLayoutPreviewDraft` / `clearLayoutPreviewDraft` | 临时视觉预览（非正式ABC真相） | `VoiceWorkspace` / `ScriptBoardSummaryStep` | 仅用于评审，不落正式timeline | store 临时态 | 侧边预览 | 是 | 生效 | 2026-05-29 |
@@ -48,7 +48,7 @@
 
 | 项目 | 缺口 | 负责人动作 | 验收 |
 | --- | --- | --- | --- |
-| tldraw 主舞台金手指隔离 | 保护补丁已加，完整覆盖层擦除体验未统一 | 将擦除能力收敛到独立覆盖层，不破坏底层 ABC | 画笔开启时底层元素不可被误删/误改 |
+| overlay 金手指隔离 | 保护补丁已加，完整覆盖层擦除体验未统一 | 将擦除能力收敛到独立覆盖层，不破坏底层 ABC | 画笔开启时底层元素不可被误删/误改 |
 | 第二步“打开查看/重新生成”全路径语义 | 主入口已拆分，需继续防回归 | 在 workflow 声明与自动化验收里固化 | UI 与文档语义一致 |
 
 批注：因为项目发现实际ltdraw很难用，所以[text](<对话 能找到历史记录吗.md>)再思考换掉
