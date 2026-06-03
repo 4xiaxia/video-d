@@ -1,13 +1,103 @@
 ---
 title: PROJECT_STATE.md
 description: 当前阶段、已确认设计、边界、下一步接力点
-lastUpdate: 2026-05-31
+lastUpdate: 2026-06-03
 ---
 
 # 项目状态快照
 
-**当前日期：** 2026-05-31  
-**当前阶段：** 第四步舞台问题诊断完成，等待决策批准
+**当前日期：** 2026-06-03  
+**当前阶段：** ✅ 两个舞台问题已修复并提交
+
+---
+
+## 📌 完成情况
+
+### 问题1：C 文字没有按标签领地站位
+- **状态：** ✅ 已修复（方案 A）
+- **改动：** 
+  - coursewareChrome.ts：添加 COURSEWARE_ZONE_BOUNDS 四区域完整边界定义
+  - AutoHandwritingLayer.tsx：根据 chainKey 自动约束 C 位置（两处 map 逻辑）
+- **提交：** ba7b7fb
+
+### 问题2：B 播放完毕，C 默认躺平不下台
+- **状态：** ✅ 已修复（方案 A）
+- **改动：**
+  - timelineWindow.ts：新增 isPlayheadInsideTimelineWindowWithStaticHold 函数
+  - AutoHandwritingLayer.tsx：替换过滤逻辑，使用新函数
+- **机制：** 给予 1秒静态留场宽限期（STATIC_HOLD_DURATION_MS）
+- **提交：** ba7b7fb
+
+---
+
+## ✅ 验证状态
+
+| 检查项 | 状态 |
+|-------|------|
+| typecheck | ✅ 通过 |
+| build | ✅ 通过 |
+| 代码审计 | ✅ 完成 |
+| git commit | ✅ ba7b7fb |
+
+---
+
+## 🔍 改动清单
+
+### 改动文件
+1. `src/modules/canvasStage/coursewareChrome.ts`
+   - 新增常量：COURSEWARE_ZONE_BOUNDS
+   - 定义四区域的 top + heightRatio
+
+2. `src/components/AutoHandwritingLayer.tsx`
+   - 导入 COURSEWARE_ZONE_BOUNDS
+   - 新增函数：getZoneNameFromChainKey、constrainYPercentToZone
+   - 改动两处 map 逻辑：DOM 渲染 + 录画层都应用约束
+   - 替换 visibleBoardClips 过滤逻辑
+
+3. `src/modules/timeline/timelineWindow.ts`
+   - 新增函数：isPlayheadInsideTimelineWindowWithStaticHold
+   - 常量：STATIC_HOLD_DURATION_MS = 1000
+
+---
+
+## 📚 核心设计（保持）
+
+### ABC 三轨世界观（不变）
+- **A 轨：** 语音主轴（无改动）
+- **B 轨：** 寿命/显示窗口（改进了消失逻辑）
+- **C 轨：** 画布演员（改进了位置约束）
+
+### 四区分区（不变）
+- 开场读题 (题目区) → template-open
+- 分析题目 (分析区) → template-pre
+- 解题环节 (解答区) → step-N
+- 梳理总结 (总结区) → template-end
+
+---
+
+## 💾 下一步（如需）
+
+如果后续需要验收或调整：
+
+1. **测试清单**
+   - 完整播放流程（A→B→C 都正常）
+   - 舞台拖放交互（C 保持在区域内）
+   - B 结束后 C 留场 1 秒
+   - 不影响前三步
+
+2. **调整参数**
+   - STATIC_HOLD_DURATION_MS：目前 1000ms，可根据体感调整
+   - constrainYPercentToZone：高度估算逻辑可精细化
+
+3. **未来改进**
+   - 可考虑从 pinnedEndMs 字段获取留场时长（方案 C）
+   - 可考虑在 Inspector 中让老师拖放后自动对齐到区域
+   - 可考虑在四区边界处加视觉反馈
+
+---
+
+**最后更新：2026-06-03 11:22**  
+**状态：两个问题都已修复 ✅**
 
 ---
 
