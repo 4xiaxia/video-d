@@ -129,16 +129,6 @@ export function normalizeElementaryBoardHandwritingText(text: string): string {
     return text;
   }
 
-  // 字体自适应：手写字体可能缺少 × ÷ 等 Unicode 数学符号，降级为 ASCII 替代
-  // ×(乘号)→小写x / ÷(除号)→·(中点)，字体原生支持的字母/标点比特殊符号更可靠
-  const fontAdaptiveText = normalizedText
-    .replace(/×/g, 'x')
-    .replace(/÷/g, '·');
-
-  if (isBoardTextSupportedByHandwritingFont(fontAdaptiveText)) {
-    return fontAdaptiveText;
-  }
-
   if (isBoardTextSupportedByHandwritingFont(normalizedText)) {
     return normalizedText;
   }

@@ -19,9 +19,9 @@ const defaultCharsPerSecond = 4.2;
 
 export function stripBoardMarkersForTts(text: string): string {
   return text
-    .replace(boldBoardMarkerPattern, (_, markerText: string) => markerText)
-    .replace(pairedBoardMarkerPattern, (_, markerText: string) => markerText)
-    .replace(legacyBoardMarkerPattern, (_, markerText: string) => markerText)
+    .replace(boldBoardMarkerPattern, '')
+    .replace(pairedBoardMarkerPattern, '')
+    .replace(legacyBoardMarkerPattern, '')
     .replace(/[►◄]/g, '')
     .replace(/\.{7}/g, '');
 }
@@ -36,67 +36,66 @@ export function splitScriptIntoTtsSentenceUnits(scriptText: string, options: Spl
     };
   }
 
-  const markerTexts = collectBoardMarkerTexts(normalizedText);
-  const plainText = stripBoardMarkersForTts(normalizedText);
-  const rawSentences = splitIntoSentences(plainText);
+  // 按 <br> 拆句——在去标记之前拆，保证标记落在正确句子内
+  const rawSegments = splitIntoSegments(normalizedText);
+  const chainKeys = options.chainKeys ?? [];
 
-  const units: TtsSentenceUnit[] = rawSentences.map((sentence, index) => {
-    const boardMarkerTexts = markerTexts.filter((marker) => sentence.includes(marker));
-    const boardMarkerText = boardMarkerTexts[0];
-    const chainKey = options.chainKeys?.[index];
-    const speechText = prepareAliyunMathSpeechText(sentence);
+  const units: TtsSentenceUnit[] = [];
+  const allMarkerTexts: string[] = [];
 
-    return {
-      boardMarkerText,
+  for (let index = 0; index < rawSegments.length; index += 1) {
+    const segment = rawSegments[index];
+    // 从句段中提取板书标记文本（标记内是 boardSlice，提取后从语音中删掉）
+    const boardMarkerTexts = collectBoardMarkerTexts(segment);
+    boardMarkerTexts.forEach((m) => allMarkerTexts.push(m));
+
+    // 去标记后的纯语音文本
+    const cleanSpeech = stripBoardMarkersForTts(segment);
+    if (!cleanSpeech) {
+      continue;
+    }
+
+    const chainKey = chainKeys[index];
+    const speechText = prepareAliyunMathSpeechText(cleanSpeech);
+
+    units.push({
+      boardMarkerText: boardMarkerTexts[0],
       boardMarkerChainKeys: chainKey ? boardMarkerTexts.map(() => chainKey) : undefined,
       boardMarkerTexts,
       chainKey,
       estimatedDurationMs: estimateDurationMs(speechText, options.maxEstimatedDurationMs),
-      hasBoardMarker: Boolean(boardMarkerText),
-      id: `tts-sentence-${String(index + 1).padStart(3, '0')}`,
-      order: index + 1,
+      hasBoardMarker: boardMarkerTexts.length > 0,
+      id: `tts-sentence-${String(units.length + 1).padStart(3, '0')}`,
+      order: units.length + 1,
       speechText,
-      text: sentence,
-    };
-  });
+      text: cleanSpeech,
+    });
+  }
 
   return {
-    markerCount: markerTexts.length,
+    markerCount: allMarkerTexts.length,
     plainTtsText: units.map((unit) => unit.speechText).join('\n'),
     units,
   };
 }
 
-function collectBoardMarkerTexts(text: string): string[] {
-  return [
-    ...[...text.matchAll(boldBoardMarkerPattern)].map((match) => ({
-      index: match.index ?? 0,
-      text: normalizeWhitespace(match[1]),
-    })),
-    ...[...text.matchAll(pairedBoardMarkerPattern)].map((match) => ({
-      index: match.index ?? 0,
-      text: normalizeWhitespace(match[1]),
-    })),
-    ...[...text.matchAll(legacyBoardMarkerPattern)].map((match) => ({
-      index: match.index ?? 0,
-      text: normalizeWhitespace(match[1]),
-    })),
-  ]
-    .sort((firstMarker, secondMarker) => firstMarker.index - secondMarker.index)
-    .map((marker) => marker.text)
-    .filter(Boolean);
-}
-
-function splitIntoSentences(text: string): string[] {
+function splitIntoSegments(text: string): string[] {
   if (brBoundaryPattern.test(text)) {
     return text
       .split(/<br\s*\/?>/i)
       .map((segment) => normalizeWhitespace(segment))
       .filter(Boolean);
   }
+  const single = normalizeWhitespace(text);
+  return single ? [single] : [];
+}
 
-  const singleSegment = normalizeWhitespace(text);
-  return singleSegment ? [singleSegment] : [];
+function collectBoardMarkerTexts(text: string): string[] {
+  return [
+    ...[...text.matchAll(boldBoardMarkerPattern)].map((match) => normalizeWhitespace(match[1])),
+    ...[...text.matchAll(pairedBoardMarkerPattern)].map((match) => normalizeWhitespace(match[1])),
+    ...[...text.matchAll(legacyBoardMarkerPattern)].map((match) => normalizeWhitespace(match[1])),
+  ].filter(Boolean);
 }
 
 function normalizeWhitespace(text: string): string {

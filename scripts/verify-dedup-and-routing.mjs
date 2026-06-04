@@ -3,7 +3,7 @@
 // Run: npx tsx scripts/verify-dedup-and-routing.mjs
 
 import { resolveBoardTextDisplayRoute } from '../src/modules/boardSticker/boardTextDisplayRoute.ts';
-import { isBoardTextSupportedByHandwritingFont, normalizeElementaryBoardHandwritingText } from '../src/modules/boardSticker/mathBoardText.ts';
+import { isBoardTextSupportedByHandwritingFont, normalizeElementaryBoardHandwritingText, normalizeHandwritingDisplayText } from '../src/modules/boardSticker/mathBoardText.ts';
 import { isBoardClipVisibleAtPlayhead } from '../src/modules/timeline/timelineWindow.ts';
 
 let pass = 0;
@@ -46,12 +46,17 @@ check('\\div', resolveBoardTextDisplayRoute('6 \\div 2').kind, 'handwriting');
 check('\\sqrt{2}', resolveBoardTextDisplayRoute('\\sqrt{2}').kind, 'handwriting');
 check('\\infty', resolveBoardTextDisplayRoute('x \\to \\infty').kind, 'handwriting');
 
-// 4. Structural math → formula
+// 4. Font-adaptive symbol mapping
+check('x-disp', normalizeHandwritingDisplayText('3×4'), '3x4');
+check('div-disp', normalizeHandwritingDisplayText('6÷2'), '6·2');
+check('noop-disp', normalizeHandwritingDisplayText('a+b=c'), 'a+b=c');
+
+// 6. Structural math → formula
 check('\\frac', resolveBoardTextDisplayRoute('\\frac{1}{2}').kind, 'formula');
 check('subscript', resolveBoardTextDisplayRoute('x_{1} + y_{2}').kind, 'formula');
 check('nested sup', resolveBoardTextDisplayRoute('a^{2} + b^{2}').kind, 'formula');
 
-// 5. hideAtMs visibility contract
+// 7. hideAtMs visibility contract
 check('visible: before start', isBoardClipVisibleAtPlayhead(500, 1000), false);
 check('visible: at start', isBoardClipVisibleAtPlayhead(1000, 1000), true);
 check('visible: after start, no hideAtMs', isBoardClipVisibleAtPlayhead(5000, 1000), true);
