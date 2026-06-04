@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
@@ -711,7 +711,8 @@ for (const requiredCurrentProjectCFontToken of [
 
 mkdirSync(outDir, { recursive: true });
 
-execFileSync(join(root, 'runtime', 'node', 'node.exe'), [join(root, 'node_modules', 'typescript', 'bin', 'tsc'), '--noEmit', 'false', '--outDir', outDir], {
+const typecheckNodePath = existsSync(join(root, 'runtime', 'node', 'node.exe')) ? join(root, 'runtime', 'node', 'node.exe') : process.execPath;
+execFileSync(typecheckNodePath, [join(root, 'node_modules', 'typescript', 'bin', 'tsc'), '--noEmit', 'false', '--outDir', outDir], {
   cwd: root,
   stdio: 'inherit',
 });
@@ -885,7 +886,7 @@ writeFileSync(
     `console.log('[board-boundaries] passed');\n`,
 );
 
-execFileSync(join(root, 'runtime', 'node', 'node.exe'), [checkFile], {
+execFileSync(typecheckNodePath, [checkFile], {
   cwd: outDir,
   stdio: 'inherit',
 });

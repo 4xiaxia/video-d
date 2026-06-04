@@ -26,7 +26,12 @@
 - **站位由 chainKey 标签决定**：`template-open`→problem(题目区) / `template-pre`→analysis(分析区) / `step-N`→solution(解答区，右半) / `template-end`→summary(总结区)。四区边界在 `COURSEWARE_ZONE_BOUNDS`。C 不发明内容、不决定站位。
 - **C 五可调**：速度(`drawSpeed`) / 位置(`xPercent/yPercent`) / 大小(`widthPercent/fontSize`) / 字体(当前仅项目级) / 内容(`boardSlice`在第二步编辑)。
 
-## C 层交互模型：播放 / 拖拽 / 金手指 / 画笔（2026-06-04）
+## 页面预览 / 录制底板同源（2026-06-05）
+
+- `DrawboardStage` 当前结构：DOM 标签/题文负责页面预览；`CanvasRecordingSurface` 仅作录制 base canvas。
+- 页面层通过 `.canvas-recording-surface { opacity: 0; pointer-events: none; position: absolute; z-index: 0; }` 隐藏录制底板，避免人眼重影；录制合成仍读取该 canvas 像素。
+- “页面缩放版”和“录制完整尺寸版”是同一真相的不同消费者，不应复制第二套内容逻辑。
+
 
 > 以下关系不可混淆，Konva 迁移后也必须保持等价。
 

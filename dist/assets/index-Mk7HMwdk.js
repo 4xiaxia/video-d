@@ -1,0 +1,4 @@
+import{bt as c}from"./index-BSOPpiQ-.js";async function T(e){return new Promise(n=>{setTimeout(()=>{try{const o=i(e),s=a(e);n({displayContent:o,ttsContent:s})}catch(o){console.error("TTS格式过滤层处理失败:",o),n({displayContent:{scriptText:e.spokenScript||"",boardText:e.boardPlan||""},ttsContent:{speechText:e.spokenScript||"",units:[]}})}},0)})}function i(e){const n=e.rows||[],o=n.map(r=>r.voiceText||"").filter(Boolean).join(`
+`),s=n.map(r=>r.boardSlice||"").filter(Boolean).join(`
+`);return{scriptText:o,boardText:s}}function a(e){const n=e.rows||[],o=n.map(t=>t.voiceText||"").filter(Boolean).join(`
+`),s=n.map(t=>t.chainKey).filter(t=>!!t),r=c(o,{chainKeys:s});return{speechText:r.plainTtsText,units:r.units.map(t=>({id:t.id,speechText:t.speechText,boardMarkerText:t.boardMarkerText,chainKey:t.chainKey}))}}export{T as createTtsFormatFilterLayer};

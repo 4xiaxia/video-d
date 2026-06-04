@@ -1337,7 +1337,7 @@ button {
   min-height: 420px;
   padding: 2.375rem 2.875rem 2.625rem;
   position: relative;
-  --stage-problem-font-size: 0.9375rem;
+  --stage-problem-font-size: 0.875rem;
   --stage-problem-line-height: 1.46;
   --stage-problem-width: 44%;
 }
