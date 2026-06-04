@@ -149,7 +149,7 @@ export function BoardClipInspector({
             onReset={() => setDraft(initialDraft)}
           />
           <Text type="secondary">
-            真正书写时段会跟着讲解音频和素材时长一起变化；超出音频尾部的部分只会静态停留。
+            真正书写时段会跟着讲解音频和素材时长一起变化；默认写完后继续留场，只有显式截止时间才隐藏。
           </Text>
         </div>
       ) : selectedClip ? (

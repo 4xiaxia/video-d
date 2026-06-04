@@ -35,7 +35,7 @@
 | `chainKey` | `createRowChainKey` / `createAbcChainLabels` | A/B/C身份映射 | `ScriptAgentTableEditor`（映射提示） | 开场/分析/解题/总结 -> template/step 规则 | 归一化函数自动生成 | 编译、timeline、显示标签 | 是 | 生效 | 2026-05-29 |
 | `TtsSentenceResult.durationMs` | `applyTtsSentenceResults` / `createSentenceTimingMap` | A主时钟 | `VoiceWorkspace` / `TeachingTimeline` | 句级时长累积为播放时间轴 | TTS网关返回 | BoardEvent生成 | 是 | 生效 | 2026-05-29 |
 | `BoardEvent.startMs/endMs` | `createBoardEventsFromTtsUnits` | B寿命窗口来源 | `VoiceWorkspace`（生成） | 由句序+时长累积，非UI随意写 | timeline-factory | mapBoardEventsToTimelineClips | 是 | 生效 | 2026-05-29 |
-| `TimelineClip.startMs/endMs` | `mapBoardEventsToTimelineClips` / `updateBoardTiming` | B寿命窗口 | `VoiceTrack` / `TimelineClipBlock` | B控制显示窗口，超A尾部仅静态留场 | 生成器 + 时间轴编辑 | 播放过滤/显示 | 是 | 生效 | 2026-05-29 |
+| `TimelineClip.startMs/endMs` | `mapBoardEventsToTimelineClips` / `updateBoardTiming` | B寿命窗口 / 站场控制 | `VoiceTrack` / `TimelineClipBlock` | B控制显示窗口与可控站场边界；默认 lock 时，C 自然播放完后继续留场，不等于到 endMs 自动消失 | 生成器 + 时间轴编辑 | 播放过滤/显示 | 是 | 生效 | 2026-06-04 纠偏：从“何时出现/消失”改为“默认留场 + 解锁后可控站场” |
 | `TimelineClip.label` | `mapBoardEventsToTimelineClips` | C演员文本 | `AutoHandwritingLayer` | label -> 可见文本（随reveal） | timeline-factory/编辑器 | 舞台渲染层 | 是 | 生效 | 2026-05-29 |
 | `xPercent/yPercent/widthPercent` | `updateBoardClip` / C视觉 patch | C站位 | `BoardClipInspector` / `AutoHandwritingLayer` | 百分比坐标，舞台尺寸自适配 | C编辑入口 | 舞台映射 | 是 | 生效 | 2026-05-29 |
 | `drawSpeed` | `updateBoardClip` / `getBoardRevealProgress` | C演绎参数 | `BoardClipInspector` | 仅影响 reveal 速度，不改 A/B | C编辑入口 | reveal计算 | 是 | 生效 | 2026-05-29 |

@@ -8,7 +8,7 @@ import {
   getBoardStickerFontSize,
 } from '../boardSticker';
 import { compareBoardClipLayerOrder } from '../boardOrdering';
-import { isPlayheadInsideTimelineWindowWithPinnedEnd } from '../timeline/timelineWindow';
+import { isBoardClipVisibleAtPlayhead } from '../timeline/timelineWindow';
 
 export const TL_STAGE_SHAPE_IDS = {
   frame: createShapeId('abc-stage-frame'),
@@ -40,7 +40,7 @@ export function syncAbcStageToTldraw({
 }): TldrawStageBoardShapeMeta[] {
   const stageSize = resolveTldrawStageSize(canvas);
   const visibleBoardClips = boardClips
-    .filter((clip) => isPlayheadInsideTimelineWindowWithPinnedEnd(playheadMs, clip.startMs, clip.endMs))
+    .filter((clip) => isBoardClipVisibleAtPlayhead(playheadMs, clip.startMs, clip.hideAtMs))
     .sort(compareBoardClipLayerOrder);
   const boardShapeIds = visibleBoardClips.map((clip) => createShapeId(`abc-board-${clip.id}`));
   const managedIds = [

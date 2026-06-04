@@ -1,5 +1,6 @@
 export type BoardDisplayWindowPatch = {
   endMs?: number;
+  hideAtMs?: number;
   startMs?: number;
 };
 
@@ -13,7 +14,7 @@ export function normalizeBoardDisplayWindow({
   endMs: number;
   minDurationMs?: number;
   startMs: number;
-}): Required<BoardDisplayWindowPatch> {
+}): { endMs: number; startMs: number } {
   const safeStartMs = Math.max(0, startMs);
 
   return {

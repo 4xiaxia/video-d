@@ -260,7 +260,7 @@ for (const requiredBoardClipLabel of [
   '沿用画布墨色',
   '走画布变量',
   '只影响 C 在 A source ∩ B display 内的 reveal 快慢；不改 A 语音，不改 B 寿命。',
-  'B 只管上台、下台和静态留场；C 书写快慢在“C 演绎”里单独调整，不反写 A/B。',
+  'B 只管上台和解锁后的下台截止时间；默认 C 写完继续留场，C 书写快慢在“C 演绎”里单独调整，不反写 A/B。',
   '联动缩放：字号和换行宽度同时变化，不拉伸手写图像。',
 ]) {
   if (!boardClipInspectorControlText.includes(requiredBoardClipLabel)) {
@@ -334,7 +334,7 @@ for (const requiredTimelineBDirectorToken of [
   '显示开始 ms',
   '显示结束 ms',
   '右侧只编辑 C 素材属性',
-  '超过 A 后只静态留场',
+  '默认 lock 留场，unlock 后写入下台截止时间',
 ]) {
   if (!teachingTimelineText.includes(requiredTimelineBDirectorToken)) {
     throw new Error(`TeachingTimeline missing B director control token: ${requiredTimelineBDirectorToken}`);
@@ -454,7 +454,7 @@ for (const requiredActiveBcUiCopy of [
   'C素材候选已生成',
   '文稿 + C素材候选',
   '等待 Agent 生成 C 素材候选',
-  'B 寿命控制 C 何时上台、下台和静态留场',
+  '默认 C 写完继续留场，只有显式截止时间才隐藏',
   'C 书写速度由 C 书写速度控制，不由 B 寿命隐式改写',
 ]) {
   if (!activeVisibleBcUiText.includes(requiredActiveBcUiCopy)) {

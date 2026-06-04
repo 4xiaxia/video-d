@@ -31,7 +31,7 @@ export function TimelineTrackRow({
   playheadMs: number;
   selectedClipId: string | null;
   onSelectClip: (clipId: string | null) => void;
-  onUpdateBoardTiming?: (clipId: string, patch: Partial<Pick<TimelineClip, 'startMs' | 'endMs'>>) => void;
+  onUpdateBoardTiming?: (clipId: string, patch: Partial<Pick<TimelineClip, 'startMs' | 'endMs' | 'hideAtMs'>>) => void;
 }) {
   const safeDurationMs = Math.max(1000, durationMs);
   const sortedClips = [...clips].sort((left, right) => (

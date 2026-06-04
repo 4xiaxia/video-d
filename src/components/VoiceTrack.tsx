@@ -29,7 +29,7 @@ export function VoiceTrack({
   playheadMs: number;
   selectedClipId: string | null;
   onSelectClip: (clipId: string | null) => void;
-  onUpdateBoardTiming: (clipId: string, patch: Partial<Pick<TimelineClip, 'startMs' | 'endMs'>>) => void;
+  onUpdateBoardTiming: (clipId: string, patch: Partial<Pick<TimelineClip, 'startMs' | 'endMs' | 'hideAtMs'>>) => void;
 }) {
   const selectedBoardTimingClip = boardTimingClips.find((clip) => clip.id === selectedClipId);
 

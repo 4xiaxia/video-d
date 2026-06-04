@@ -37,7 +37,7 @@ export function TimelineClipBlock({
   isSelected: boolean;
   layerIndex?: number;
   onSelectClip: (clipId: string) => void;
-  onUpdateBoardTiming?: (clipId: string, patch: Partial<Pick<TimelineClip, 'startMs' | 'endMs'>>) => void;
+  onUpdateBoardTiming?: (clipId: string, patch: Partial<Pick<TimelineClip, 'startMs' | 'endMs' | 'hideAtMs'>>) => void;
 }) {
   const dragStateRef = useRef<{
     clipId: string;
@@ -58,8 +58,9 @@ export function TimelineClipBlock({
   const clipSubtitle = clip.kind === 'board' ? '' : rawClipSubtitle;
   const safeDurationMs = Math.max(1000, durationMs);
   const displayStartMs = previewPatch?.startMs ?? clip.startMs;
-  const displayEndMs = previewPatch?.endMs ?? clip.endMs;
-  const canDragTiming = clip.kind === 'board' && onUpdateBoardTiming;
+  const displayEndMs = previewPatch?.hideAtMs ?? previewPatch?.endMs ?? clip.hideAtMs ?? clip.endMs;
+  const isBoardClipLocked = clip.kind === 'board' && clip.hideAtMs === undefined;
+  const canDragTiming = clip.kind === 'board' && onUpdateBoardTiming && !isBoardClipLocked;
 
   const flushPreviewPatch = (nextPatch: BoardDisplayWindowPatch) => {
     pendingPreviewRef.current = nextPatch;
@@ -194,7 +195,22 @@ export function TimelineClipBlock({
       <MathText className="clip-title">{clipTitle}</MathText>
       {clipSubtitle ? <MathText className="clip-subtitle">{clipSubtitle}</MathText> : null}
       {clip.kind === 'board' ? (
-        <span aria-label="写完后保持可见" className="clip-end-pin" role="status" />
+        <span
+          aria-label={isBoardClipLocked ? '板书已锁定：写完后保持可见，点击解锁截止时间' : '板书已解锁：到截止时间隐藏，点击恢复默认留场'}
+          aria-pressed={isBoardClipLocked}
+          className={['clip-end-pin', isBoardClipLocked ? 'is-locked' : 'is-unlocked'].join(' ')}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+          }}
+          onPointerDown={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onUpdateBoardTiming?.(clip.id, {
+              hideAtMs: isBoardClipLocked ? clip.endMs : undefined,
+            });
+          }}
+        />
       ) : null}
       {canDragTiming ? (
         <span

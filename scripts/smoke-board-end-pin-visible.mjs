@@ -9,7 +9,7 @@ const checkFile = join(outDir, 'check.mjs');
 mkdirSync(outDir, { recursive: true });
 
 execFileSync(
-  join(root, 'runtime', 'node', 'node.exe'),
+  process.execPath,
   [join(root, 'node_modules', 'typescript', 'bin', 'tsc'), '--noEmit', 'false', '--outDir', outDir],
   {
     cwd: root,
@@ -25,20 +25,23 @@ writeFileSync(
 
 writeFileSync(
   checkFile,
-  `import { isPlayheadInsideTimelineWindow, isPlayheadInsideTimelineWindowWithPinnedEnd } from './modules/timeline/timelineWindow.js';\n` +
+  `import { isBoardClipVisibleAtPlayhead, isPlayheadInsideTimelineWindow } from './modules/timeline/timelineWindow.js';\n` +
     `if (isPlayheadInsideTimelineWindow(1000, 0, 1000) !== false) {\n` +
     `  throw new Error('base window should keep end exclusive for generic timeline checks');\n` +
     `}\n` +
-    `if (isPlayheadInsideTimelineWindowWithPinnedEnd(1000, 0, 1000) !== true) {\n` +
-    `  throw new Error('pinned-end window must include end frame for board visibility');\n` +
+    `if (isBoardClipVisibleAtPlayhead(1000, 0) !== true) {\n` +
+    `  throw new Error('board clip should stay visible when hideAtMs is absent');\n` +
     `}\n` +
-    `if (isPlayheadInsideTimelineWindowWithPinnedEnd(1001, 0, 1000) !== false) {\n` +
-    `  throw new Error('pinned-end window must still reject values past end');\n` +
+    `if (isBoardClipVisibleAtPlayhead(1001, 0, 1000) !== false) {\n` +
+    `  throw new Error('board clip should hide after explicit hideAtMs');\n` +
+    `}\n` +
+    `if (isBoardClipVisibleAtPlayhead(-1, 0) !== false) {\n` +
+    `  throw new Error('board clip should stay hidden before startMs');\n` +
     `}\n` +
     `console.log('[smoke-board-end-pin-visible] passed');\n`,
 );
 
-execFileSync(join(root, 'runtime', 'node', 'node.exe'), [checkFile], {
+execFileSync(process.execPath, [checkFile], {
   cwd: outDir,
   stdio: 'inherit',
 });

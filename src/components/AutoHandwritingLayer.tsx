@@ -24,7 +24,7 @@ import {
   resolveBoardTextDisplayRoute,
   useBoardStickerDragController,
 } from '../modules/boardSticker';
-import { isPlayheadInsideTimelineWindowWithPinnedEnd, isPlayheadInsideTimelineWindowWithStaticHold } from '../modules/timeline/timelineWindow';
+import { isBoardClipVisibleAtPlayhead } from '../modules/timeline/timelineWindow';
 import { BoardTextSticker } from './BoardTextSticker';
 import type { BoardClipPatch } from './drawboardStageTypes';
 
@@ -109,7 +109,7 @@ export function AutoHandwritingLayer({
   // z-index follows the original A/C writing anchor, not the draggable B lifetime.
   const visibleBoardClips = useMemo(() => {
     return boardClips
-      .filter((clip) => isPlayheadInsideTimelineWindowWithStaticHold(playheadMs, clip.startMs, clip.endMs))
+      .filter((clip) => isBoardClipVisibleAtPlayhead(playheadMs, clip.startMs, clip.hideAtMs))
       .sort(compareBoardClipLayerOrder);
   }, [boardClips, playheadMs]); // 使用useMemo缓存结果
 

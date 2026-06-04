@@ -66,7 +66,7 @@ type TeachingEditorState = {
   applyBoardEventsToTimeline: (boardEvents: BoardEvent[]) => void;
   syncCAssetPrewarmQueue: (cAssets: TeachingCAsset[]) => void;
   updateBoardClip: (clipId: string, patch: BoardClipPatch) => void;
-  updateBoardTiming: (clipId: string, patch: Partial<Pick<TimelineClip, 'startMs' | 'endMs'>>) => void;
+  updateBoardTiming: (clipId: string, patch: Partial<Pick<TimelineClip, 'startMs' | 'endMs' | 'hideAtMs'>>) => void;
   updateSelectedBoardClip: (patch: BoardClipPatch) => void;
 };
 
@@ -76,6 +76,7 @@ type BoardClipPatch = Partial<
     | 'label'
     | 'startMs'
     | 'endMs'
+    | 'hideAtMs'
     | 'color'
     | 'xPercent'
     | 'yPercent'
@@ -489,7 +490,7 @@ export const useTeachingEditorStore = create<TeachingEditorState>((set) => {
       }),
     updateBoardClip: (clipId, patch) =>
       set((state) => updateBoardClipState(state, clipId, patch)),
-    updateBoardTiming: (clipId: string, patch: Partial<Pick<TimelineClip, 'startMs' | 'endMs'>>) =>
+    updateBoardTiming: (clipId: string, patch: Partial<Pick<TimelineClip, 'startMs' | 'endMs' | 'hideAtMs'>>) =>
       set((state) => updateBoardClipState(state, clipId, patch)),
     updateSelectedBoardClip: (patch) =>
       set((state) => {
@@ -929,6 +930,12 @@ function updateBoardClipState(
       startMs: nextClip.startMs,
     });
     const { endMs, startMs } = displayWindow;
+    const nextHideAtMs = normalizeBoardHideAtMs({
+      displayEndMs: endMs,
+      displayStartMs: startMs,
+      patch,
+      previousHideAtMs: clip.hideAtMs,
+    });
     const visualPatch = normalizeBoardStickerVisualPatch(nextClip);
     const revealWindow = normalizeBoardRevealWindow({
       displayEndMs: endMs,
@@ -951,6 +958,7 @@ function updateBoardClipState(
       widthPercent: visualPatch.widthPercent,
       fontSize: nextClip.fontSize === undefined ? undefined : visualPatch.fontSize,
       drawSpeed: visualPatch.drawSpeed,
+      hideAtMs: nextHideAtMs,
       revealEndMs: revealWindow.revealEndMs,
       revealStartMs: revealWindow.revealStartMs,
       sourceEndMs,
@@ -970,6 +978,28 @@ function updateBoardClipState(
   return {
     project: persistProject(project),
   };
+}
+
+function normalizeBoardHideAtMs({
+  displayEndMs,
+  displayStartMs,
+  patch,
+  previousHideAtMs,
+}: {
+  displayEndMs: number;
+  displayStartMs: number;
+  patch: BoardClipPatch;
+  previousHideAtMs: number | undefined;
+}): number | undefined {
+  if (Object.prototype.hasOwnProperty.call(patch, 'hideAtMs')) {
+    return patch.hideAtMs;
+  }
+
+  if (patch.endMs !== undefined) {
+    return Math.max(displayStartMs + 1, displayEndMs);
+  }
+
+  return previousHideAtMs;
 }
 
 function createVoiceTimelineClips(results: TtsSentenceResult[]): TimelineClip[] {

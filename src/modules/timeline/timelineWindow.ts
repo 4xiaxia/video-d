@@ -2,32 +2,24 @@ export function isPlayheadInsideTimelineWindow(playheadMs: number, startMs: numb
   return playheadMs >= startMs && playheadMs < endMs;
 }
 
-export function isPlayheadInsideTimelineWindowWithPinnedEnd(playheadMs: number, startMs: number, endMs: number) {
-  return playheadMs >= startMs && playheadMs <= endMs;
-}
-
 /**
- * 问题2 修复：B 结束后，C 保持显示（静态留场）
+ * C 板书可见性：写完不等于下台。
  *
- * 机制：playheadMs > endMs 时，给予 STATIC_HOLD_DURATION_MS 的宽限期
- * 超过宽限期才真正隐藏，避免播放略过 endMs 时 C 立即消失的抖动感
+ * 产品语义：直播仿板书在线解题里，C 自然播放完成后默认 stay。
+ * 只有显式传入 hideAtMs（解锁后的截止时间）时，才在该时间点隐藏。
  */
-const STATIC_HOLD_DURATION_MS = 1000; // 1秒宽限期（可调）
-
-export function isPlayheadInsideTimelineWindowWithStaticHold(
+export function isBoardClipVisibleAtPlayhead(
   playheadMs: number,
   startMs: number,
-  endMs: number,
+  hideAtMs?: number,
 ): boolean {
-  // 在正常窗口内
-  if (playheadMs >= startMs && playheadMs <= endMs) {
-    return true;
+  if (playheadMs < startMs) {
+    return false;
   }
 
-  // B 已结束，给予静态留场宽限期
-  if (playheadMs > endMs && playheadMs <= endMs + STATIC_HOLD_DURATION_MS) {
-    return true;
+  if (hideAtMs !== undefined && playheadMs >= hideAtMs) {
+    return false;
   }
 
-  return false;
+  return true;
 }

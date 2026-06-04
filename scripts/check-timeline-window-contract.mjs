@@ -9,13 +9,16 @@ if (!helperText.includes('playheadMs >= startMs && playheadMs < endMs')) {
   throw new Error('Timeline window contract must be [startMs, endMs).');
 }
 
+if (!autoHandwritingText.includes('isBoardClipVisibleAtPlayhead')) {
+  throw new Error('AutoHandwritingLayer must use board visibility contract: startMs + optional hideAtMs.');
+}
+
 for (const [name, text] of [
-  ['AutoHandwritingLayer', autoHandwritingText],
   ['TimelineTrackRow', timelineTrackRowText],
   ['voicePlaybackStart', voicePlaybackStartText],
 ]) {
   if (!text.includes('isPlayheadInsideTimelineWindow')) {
-    throw new Error(`${name} must use isPlayheadInsideTimelineWindow for A/B/C active window checks.`);
+    throw new Error(`${name} must use isPlayheadInsideTimelineWindow for active window checks.`);
   }
 }
 

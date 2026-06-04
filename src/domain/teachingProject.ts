@@ -32,6 +32,11 @@ export type TimelineClip = {
   drawSpeed?: number;
   revealStartMs?: number;
   revealEndMs?: number;
+  /**
+   * C 下台截止时间。
+   * 未设置 = 板书自然播放完成后默认 stay；设置后 = 到点隐藏。
+   */
+  hideAtMs?: number;
   sourceStartMs?: number;
   sourceEndMs?: number;
   sourceRef?: string;

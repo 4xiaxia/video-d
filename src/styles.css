@@ -1204,21 +1204,43 @@ button {
   background: linear-gradient(135deg, #ffd88f 0%, #ffc46b 100%);
 }
 
-/* 躺尸锁：板书写完后保持可见，不消失 */
+/* 留场锁：默认锁定 = 写完继续留场；解锁后才允许按截止时间退场 */
 .clip-end-pin {
+  align-items: center;
   background: #9e6b2e;
+  border: 0;
   border-radius: 50%;
   box-shadow:
     0 0 0 1.5px rgba(255, 216, 143, 0.7),
     0 1px 3px rgba(82, 56, 20, 0.16);
-  height: 6px;
-  pointer-events: none;
+  cursor: pointer;
+  display: inline-flex;
+  height: 10px;
+  justify-content: center;
+  padding: 0;
+  pointer-events: auto;
   position: absolute;
   right: 2px;
   top: 50%;
   transform: translateY(-50%);
-  width: 6px;
-  z-index: 1;
+  width: 10px;
+  z-index: 3;
+}
+
+.clip-end-pin.is-locked {
+  background: #9e6b2e;
+}
+
+.clip-end-pin.is-unlocked {
+  background: #d48b2f;
+  box-shadow:
+    0 0 0 1.5px rgba(255, 231, 191, 0.9),
+    0 1px 3px rgba(82, 56, 20, 0.22);
+}
+
+.clip-end-pin:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.88);
+  outline-offset: 2px;
 }
 
 .clip--marker {

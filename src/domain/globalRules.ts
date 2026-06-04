@@ -22,8 +22,8 @@
  *
  * 核心原则：是谁就是谁，唯一性
  * - A轨：语音主轴，只播放、试听、重生成
- * - B轨：寿命/显示窗口，控制 C 何时上台、下台和静态留场
- * - C轨：画布演员/板书内容/位置/字号/书写速度/演绎资产
+ * - B轨：站场控制轨，控制 C 何时上台；解锁后才提供 C 下台截止时间
+ * - C轨：画布演员/板书内容/位置/字号/书写速度/演绎资产；自然播放完成后默认留场
  */
 export const ABC_TRACK_IDENTITY = {
   /** A轨（命）- 初始天命/语音主轴 */
@@ -39,8 +39,8 @@ export const ABC_TRACK_IDENTITY = {
   B: {
     name: 'B轨',
     fullName: 'B 寿命轨',
-    description: 'B 寿命控制 C 何时上台、下台和静态留场',
-    responsibility: '寿命/显示窗口，"生死簿"',
+    description: 'B 站场控制 C 何时上台；解锁后才提供下台截止时间',
+    responsibility: '站场/显示窗口，默认留场的控制入口',
     controlLocation: '音轨上', // B轨控制只在音轨上，不在时间轴上
     dataMapping: '根据对应的板书和语音以及阿里云返回的分片段语音json时序，根据顺序对应的，一个一行（一个b的一行）',
     uniqueIdentity: '时间控制',
@@ -62,14 +62,15 @@ export const ABC_TRACK_IDENTITY = {
 /**
  * ABC三轨的生克关系
  * 
- * B 寿命超过 A source 的尾巴，C 静态留场，不拖慢书写。
+ * C 自然播放完成后默认留场；reveal 完成不等于 C 下台。
+ * 只有显式 hideAtMs / 解锁后的截止时间存在时，C 才在该时间点隐藏。
  * C 的书写速度由 drawSpeed 控制，不由 B 寿命隐式改写。
  */
 export const ABC_INTERPLAY_RULES = {
-  /** B控制条大于A的语音长度时，C静态停留不动 */
-  B_LONGER_THAN_A: 'C静态停留不动',
-  /** B寿命短于A source时，只缩短显示窗口；C书写速度仍由 drawSpeed 控制 */
-  B_SHORTER_THAN_A: '只缩短显示窗口，不隐式改写C书写速度',
+  /** 默认状态：C 写完后继续留场，直到显式给出 hideAtMs */
+  C_DEFAULT_STAY: '自然播放完成后默认留场，直到显式给出hideAtMs',
+  /** B解锁并提供截止时间时，C 才会在该时间点隐藏 */
+  B_UNLOCKED_HIDE: '解锁后提供hideAtMs，C才到点隐藏',
   /** C画布板书的大小、定位、色彩、字体、动作、内容 */
   C_ATTRIBUTES: ['大小', '定位', '色彩', '字体', '动作', '内容'],
 } as const;
@@ -412,9 +413,9 @@ export function getChainKeyTemplateForSection(section: string): string {
  * 1. B 寿命由 A 返回真实时长后生成，不由 boardSlice 直接生成
  * 2. C 素材候选（boardSlice）不等于正式 B/C 内容
  * 3. B/C 同住 TimelineClip(kind='board') 是过渡态，概念必须按 A/B/C 拆开理解
- * 4. 字段写入口唯一：A source 由生成器写入，B display 由 Inspector 编辑，C reveal 由 A∩B 计算，C visual 由 Inspector 编辑
- * 5. C 不显示时，优先检查 B 窗口是否正确（AutoHandwritingLayer 过滤条件：playheadMs >= startMs && < endMs）
- * 6. C 写完后应留场到 B 结束，不应播放结束即消失
+ * 4. 字段写入口唯一：A source 由生成器写入，B display 由时间轴编辑，C reveal 由 A∩B 计算，C visual 由 Inspector 编辑，C hideAtMs 只由解锁后的 B 截止时间写入
+ * 5. C 不显示时，优先检查 C 可见性：startMs 已到，且没有显式 hideAtMs 或 playheadMs 未到 hideAtMs
+ * 6. C 写完后默认留场；reveal 完成不等于 C 下台
  */
 export const STEP3_TO_STEP4_BOUNDARY = {
   /** B 寿命生成时机：A 返回真实时长后才生成 B 寿命 */
@@ -426,9 +427,9 @@ export const STEP3_TO_STEP4_BOUNDARY = {
   /** ABC 成组原则：B 不可能独立存在，ABC 必须成组 */
   ABC_GROUP_RULE: 'ABC必须成组，不存在B-only或C-only',
   /** C 不显示优先检查口径 */
-  C_NOT_VISIBLE_CHECK: '优先检查B窗口是否正确（AutoHandwritingLayer过滤条件）',
-  /** C 留场规则：C 写完后留场到 B 结束 */
-  C_STAY_UNTIL_B_ENDS: 'C写完后留场到B结束，不应播放结束即消失',
+  C_NOT_VISIBLE_CHECK: '优先检查C可见性：startMs已到，且hideAtMs不存在或尚未到hideAtMs',
+  /** C 留场规则：C 写完后默认留场 */
+  C_DEFAULT_STAY_RULE: 'C自然播放完成后默认留场；只有显式hideAtMs才下台',
   /** C 字体过滤规则：字符过滤不能把字体支持的字符拦截走 */
   C_FONT_FILTER_RULE: '字符过滤不能把字体支持的字符拦截走；a^2/x_1走手写字体，\\frac/多层上下标走公式路由',
 } as const;

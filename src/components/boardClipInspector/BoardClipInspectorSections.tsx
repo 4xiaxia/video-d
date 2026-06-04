@@ -253,7 +253,7 @@ export function BoardClipDrawFeelSection({
         </Space>
       </label>
       <Text type="secondary">只影响 C 在 A source ∩ B display 内的 reveal 快慢；不改 A 语音，不改 B 寿命。</Text>
-      <Text type="secondary">B 只管上台、下台和静态留场；C 书写快慢在“C 演绎”里单独调整，不反写 A/B。</Text>
+      <Text type="secondary">B 只管上台和解锁后的下台截止时间；默认 C 写完继续留场，C 书写快慢在“C 演绎”里单独调整，不反写 A/B。</Text>
       <Text type="secondary">C 书写速度由 C 书写速度控制，不由 B 寿命隐式改写</Text>
     </section>
   );

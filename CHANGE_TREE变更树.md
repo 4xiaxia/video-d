@@ -4,6 +4,60 @@
 
 cleanroom 的枝桠变动树。每次 side/枝桠动文件后，都在这里登记目标、文件变动、校验和下一枝入口。
 
+## 2026-06-04_第四步问题2代码纠偏：默认留场 + hideAtMs 显式下台
+
+- 目标：
+  - 按夏夏产品语境纠偏代码：本项目是直播仿板书在线解题，C 板书写完默认留在画布上。
+  - 撤掉 `STATIC_HOLD_DURATION_MS = 1000` 的错误“1 秒宽限”实现。
+  - 用最小字段语义表达：无截止时间则 stay，有截止时间则到点隐藏。
+- 代码结论：
+  - `TimelineClip.hideAtMs?: number` 是 C 显式下台截止时间。
+  - `hideAtMs === undefined` = 默认 lock，C 自然播放完成后继续 stay。
+  - `hideAtMs` 有值 = unlock 后的可控隐藏点，playhead 到点后 C 隐藏。
+  - B 拖动只在 unlock 后控制站场/隐藏截止时间；默认 lock 时不让拖动制造“自然下台”。
+- 已做：
+  - `src/modules/timeline/timelineWindow.ts`：删除 `STATIC_HOLD_DURATION_MS` / `isPlayheadInsideTimelineWindowWithStaticHold`，新增 `isBoardClipVisibleAtPlayhead(playheadMs, startMs, hideAtMs?)`。
+  - `src/domain/teachingProject.ts`：`TimelineClip` 新增 `hideAtMs?: number`。
+  - `src/components/AutoHandwritingLayer.tsx`：C 可见性改为 `startMs + optional hideAtMs`。
+  - `src/store/useTeachingEditorStore.ts`：B timing 调整 `endMs` 时同步写入 `hideAtMs`；默认不写即留场。
+  - `src/components/TimelineClipBlock.tsx`：clip 末尾 pin 改为 lock/unlock 控制入口；lock 默认留场，unlock 后允许拖 B。
+  - `src/modules/tldrawStage/abcToTldrawShapes.ts`：历史 tldraw 适配层同步新可见性契约，避免第二真相。
+  - 同步相关脚本、规则文案和状态文档。
+- 校验：
+  - `tsc --noEmit` ✅
+  - `scripts/check-timeline-window-contract.mjs` ✅
+  - `scripts/smoke-board-end-pin-visible.mjs` ✅
+  - `scripts/check-board-boundaries.mjs` ❌：提前失败在 Courseware stage edge 边框检查，非本轮 hideAtMs 主链，需后续单独处理。
+- 边界：
+  - 不碰前三步主链。
+  - 不改 A/B/C 基本语义。
+  - 不引入“1 秒留场”或“自然到 endMs 下台”的第二口径。
+- 下一枝：
+  - 启动页面做用户视角播放验收：自然播放后 C stay；解锁后拖 B 控制隐藏点；问题1四区约束不回退。
+
+## 2026-06-04_第四步问题2认知纠偏：默认锁定留场，不是1秒静态缓冲
+
+- 目标：
+  - 夏夏纠正第四步问题2的产品语义，先修文档认知，不急着继续错口径实现。
+  - 同步 `.claude/PROJECT_STATE.md`、`.claude/PROJECT_COGNITION.md` 与根目录核心文档里的 ABC / B / C 关系说明。
+- 认知纠偏结论：
+  - 项目本质是直播仿板书在线解题；板书 C 写完后默认应留在画布上，不存在“自然播放完就下台”的常规逻辑。
+  - `STATIC_HOLD_DURATION_MS = 1000` / “B 结束后 C 多留 1 秒”是错误理解：那只是短暂缓冲，不是默认留场。
+  - 正确语义：默认 lock 时，C 自然播放完成后继续 stay；unlock 后，允许通过拖动 B 控制 C 的站场/显示时长。
+- 已做（纯文档，未改代码）：
+  - `.claude/PROJECT_STATE.md`：重写当前状态，标明问题1已修复、问题2当前实现语义错误，待重做。
+  - `.claude/PROJECT_COGNITION.md`：更新 ABC 生克关系，明确 reveal 完成 ≠ C 下台；默认 lock 留场，unlock 后 B 控制站场时长。
+  - `真相路标-当前唯一入口.md`：把 B 字段说明从“出现/消失”改为“出现 / 进入可控站场状态”。
+  - `认知图-核心逻辑动态图.md`：补入 ABC 雷区说明与 B 寿命窗口元件说明，写明“默认留场 + 解锁后可控站场”。
+  - `ABC字段函数前端映射表.md`：把 `TimelineClip.startMs/endMs` 的语义从“出现/消失”纠偏为“默认留场 + 解锁后可控站场”。
+- 边界（未动）：
+  - 不改业务代码。
+  - 不拍板新字段名。
+  - 不把 lock/unlock 方案直接写死到数据模型，只先纠正文档真相。
+- 下一枝：
+  - 只读扫描 B 拖动 / clip end / timeline UI / lock 相关代码。
+  - 基于现有模型提出“默认锁定留场 + 解锁后 B 控制站场时长”的最小改动方案。
+
 ## 2026-06-02_X-ray全场压实+死代码隔离+数学路由文档闭环（全代码实证）
 
 - 目标：

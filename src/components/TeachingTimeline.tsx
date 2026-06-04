@@ -15,7 +15,7 @@
 // 📦 后续转换: BoardEvent[] -> timeline.clips(kind=board)
 // ⚠️ 边界: 时间轴展示不解析 TTS，不请求外部 API；B 寿命控制委托 VoiceTrack，右侧只编辑 C 素材属性
 // @b-director-anchor: VoiceTrack owns .voice-track-b-timing and .voice-track-b-timing-controls inside TeachingTimeline.
-// @b-director-copy: B 寿命 / 显示开始 ms / 显示结束 ms / 超过 A 后只静态留场
+// @b-director-copy: B 站场控制 / 显示开始 ms / 显示结束 ms / 默认 lock 留场，unlock 后写入下台截止时间
 // @b-track-ownership: B 寿命轨 / 语音时序 / note: '时间轴'
 // @b-track-generation: 等待按 C 素材候选和 A 轨时序生成 B 寿命。生成 B 寿命后自动出现图层
 
@@ -52,7 +52,7 @@ export function TeachingTimeline({
   onSetPlaying: (playing: boolean) => void;
   onSetLivePlayhead: (playheadMs: number | null) => void;
   onSetPlayhead: (playheadMs: number) => void;
-  onUpdateBoardTiming: (clipId: string, patch: Partial<Pick<TimelineClip, 'startMs' | 'endMs'>>) => void;
+  onUpdateBoardTiming: (clipId: string, patch: Partial<Pick<TimelineClip, 'startMs' | 'endMs' | 'hideAtMs'>>) => void;
 }) {
   const timelineDurationMs = Math.max(1000, ...clips.map((clip) => clip.endMs));
   const stopPlayback = useCallback(() => onSetPlaying(false), [onSetPlaying]);
