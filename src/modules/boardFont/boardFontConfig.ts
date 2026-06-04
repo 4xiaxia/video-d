@@ -34,17 +34,21 @@ export function createBoardTypographyConfig(input: BoardTypographyInput = {}): B
 }
 
 export function normalizeBoardFontUrl(url: string | undefined): string {
-  const candidateUrl = url?.trim();
+  if (url === undefined) {
+    return DEFAULT_BOARD_FONT_URL;
+  }
+
+  const candidateUrl = url.trim();
 
   if (!candidateUrl) {
-    return DEFAULT_BOARD_FONT_URL;
+    return '';
   }
 
   try {
     const parsedUrl = new URL(candidateUrl);
-    return parsedUrl.protocol === 'https:' ? parsedUrl.toString() : DEFAULT_BOARD_FONT_URL;
+    return parsedUrl.protocol === 'https:' ? parsedUrl.toString() : '';
   } catch {
-    return DEFAULT_BOARD_FONT_URL;
+    return '';
   }
 }
 

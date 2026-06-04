@@ -106,7 +106,7 @@ export function BoardTypographyControlledFields({
             });
           }}
           placeholder={localFontPlaceholder}
-          value={value.boardFontUrl || DEFAULT_BOARD_FONT_URL}
+          value={value.boardFontUrl ?? DEFAULT_BOARD_FONT_URL}
         />
       </label>
     </>

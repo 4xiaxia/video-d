@@ -859,7 +859,7 @@ writeFileSync(
     `const explicitFormulaTokens = tokenizeBoardText('$\\\\frac{1}{2}+\\\\frac{1}{3}$')[0];\n` +
     `if (explicitFormulaTokens.length !== 1 || explicitFormulaTokens[0].kind !== 'math' || !explicitFormulaTokens[0].latex.includes('\\\\frac')) throw new Error('explicit complex formulas must still render as math');\n` +
     `const speechProtectedArithmeticRoute = resolveBoardTextDisplayRoute('$25×4=100$');\n` +
-    `if (speechProtectedArithmeticRoute.kind !== 'handwriting' || speechProtectedArithmeticRoute.text !== '25×4=100') throw new Error('A speech-protected simple arithmetic must render through C handwriting route without dollar delimiters');\n` +
+    `if (speechProtectedArithmeticRoute.kind !== 'handwriting' || speechProtectedArithmeticRoute.text !== '25x4=100') throw new Error('A speech-protected simple arithmetic must render through C handwriting route without dollar delimiters and with display-safe glyphs');\n` +
     `const speechProtectedFormulaRoute = resolveBoardTextDisplayRoute('$\\\\frac{1}{2}+\\\\frac{1}{3}$');\n` +
     `if (speechProtectedFormulaRoute.kind !== 'formula') throw new Error('A speech-protected complex formula must still render through C formula route');\n` +
     `const parenTokens = tokenizeBoardText('\\\\(= \\\\frac{5}{8}\\\\)')[0];\n` +
