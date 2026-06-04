@@ -1,5 +1,5 @@
 ﻿:root {
-  --board-handwriting-font: "平方乔木体", "Xiaxia Qiaomu Board", "KaiTi", "STKaiti", serif;
+  --board-handwriting-font: "PING FANG SHAGN SHANG QIAN", "平方上尚签", "KaiTi", "STKaiti", serif;
   --board-font-size: 2.375rem;
   --zone-assets: #f6fbf8;
   --zone-stage: #f7f8fb;
@@ -1329,8 +1329,8 @@ button {
 
 .stage-canvas--courseware {
   background: #ffffff;
-  border: 0.5rem solid #59cee5;
-  border-radius: 0;
+  border: 8px solid rgba(85, 207, 231, 0.22);
+  border-radius: 18px;
   box-shadow: none;
   max-width: 100%;
   min-height: 420px;

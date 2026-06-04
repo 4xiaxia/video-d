@@ -69,7 +69,7 @@ export const boardControlResponsibilities: BoardControlResponsibility[] = [
     purpose: '调同一 reveal 窗口内的书写进度曲线。',
     owns: 'drawSpeed 的 clamp 与 reveal progress 曲线。',
     notOwns: '不改 startMs/endMs；不改 revealStartMs/revealEndMs；不改 A。',
-    effect: '只改变 reveal 快慢，不改变声音和 B 寿命窗口。',
+    effect: '只改变 reveal 快慢，不改变声音和 B 寿命窗口。C 书写速度由 C 书写速度控制，不由 B 寿命隐式改写。',
     fields: ['drawSpeed'],
     frontend: 'BoardClipInspector / C 书写速度',
     uniqueness: 'UI 输入基本唯一，消费函数唯一：getBoardRevealProgress()。',

@@ -87,7 +87,12 @@ if (stylesText.includes('grid-template-columns: 64px minmax(0, 1fr);')) {
   throw new Error('B board lane labels must not consume timeline coordinate width.');
 }
 
-if (stylesText.includes('border: 18px solid #55cfe7') || stylesText.includes('border-radius: 0;')) {
+if (stylesText.includes('border: 18px solid #55cfe7')) {
+  throw new Error('Courseware stage edge must stay thin, pale, and rounded instead of a heavy iframe-like border.');
+}
+
+const coursewareBlockMatch = stylesText.match(/\.stage-canvas--courseware\s*\{[^}]*\}/s);
+if (coursewareBlockMatch && (coursewareBlockMatch[0].includes('border-radius: 0;') || coursewareBlockMatch[0].includes('border: 0.5rem solid'))) {
   throw new Error('Courseware stage edge must stay thin, pale, and rounded instead of a heavy iframe-like border.');
 }
 

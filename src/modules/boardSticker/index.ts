@@ -13,6 +13,8 @@ export {
   hasBoardMath,
   isBoardTextSupportedByHandwritingFont,
   normalizeBoardMathText,
+  normalizeElementaryBoardHandwritingText,
+  normalizeHandwritingDisplayText,
   stripSimpleBoardMathDelimiters,
   tokenizeBoardText,
 } from './mathBoardText';

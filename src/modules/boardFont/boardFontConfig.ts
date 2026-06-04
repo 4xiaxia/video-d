@@ -4,10 +4,10 @@
 // @io-output: sanitized C board font url/family
 // @boundary: C board font only; never applies customer font to the whole app body
 
-export const DEFAULT_BOARD_FONT_URL = '';
-export const DEFAULT_BOARD_FONT_NAME = '平方乔木体';
+export const DEFAULT_BOARD_FONT_URL = 'https://fontsapi.zeoseven.com/511/main/result.css';
+export const DEFAULT_BOARD_FONT_NAME = 'PING FANG SHAGN SHANG QIAN';
 export const DEFAULT_BOARD_FONT_SIZE = 38;
-export const LOCAL_BOARD_FONT_FALLBACK = '"Xiaxia Qiaomu Board", "KaiTi", "STKaiti", serif';
+export const LOCAL_BOARD_FONT_FALLBACK = '"平方上尚签", "KaiTi", "STKaiti", serif';
 
 export type BoardTypographyConfig = {
   boardFontFamily: string;

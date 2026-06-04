@@ -1,7 +1,8 @@
 // Smoke test: board handwriting symbol support
 // Run: node scripts/smoke-board-handwriting-symbols.mjs
 
-import { resolveBoardTextDisplayRoute, isBoardTextSupportedByHandwritingFont } from '../src/modules/boardSticker/mathBoardText.ts';
+import { resolveBoardTextDisplayRoute } from '../src/modules/boardSticker/boardTextDisplayRoute.ts';
+import { isBoardTextSupportedByHandwritingFont } from '../src/modules/boardSticker/mathBoardText.ts';
 
 const cases = [
   // Pure Unicode — should go to handwriting

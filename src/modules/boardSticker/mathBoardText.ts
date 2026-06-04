@@ -26,7 +26,7 @@ const MATH_OPERATOR_PATTERN = /[=+\-×÷*/<>]/;
 const HANDWRITING_STRUCTURAL_MATH_PATTERN =
   /\\[a-zA-Z]+|[A-Za-z0-9)\]}]\s*[\^_]\s*\{[^}]+\}|[A-Za-z0-9)\]}]\s*[\^_]\s*[A-Za-z0-9]\s*[\^_]/;
 const HANDWRITING_ASCII_SYMBOLS = `!"#$%&'()*+,-./:;<=>?@[\\]^_\`{|}~`;
-const HANDWRITING_EXTRA_SYMBOLS = "\u201c\u201d\u2018\u2019\uff08\uff09\u3010\u3011\u300a\u300b\u3008\u3009\u300c\u300d\u300e\u300f\uff0c\u3002\uff01\uff1f\uff1b\uff1a\u3001\u2014\u2026\u00b7\uff1d\u00d7\u00f7\u2264\u2265\u2260\u2248\u2220\u00b0\u00b1\u2213\u221e\u03c0\u221d\u22a5\u2225\u25b3\u2299\u2235\u2234\u221a\u2208\u2205\u2192\u2190\u2194\u21d2\u2261\u2263\u22c5\u2261\u222b\u222b\u222b\u2200\u2203\u2282\u2283\u222a\u2229\u2260\u2032\u2033\u2103\u2109";
+const HANDWRITING_EXTRA_SYMBOLS = "\u201c\u201d\u2018\u2019\uff08\uff09\u3010\u3011\u300a\u300b\u3008\u3009\u300c\u300d\u300e\u300f\uff0c\u3002\uff01\uff1f\uff1b\uff1a\u3001\u2014\u2026\u00b7\uff1d\u00d7\u00f7\u2264\u2265\u2260\u2248\u2220\u00b0\u00b1\u2213\u221e\u03c0\u221d\u22a5\u2225\u25b3\u2299\u2235\u2234\u221a\u2208\u2205\u2192\u2190\u2194\u21d2\u2261\u2263\u22c5\u222b\u2200\u2203\u2282\u2283\u222a\u2229\u2032\u2033\u2103\u2109";
 
 export function normalizeBoardMathText(text: string) {
   return text
@@ -120,7 +120,6 @@ export function normalizeElementaryBoardHandwritingText(text: string): string {
     .replace(/\\Rightarrow\b/g, '⇒')
     .replace(/\\prime\b/g, '′')
     .replace(/\\dprime\b/g, '″')
-    .replace(/\\degree\b/g, '°')
     .replace(/\\sum\b/g, '∑')
     .replace(/\\prod\b/g, '∏')
     .replace(/\s+/g, ' ')
@@ -128,6 +127,16 @@ export function normalizeElementaryBoardHandwritingText(text: string): string {
 
   if (!normalizedText || normalizedText === text) {
     return text;
+  }
+
+  // 字体自适应：手写字体可能缺少 × ÷ 等 Unicode 数学符号，降级为 ASCII 替代
+  // ×(乘号)→小写x / ÷(除号)→·(中点)，字体原生支持的字母/标点比特殊符号更可靠
+  const fontAdaptiveText = normalizedText
+    .replace(/×/g, 'x')
+    .replace(/÷/g, '·');
+
+  if (isBoardTextSupportedByHandwritingFont(fontAdaptiveText)) {
+    return fontAdaptiveText;
   }
 
   if (isBoardTextSupportedByHandwritingFont(normalizedText)) {
@@ -237,6 +246,16 @@ function isHandwritingSupportedChar(char: string) {
     HANDWRITING_ASCII_SYMBOLS.includes(char) ||
     HANDWRITING_EXTRA_SYMBOLS.includes(char)
   );
+}
+
+/**
+ * 字体自适应显示降级：手写字体可能缺少 × ÷ 等 Unicode 数学符号，渲染前降级为 ASCII
+ * ×(乘号U+00D7)→小写x  ÷(除号U+00F7)→中点·
+ */
+export function normalizeHandwritingDisplayText(text: string): string {
+  return text
+    .replace(/×/g, 'x')
+    .replace(/÷/g, '·');
 }
 
 function stripOuterMathDelimiters(text: string) {

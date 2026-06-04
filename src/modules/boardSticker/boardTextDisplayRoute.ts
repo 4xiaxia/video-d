@@ -7,6 +7,7 @@ import {
   hasBoardMath,
   isBoardTextSupportedByHandwritingFont,
   normalizeElementaryBoardHandwritingText,
+  normalizeHandwritingDisplayText,
   stripSimpleBoardMathDelimiters,
 } from './mathBoardText';
 
@@ -25,7 +26,7 @@ export function resolveBoardTextDisplayRoute(text: string): BoardTextDisplayRout
   if (elementaryHandwritingText !== text) {
     return {
       kind: 'handwriting',
-      text: elementaryHandwritingText,
+      text: normalizeHandwritingDisplayText(elementaryHandwritingText),
     };
   }
 
@@ -33,14 +34,14 @@ export function resolveBoardTextDisplayRoute(text: string): BoardTextDisplayRout
   if (handwritingText !== text) {
     return {
       kind: 'handwriting',
-      text: handwritingText,
+      text: normalizeHandwritingDisplayText(handwritingText),
     };
   }
 
   if (isBoardTextSupportedByHandwritingFont(text)) {
     return {
       kind: 'handwriting',
-      text,
+      text: normalizeHandwritingDisplayText(text),
     };
   }
 
@@ -53,6 +54,6 @@ export function resolveBoardTextDisplayRoute(text: string): BoardTextDisplayRout
 
   return {
     kind: 'handwriting',
-    text,
+    text: normalizeHandwritingDisplayText(text),
   };
 }
