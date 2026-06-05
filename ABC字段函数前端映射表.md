@@ -1,5 +1,16 @@
 # 字段-函数-ABC功能-前端映射表（持续更新）
 
+## 2026-06-05 C 文本降配实施锚点
+
+| 项 | 内容 |
+| --- | --- |
+| 当前主线 | `boardSlice` 普通多行文本 -> 保留用户换行 `\n` -> 手写字体 -> 逐字 reveal |
+| 冻结备用 | SVG/path/逐笔轨迹路线，不删除，但当前不按它施工 |
+| 必须先做 | 只读定位页面/舞台渲染层哪里丢 `\n` |
+| 后续字段原则 | 文本 layout 只能承接既有 C 参数：`boardSlice/fontSize/lineHeight/widthPercent` 等；若新增标签拖动持久化，必须独立字段，不得污染 `boardSlice` |
+| 同源要求 | DOM 预览、Canvas 录制、未来 Konva 必须消费同一文本 layout 结果，禁止第二套排版 |
+| 标签原则 | 先 bbox + 3px 自适应；再单独做 manual override。override 示例：`labelPlacement: { source: "auto" | "manual", ... }`，正式字段名前必须再设计确认 |
+
 ## 2026-05-30 批注
 
 | 字段 | 内容 |
