@@ -143,3 +143,5 @@ DOM 标签和 Canvas 录制标签共用 COURSEWARE_ZONE_BOUNDS（同源坐标）
 - 文档待纠偏文件：`真相路标-当前唯一入口.md`、`认知图-核心逻辑动态图.md`、`ABC字段函数前端映射表.md`、`CHANGE_TREE变更树.md`。
 - 代码待查重点：页面/舞台渲染层为什么把第三步正确的多行 `boardSlice` 写错；优先查换行保留、`lineHeight`、文本块 bbox、标签与内容块 3px 自适应关系。
 - Agent 实时排版矫正只能是兜底：检测越界/压线/遮挡，给建议或轻量调 `fontSize/xPercent/yPercent/widthPercent`；不能偷偷改 `boardSlice`，尤其不能改用户换行。
+- 最低风险施工顺序：先不引入 Agent，只埋未来矫正线；先保留多行文本真相，再测文本块 bbox，再让标签默认跟随 bbox + 3px，最后才做标签拖动 manual override。
+- 施工纪律：夏夏很害怕改错，宁可慢也必须安全。每次变更都要小步、可回退、先说明目标和边界；代码/文档变更后必须写 `CHANGE_TREE变更树.md` 记录目标、改动文件、验证和下一枝入口。
