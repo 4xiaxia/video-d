@@ -1,0 +1,98 @@
+{
+  "projectDocs": [
+    "AGENTS.md",
+    "PROJECT_STATE.md",
+    "ENGINEERING_LOG.md",
+    "DECISIONS.md",
+    "ARCHITECTURE.md",
+    "KNOWN_ISSUES.md",
+    "PROJECT_TREE.md"
+  ],
+  "requiredPaths": [
+    {
+      "name": "local-continuity-standard-skill",
+      "path": "${CODEX_HOME}/skills/local-continuity-standard/SKILL.md"
+    },
+    {
+      "name": "memory-cache-mcp-build",
+      "path": "${CLAUDE_HOME}/cache/ib-mcp-cache-server/build/index.js"
+    },
+    {
+      "name": "xiaxia-continuity-skill",
+      "path": "${CLAUDE_HOME}/skills/xiaxia-continuity/SKILL.md"
+    },
+    {
+      "name": "xiaxia-context-compression-skill",
+      "path": "${CLAUDE_HOME}/skills/xiaxia-context-compression/SKILL.md"
+    },
+    {
+      "name": "xiaxia-anchor-marking-skill",
+      "path": "${CLAUDE_HOME}/skills/xiaxia-anchor-marking/SKILL.md"
+    },
+    {
+      "name": "graphify-skill",
+      "path": "${CLAUDE_HOME}/skills/graphify/SKILL.md"
+    },
+    {
+      "name": "continuity-weapon",
+      "path": ".claude/desktop-tools/continuity-weapon/continuity-doctor.ps1"
+    },
+    {
+      "name": "desktop-eye",
+      "path": ".claude/desktop-tools/eye-full.ps1"
+    },
+    {
+      "name": "desktop-hand",
+      "path": ".claude/desktop-tools/hand-click.ps1"
+    }
+  ],
+  "requiredCommands": [
+    {
+      "command": "imptokens",
+      "args": ["--version"]
+    },
+    {
+      "command": "graphify",
+      "args": ["--version"]
+    },
+    {
+      "command": "codesight",
+      "args": ["--version"]
+    },
+    {
+      "command": "ccwf",
+      "args": ["--help"]
+    },
+    {
+      "command": "ccwf-mcp",
+      "args": ["--help"]
+    }
+  ],
+  "optionalCommands": [
+    {
+      "command": "sqz",
+      "args": ["--version"],
+      "installHint": "Install only when needed: npm install -g sqz-cli, or use the upstream PowerShell installer after network access is stable."
+    },
+    {
+      "command": "sqz-mcp",
+      "args": ["--help"],
+      "installHint": "Install with sqz only when the sqz binary smoke passes."
+    },
+    {
+      "command": "distill",
+      "args": ["--help"],
+      "installHint": "Do not use npm package distill@0.0.3 as a CLI; pick the intended summarizer package or source repo first."
+    },
+    {
+      "command": "houtini-lm",
+      "args": ["--help"],
+      "installHint": "Candidate only; install after one-project routing trial is planned."
+    },
+    {
+      "command": "cc-token-saver-mcp",
+      "args": ["--help"],
+      "installHint": "Record-only candidate; do not enable with another token-saving MCP layer."
+    }
+  ]
+}

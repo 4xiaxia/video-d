@@ -141,12 +141,12 @@ button {
 .app-shell {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   height: 100vh;
   min-height: 0;
   min-width: 1160px;
   overflow: hidden;
-  padding: 18px 22px 26px;
+  padding: 16px 20px 24px;
 }
 
 .app-header {
@@ -161,7 +161,7 @@ button {
   justify-content: space-between;
   line-height: 1.3;
   margin-bottom: 0;
-  padding: 14px 16px;
+  padding: 12px 16px;
 }
 
 .app-title-block {
@@ -186,7 +186,7 @@ button {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 9px;
+  margin-top: 8px;
 }
 
 .studio-status-pill {
@@ -197,8 +197,8 @@ button {
   color: #6d7f94;
   display: inline-flex;
   font-size: 12px;
-  gap: 5px;
-  padding: 4px 9px;
+  gap: 6px;
+  padding: 4px 10px;
 }
 
 .studio-status-pill.is-done {
@@ -215,7 +215,7 @@ button {
   align-items: start;
   display: grid;
   flex: 1 1 auto;
-  gap: 14px;
+  gap: 16px;
   grid-template-columns: minmax(300px, 3fr) minmax(500px, 5fr) minmax(220px, 2fr);
   min-height: 0;
   width: 100%;
@@ -302,10 +302,10 @@ button {
   border-radius: 16px;
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 16px;
   justify-content: space-between;
   margin-bottom: 12px;
-  padding: 14px;
+  padding: 16px;
 }
 
 .workflow-hero > div {
@@ -326,16 +326,16 @@ button {
   color: #21aee8;
   display: block;
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .workflow-rail {
   display: grid;
-  gap: 10px;
+  gap: 12px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .workflow-step {
@@ -346,9 +346,9 @@ button {
   color: #50637a;
   cursor: pointer;
   display: flex;
-  gap: 8px;
-  min-height: 58px;
-  padding: 9px 10px;
+  gap: 12px;
+  min-height: 60px;
+  padding: 10px 12px;
   text-align: left;
   transition:
     background 0.16s ease,
@@ -379,7 +379,7 @@ button {
 
 .workflow-step.is-active {
   background: linear-gradient(135deg, #ffffff, #eaf8ff);
-  border-color: rgba(33, 174, 232, 0.72);
+  border-color: rgba(17, 176, 240, 0.72);
   box-shadow:
     0 0 0 3px rgba(85, 207, 231, 0.12),
     0 8px 18px rgba(85, 207, 231, 0.16);
@@ -440,8 +440,8 @@ button {
 
 .asset-step-panel {
   display: grid;
-  gap: 10px;
-  margin-top: 10px;
+  gap: 12px;
+  margin-top: 12px;
 }
 
 .project-archive-actions {
@@ -569,13 +569,13 @@ button {
 
 .asset-title.ant-typography {
   color: #26384f;
-  margin: 10px 0 6px;
+  margin: 12px 0 8px;
 }
 
 .asset-source {
   color: #8a9bb2;
   font-size: 12px;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .stage-canvas {
@@ -699,10 +699,10 @@ button {
   border: 1px solid rgba(232, 166, 66, 0.2);
   border-radius: 14px;
   display: grid;
-  gap: 8px;
+  gap: 12px;
   grid-template-columns: auto minmax(220px, 1fr);
-  margin-bottom: 8px;
-  padding: 8px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
 }
 
 .timeline-play-button.ant-btn {
@@ -742,7 +742,7 @@ button {
 
 .track-row {
   display: grid;
-  gap: 10px;
+  gap: 12px;
   grid-template-columns: 126px minmax(0, 1fr);
 }
 
@@ -754,7 +754,7 @@ button {
   align-items: center;
   color: #56708f;
   display: flex;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .track-lane {
@@ -802,7 +802,7 @@ button {
   border-radius: 14px;
   display: grid;
   gap: 8px;
-  padding: 10px 0;
+  padding: 12px 0;
 }
 
 .board-sticker-lane-row {
@@ -846,8 +846,8 @@ button {
   border: 1px solid rgba(91, 127, 186, 0.14);
   border-radius: 14px;
   display: grid;
-  gap: 8px;
-  padding: 10px;
+  gap: 12px;
+  padding: 12px;
 }
 
 .voice-track-meta {
@@ -877,8 +877,8 @@ button {
 
 .voice-advanced-collapse .ant-collapse-content-box {
   display: grid;
-  gap: 10px;
-  padding: 0 10px 10px !important;
+  gap: 12px;
+  padding: 0 12px 12px !important;
 }
 
 .voice-batch-card.ant-card {
@@ -888,7 +888,7 @@ button {
 }
 
 .voice-batch-summary {
-  margin: 10px 0;
+  margin: 12px 0;
 }
 
 .voice-batch-summary .ant-progress {
@@ -897,7 +897,7 @@ button {
 }
 
 .voice-batch-list.ant-list {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .voice-batch-list-item.ant-list-item {
@@ -940,9 +940,9 @@ button {
   border: 1px solid rgba(91, 127, 186, 0.16);
   border-radius: 8px;
   display: grid;
-  gap: 8px;
-  margin-top: 10px;
-  padding: 8px;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 12px;
 }
 
 .script-segment-preview__header {
@@ -960,7 +960,7 @@ button {
 
 .script-segment-preview__list {
   display: grid;
-  gap: 8px;
+  gap: 12px;
 }
 
 .script-segment-preview__item {
@@ -995,9 +995,9 @@ button {
   border: 1px solid rgba(91, 127, 186, 0.16);
   border-radius: 10px;
   display: grid;
-  gap: 10px;
-  margin-top: 10px;
-  padding: 10px;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 12px;
 }
 
 .script-segment-workbench__head {
@@ -1027,7 +1027,7 @@ button {
 
 .script-segment-workbench__list {
   display: grid;
-  gap: 8px;
+  gap: 12px;
 }
 
 .script-segment-workbench__row {
@@ -1056,7 +1056,7 @@ button {
 .script-segment-workbench__rail small {
   color: #6b85a8;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .script-segment-workbench__body {
@@ -1122,7 +1122,7 @@ button {
 
 .clip-title {
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1.2;
 }
 
@@ -1265,7 +1265,7 @@ button {
 }
 
 .problem-image-uploader {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .problem-image-uploader .ant-upload-drag {
@@ -1278,8 +1278,8 @@ button {
   background: rgba(255, 253, 248, 0.9);
   border: 1px solid rgba(126, 151, 186, 0.18);
   border-radius: 16px;
-  margin-bottom: 14px;
-  padding: 12px;
+  margin-bottom: 16px;
+  padding: 14px;
 }
 
 .current-problem-preview {
@@ -1289,7 +1289,7 @@ button {
   border-radius: 14px;
   display: flex;
   justify-content: center;
-  margin: 10px 0 8px;
+  margin: 12px 0 10px;
   min-height: 136px;
   overflow: hidden;
 }
@@ -1312,9 +1312,9 @@ button {
   border: 1px solid rgba(91, 127, 186, 0.18);
   border-radius: 12px;
   display: grid;
-  gap: 4px;
+  gap: 8px;
   min-height: 156px;
-  padding: 10px;
+  padding: 12px;
 }
 
 .asset-card__thumb {
@@ -1344,13 +1344,13 @@ button {
 
 .courseware-label {
   align-items: center;
-  background: #59cee5;
+  background: #48d0eb;
   border-radius: 0.375rem;
   color: #ffffff;
   display: flex;
   font-family: var(--courseware-system-font, Inter, "Microsoft YaHei", "PingFang SC", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   height: 1.375rem;
   justify-content: center;
   left: var(--courseware-label-left, 1.7%);
@@ -1495,7 +1495,7 @@ button {
   border-radius: 14px;
   box-shadow: 0 12px 28px rgba(104, 125, 159, 0.12);
   display: grid;
-  gap: 8px;
+  gap: 10px;
   justify-items: center;
   padding: 10px 8px;
   width: 56px;
@@ -1534,19 +1534,19 @@ button {
 
 .board-stage-settings-panel {
   display: grid;
-  gap: 18px;
+  gap: 16px;
 }
 
 .board-stage-settings-panel__section {
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .board-stage-tool-group,
 .board-stage-color-group {
   align-items: center;
   display: flex;
-  gap: 5px;
+  gap: 8px;
 }
 
 .board-stage-tool-button {
@@ -1787,8 +1787,8 @@ button {
   border: 1px solid rgba(126, 151, 186, 0.2);
   border-radius: 12px;
   display: grid;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: 12px;
+  padding: 12px;
 }
 
 .c-standalone-grid {
@@ -1801,7 +1801,7 @@ button {
   color: #314764;
   display: grid;
   font-size: 12px;
-  gap: 6px;
+  gap: 8px;
 }
 
 .c-standalone-canvas {
@@ -1834,14 +1834,14 @@ button {
 
 .drawboard-standalone-grid {
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .drawboard-standalone-grid label {
   color: #314764;
   display: grid;
   font-size: 12px;
-  gap: 6px;
+  gap: 8px;
 }
 
 .konva-proof-stage-wrap {
@@ -1870,9 +1870,9 @@ button {
   border-bottom: 1px solid rgba(126, 151, 186, 0.18);
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 16px;
   justify-content: space-between;
-  padding: 12px 16px;
+  padding: 14px 16px;
 }
 
 .drawboard-hybrid-prototype__header-copy {
@@ -1918,8 +1918,8 @@ button {
   border-radius: 18px;
   box-shadow: 0 18px 42px rgba(104, 125, 159, 0.18);
   display: grid;
-  gap: 12px;
-  padding: 12px 14px;
+  gap: 16px;
+  padding: 16px 18px;
   position: fixed;
   z-index: 42;
 }
@@ -1947,7 +1947,7 @@ button {
   align-items: flex-start;
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 16px;
   justify-content: space-between;
 }
 
@@ -1975,21 +1975,21 @@ button {
 
 .drawboard-hybrid-prototype__float-body {
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .drawboard-hybrid-prototype__float-body label {
   color: #314764;
   display: grid;
   font-size: 12px;
-  gap: 6px;
+  gap: 8px;
 }
 
 .drawboard-hybrid-prototype__chips {
   align-items: center;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
 }
 
 .drawboard-hybrid-prototype--focus .side-tool-dock {
@@ -2035,7 +2035,7 @@ button {
 
 .canvas-inspector-collapse .ant-collapse-header {
   align-items: center !important;
-  padding: 10px 12px !important;
+  padding: 12px 12px !important;
 }
 
 .canvas-inspector-collapse .ant-collapse-content-box {
@@ -2057,7 +2057,7 @@ button {
 
 .board-control-responsibilities {
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .board-control-responsibility {
@@ -2065,8 +2065,8 @@ button {
   border: 1px solid rgba(126, 151, 186, 0.16);
   border-radius: 12px;
   display: grid;
-  gap: 8px;
-  padding: 10px;
+  gap: 12px;
+  padding: 12px;
 }
 
 .board-control-responsibility__header {
@@ -2119,7 +2119,7 @@ button {
 
 .inspector-field {
   display: grid;
-  gap: 6px;
+  gap: 8px;
 }
 
 .inspector-color-swatch-row {
@@ -2145,7 +2145,7 @@ button {
 .inspector-light-group {
   border-top: 1px solid rgba(126, 151, 186, 0.2);
   display: grid;
-  gap: 8px;
+  gap: 12px;
   padding-top: 12px;
 }
 
@@ -2161,13 +2161,13 @@ button {
 
 .inspector-light-group-body {
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .inspector-section {
   border-top: 1px solid rgba(126, 151, 186, 0.18);
   display: grid;
-  gap: 10px;
+  gap: 12px;
   padding-top: 12px;
 }
 
@@ -2183,7 +2183,7 @@ button {
 
 .inspector-field-grid {
   display: grid;
-  gap: 10px;
+  gap: 12px;
   grid-template-columns: 1fr 1fr;
 }
 
@@ -2196,8 +2196,8 @@ button {
   border: 1px solid rgba(126, 151, 186, 0.16);
   border-radius: 12px;
   display: grid;
-  gap: 8px;
-  padding: 10px;
+  gap: 10px;
+  padding: 12px;
 }
 
 .inspector-readonly-list > div {
@@ -2209,7 +2209,7 @@ button {
 
 .side-tool-dock {
   display: grid;
-  gap: 10px;
+  gap: 12px;
   position: fixed;
   right: 0;
   top: 300px;
@@ -2225,11 +2225,11 @@ button {
   color: #315887;
   cursor: pointer;
   display: grid;
-  gap: 10px;
+  gap: 12px;
   grid-template-columns: 38px 138px;
   min-height: 48px;
   overflow: hidden;
-  padding: 6px 10px;
+  padding: 8px 10px;
   text-align: left;
   transform: translateX(138px);
   transition:
@@ -2302,7 +2302,7 @@ button {
 .problem-ocr-card {
   display: grid;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .problem-ocr-button {
@@ -2327,9 +2327,9 @@ button {
   border: 1px dashed rgba(91, 127, 186, 0.24);
   border-radius: 16px;
   display: grid;
-  gap: 10px;
-  margin-bottom: 14px;
-  padding: 12px;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 14px;
 }
 
 .board-preview-canvas-wrap {
@@ -2356,8 +2356,6 @@ button {
   justify-content: center;
   min-height: 104px;
 }
-
-
 
 .problem-image-uploader.has-image .ant-upload-drag {
   padding: 0;
@@ -2402,14 +2400,14 @@ button {
 
 .problem-workspace {
   display: grid;
-  gap: 22px;
+  gap: 24px;
 }
 
 .problem-intake-card {
   background: rgba(248, 251, 255, 0.64);
   border: 1px solid rgba(91, 127, 186, 0.14);
   border-radius: 12px;
-  padding: 10px 10px 12px;
+  padding: 12px 12px 14px;
 }
 
 .problem-intake-card .problem-image-uploader {
@@ -2455,7 +2453,7 @@ button {
 
 .problem-intake-status {
   gap: 8px;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
 }
 
 .problem-intake-card .ant-typography strong,
@@ -2483,11 +2481,11 @@ button {
   color: #152033;
   font-size: 15px;
   line-height: 1.7;
-  margin: 12px 0 14px !important;
+  margin: 12px 0 16px !important;
   max-height: 248px;
   min-height: 164px;
   overflow: auto;
-  padding: 10px 12px;
+  padding: 12px;
 }
 
 .problem-primary-action.ant-btn {
@@ -2500,9 +2498,9 @@ button {
   border: 1px solid rgba(34, 164, 78, 0.18);
   border-radius: 10px;
   display: flex;
-  gap: 8px;
+  gap: 10px;
   margin: -8px 0 12px;
-  padding: 8px 10px;
+  padding: 10px 12px;
 }
 
 .problem-merge-tip {
@@ -2601,7 +2599,7 @@ button {
 
 .script-agent-preview-frame {
   display: grid;
-  gap: 10px;
+  gap: 12px;
   grid-template-rows: auto minmax(0, 1fr);
   height: 100%;
   min-height: 0;
@@ -2661,7 +2659,7 @@ button {
 
 .script-agent-table-workbench {
   display: grid;
-  gap: 10px;
+  gap: 12px;
   grid-template-rows: auto minmax(0, 1fr) auto;
   height: 100%;
   min-height: 0;
@@ -2745,7 +2743,7 @@ button {
   color: #42536b;
   line-height: 1.7;
   min-height: 72px;
-  padding: 10px 12px;
+  padding: 12px;
 }
 
 .script-agent-side {
@@ -2753,7 +2751,7 @@ button {
   border: 1px solid rgba(91, 127, 186, 0.14);
   border-radius: 5px;
   display: grid;
-  gap: 10px;
+  gap: 12px;
   grid-template-rows: auto minmax(0, 1fr);
   height: 100%;
   min-height: 0;
@@ -2816,7 +2814,7 @@ button {
 .tldraw-proof-sidebar {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   padding: 16px;
   border-right: 1px solid #d8e2ee;
   background: #ffffff;
@@ -2835,7 +2833,7 @@ button {
 .tldraw-proof-toolbar {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  gap: 10px;
 }
 
 .tldraw-proof-button {
@@ -2866,8 +2864,8 @@ button {
 .tldraw-proof-data {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 4px;
+  gap: 10px;
+  margin-top: 6px;
   padding-top: 12px;
   border-top: 1px solid #d8e2ee;
 }
@@ -2896,7 +2894,7 @@ button {
 .tldraw-stage-shell {
   display: grid;
   grid-template-columns: 112px minmax(0, 1fr);
-  gap: 12px;
+  gap: 16px;
   align-items: start;
 }
 
@@ -2906,15 +2904,15 @@ button {
 
 .tldraw-stage-card-actions {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
 }
 
 .tldraw-stage-toolbar {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 10px;
+  gap: 10px;
+  padding: 12px;
   border: 1px solid rgba(80, 99, 122, 0.18);
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.88);

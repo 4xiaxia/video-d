@@ -1,2 +1,20 @@
 node_modules
 .worktrees/
+
+# Local-only secrets and agent settings
+.env
+.env.*
+!.env.example
+.claude/settings.local.json
+.claude/desktop-tools/.venv/
+.claude/desktop-tools/captures/
+**/__pycache__/
+*.pyc
+
+# Generated output and smoke-test scratch files
+dist/
+logs/
+.tmp-*/
+
+# Quarantine for uncertain files moved out of the working root
+历史/uncertain-*/

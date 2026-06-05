@@ -1,0 +1,63 @@
+# Components
+
+- **App** — `src\App.tsx`
+- **AgentReviewCard** — props: autoApplyDraft, autoRunRequestId, draft, onCandidateDraftChange, problemText, scriptAgentConfig, onApplyDraft — `src\components\AgentReviewCard.tsx`
+- **AppSettingsDrawer** — props: config, open, onClose, onSaveConfig — `src\components\AppSettingsDrawer.tsx`
+- **AssetList** — props: assets — `src\components\AssetList.tsx`
+- **AssetPanel** — props: assets, automationConfig, recognitionConfig, ttsConfig, scriptAgentConfig, scriptAgentCandidateDraft, layoutPreviewDraft, onImportProblemImage, onApplyBoardEventsToTimeline, onSyncCAssetPrewarmQueue — `src\components\AssetPanel.tsx`
+- **AssetWorkflowTabs** — props: activeKey, onActiveKeyChange, steps — `src\components\AssetWorkflowTabs.tsx`
+- **AutoHandwritingLayer** — props: boardClips, boardFontLoadKey, boardFontSize, canvas, playheadMs, selectedBoardClipId, onRecordingCanvasReady, onSelectBoardClip, onUpdateBoardClip — `src\components\AutoHandwritingLayer.tsx`
+- **BoardClipLightGroup** — props: dataAnchor, title — `src\components\boardClipInspector\BoardClipInspectorSections.tsx`
+- **BoardClipContentSection** — props: clipId, label, onChange — `src\components\boardClipInspector\BoardClipInspectorSections.tsx`
+- **BoardClipBindingHintSection** — props: displayEndMs, displayStartMs, revealEndMs, revealStartMs, sourceEndMs, sourceStartMs — `src\components\boardClipInspector\BoardClipInspectorSections.tsx`
+- **BoardClipSkinSection** — props: draft, onChange, onScaleChange, scalePercent — `src\components\boardClipInspector\BoardClipInspectorSections.tsx`
+- **BoardClipCanvasPositionSection** — props: draft, onChange — `src\components\boardClipInspector\BoardClipInspectorSections.tsx`
+- **BoardClipDrawFeelSection** — props: drawSpeed, onChange — `src\components\boardClipInspector\BoardClipInspectorSections.tsx`
+- **BoardClipFontGapSection** — `src\components\boardClipInspector\BoardClipInspectorSections.tsx`
+- **BoardClipInspectorActions** — props: hasDraftChanges, onConfirm, onReset — `src\components\boardClipInspector\BoardClipInspectorSections.tsx`
+- **BoardClipInspector** — props: defaultFontSize, selectedClip, onUpdateBoardClip — `src\components\BoardClipInspector.tsx`
+- **BoardControlResponsibilitiesPanel** — `src\components\BoardControlResponsibilitiesPanel.tsx`
+- **BoardHandwritingStickerContent** — props: color, fontFamily, fontLoadKey, fontSize, text — `src\components\BoardHandwritingStickerContent.tsx`
+- **BoardMathStickerContent** — props: color, text — `src\components\BoardMathStickerContent.tsx`
+- **BoardPreviewCard** — props: draft, stageCanvas — `src\components\BoardPreviewCard.tsx`
+- **BoardStageToolOverlay** — props: activeColor, activeToolMode, activeStrokeWidth, onChangeColor, onChangeStrokeWidth, onChangeToolMode, onClear, onUndo — `src\components\BoardStageToolOverlay.tsx`
+- **BoardTextSticker** — props: color, fontFamily, fontLoadKey, fontSize, isDragging, isSelected, onPointerDown, onResizePointerDown, revealProgress, stackIndex — `src\components\BoardTextSticker.tsx`
+- **BoardTypographyFormFields** — props: helpText, labelPrefix, namePrefix — `src\components\BoardTypographyFields.tsx`
+- **BoardTypographyControlledFields** — props: labelPrefix, onChange, value — `src\components\BoardTypographyFields.tsx`
+- **CanvasInspector** — props: canvas, onUpdateCanvas — `src\components\CanvasInspector.tsx`
+- **CanvasRecordingSurface** — props: canvas, onCanvasReady, problemSummary — `src\components\CanvasRecordingSurface.tsx`
+- **CStickerFrame** — props: color, contentKind, fontSize, isDragging, isSelected, onPointerDown, onResizePointerDown, revealProgress, stackIndex, text — `src\components\CStickerFrame.tsx`
+- **CurrentProblemPreview** — props: asset — `src\components\CurrentProblemPreview.tsx`
+- **CurrentProjectBoardFontInspector** — props: canvas, onUpdateCanvas — `src\components\CurrentProjectBoardFontInspector.tsx`
+- **DrawboardStage** — props: activeToolMode, boardFontSize, canvas, onClearGoldenFinger, onChangeStrokeColor, onChangeStrokeWidth, onChangeToolMode, onGoldenFingerLayerReady, onRecordingCanvasesReady, onUndoGoldenFinger — `src\components\DrawboardStage.tsx`
+- **FloatingToolDock** — `src\components\FloatingToolDock.tsx`
+- **FormulaText** — props: as, className, classNamePrefix, rootClassName — `src\components\FormulaText.tsx`
+- **GoldenFingerCanvasLayer** — props: activeToolMode, strokeWidth, strokeColor — `src\components\GoldenFingerCanvasLayer.tsx`
+- **InspectorPanel** — props: canvas, selectedClip, onUpdateBoardClip, onUpdateCanvas — `src\components\InspectorPanel.tsx`
+- **KonvaRecordingSurface** — props: canvas, onCanvasReady, problemSummary — `src\components\KonvaRecordingSurface.tsx`
+- **StagePreview** — props: boardClips, canvas, playheadMs, problemText, selectedBoardClipId, onRecordingActiveChange, onSelectBoardClip, onUpdateBoardClip — `src\components\LegacyStagePreview.tsx`
+- **MathText** — `src\components\MathText.tsx`
+- **ProblemImportCard** — props: onImportProblemImage — `src\components\ProblemImportCard.tsx`
+- **ProblemOcrCard** — `src\components\ProblemOcrCard.tsx`
+- **ProblemUploadPreview** — props: asset, boardSummary, hasConfirmedBoard, onImportProblemImage — `src\components\ProblemUploadPreview.tsx`
+- **ProblemWorkspace** — props: boardSummary, hasConfirmedBoard, imageAsset, isRecognizingProblem, onConfirmProblemText, onGenerateScriptAgent, onImportProblemImage, onOpenScriptAgent, onUpdateProblemText, recognitionConfig — `src\components\ProblemWorkspace.tsx`
+- **ProjectArchiveActions** — props: defaultSaveDirectoryLabel, onImportLocalTaskArchive, onRefreshLocalTaskSnapshots, onRestoreLocalTaskSnapshot, onSaveLocalTaskArchive, onSetDefaultSaveDirectory, recentTaskSnapshots — `src\components\ProjectArchiveActions.tsx`
+- **ScriptAgentWorkspace** — props: autoApplyDraft, autoRunRequestId, assets, candidateDraft, scriptAgentConfig, onApplyDraft, onCandidateDraftChange — `src\components\ScriptAgentWorkspace.tsx`
+- **ScriptBoardSummaryStep** — props: boardLayoutAsset, canOpenAgent, onOpenScriptAgent, onGenerateScriptAgent, scriptTextAsset, layoutPreviewDraft, stageCanvas — `src\components\ScriptBoardSummaryStep.tsx`
+- **StagePreviewToolbar** — props: onRecordingActiveChange, recordingCanvases — `src\components\StagePreviewToolbar.tsx`
+- **StageRecorderControl** — props: onRecordingActiveChange, recordingCanvases — `src\components\StageRecorderControl.tsx`
+- **TeachingTimeline** — props: tracks, clips, boardTimingClips, isPlaying, selectedClipId, playheadMs, onSelectClip, onSetPlaying, onSetLivePlayhead, onSetPlayhead — `src\components\TeachingTimeline.tsx`
+- **TimelineClipBlock** — props: clip, durationMs, isActive, isSelected, layerIndex, onSelectClip, onUpdateBoardTiming — `src\components\TimelineClipBlock.tsx`
+- **TimelineTrackRow** — props: track, clips, durationMs, playheadMs, selectedClipId, onSelectClip, onUpdateBoardTiming — `src\components\TimelineTrackRow.tsx`
+- **VoiceBatchStatusPanel** — props: batches, isRealGatewayReady — `src\components\VoiceBatchStatusPanel.tsx`
+- **VoiceTrack** — props: track, clips, boardTimingClips, durationMs, playheadMs, selectedClipId, onSelectClip, onUpdateBoardTiming — `src\components\VoiceTrack.tsx`
+- **VoiceWorkspace** — props: assets, ttsConfig, scriptAgentConfig, scriptAgentCandidateDraft, onApplyBoardEventsToTimeline, onSyncCAssetPrewarmQueue, onApplyTtsSentenceResults, onSyncLayoutPreviewDraft, stageCanvas — `src\components\VoiceWorkspace.tsx`
+- **ScriptAgentTableEditor** — props: onChange, onCompile, rows, showRules — `src\modules\scriptAgentTable\ScriptAgentTableEditor.tsx`
+- **ScriptSegmentPreview** — props: emptyText, maxVisibleSegments, scriptChainKeys, scriptText, title — `src\modules\scriptSegments\ScriptSegmentPreview.tsx`
+- **ScriptSegmentWorkbench** — props: actionLabel, emptyText, maxVisibleSegments, onEditScript, scriptChainKeys, scriptText, title — `src\modules\scriptSegments\ScriptSegmentWorkbench.tsx`
+- **CStickerStandalonePage** — `src\standalone\CStickerStandalonePage.tsx`
+- **DrawboardCoreStandalonePage** — `src\standalone\DrawboardCoreStandalonePage.tsx`
+- **DrawboardHybridPrototypePage** — `src\standalone\DrawboardHybridPrototypePage.tsx`
+- **KonvaProofPage** — `src\standalone\KonvaProofPage.tsx`
+- **TldrawProofPage** — `src\_deprecated\TldrawProofPage.tsx`
+- **TldrawStagePreview** — props: boardClips, canvas, playheadMs, problemText, selectedBoardClipId, onRecordingActiveChange, onSelectBoardClip, onUpdateBoardClip — `src\_deprecated\TldrawStagePreview.tsx`

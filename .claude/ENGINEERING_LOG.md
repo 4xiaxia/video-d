@@ -1,12 +1,124 @@
 ---
 title: ENGINEERING_LOG.md
 description: 每个工作单元的完整记录（背景、思路、步骤、代码变更、发现、验收）
-lastUpdate: 2026-06-04
+lastUpdate: 2026-06-05
 ---
 
 # 工程日志
 
 记录所有工作单元的完整上下文，便于 agent 接力。
+
+---
+
+## [边界] 文档噪音收口与真相源层级固定 (2026-06-05)
+
+### 背景
+
+用户要求先清理噪音，明确更新记录和文档边界，再进入代码修复。
+
+### 已做
+
+- 新增根层 `DECISIONS.md`，记录当前真相源层级、唯一主线、排除项和下一刀。
+- 追加 `.workbuddy/memory/2026-06-05.md`，把本轮性质标为“文档噪音边界收口，未改业务代码”。
+- 更新 `CHANGE_TREE变更树.md`，新增本工作单元记录。
+- 更新本文件与 `.claude/PROJECT_STATE.md`，明确 `.claude` 是辅助接力镜像，不是最高真相源。
+
+### 当前边界
+
+- 最高真相源：`.workbuddy/memory`。
+- 根目录 MD 是项目施工真相层：`DECISIONS.md`、核心真相文档、`CHANGE_TREE变更树.md`。
+- `.claude` 只做旧足迹辅助和 SessionStart 镜像。
+- 下一刀只围绕 `src/modules/boardSticker/mathBoardText.ts` 的普通手写文本换行保留。
+
+### 验证
+
+纯文档边界收口，未运行业务测试。
+
+---
+
+## [整理] 根层明显噪音隔离与 ignore 收口 (2026-06-05)
+
+### 背景
+
+用户建议先把特别明显的噪音清理掉，避免后续修 C 多行换行时被根层本地文件和临时目录干扰；用户补充“不确定的文件放到历史文件夹”。
+
+### 已做
+
+- 只处理未跟踪、非主源码链、明显本地/临时性质的项目。
+- 新建隔离目录：`历史/uncertain-2026-06-05-cleanup/`。
+- 移入隔离目录：
+  - `.claude/settings.local.json`
+  - `.claude/worktrees/`
+  - `.tmp-board-events-check/`
+  - `.tmp-board-handwriting-support-check/`
+  - `mcp/`
+  - `skills/`
+- 更新 `.gitignore`：
+  - 忽略 `.env` / `.env.*`，保留 `.env.example`
+  - 忽略 `.claude/settings.local.json`
+  - 忽略 `dist/`、`logs/`、`.tmp-*/`
+  - 忽略 `历史/uncertain-*/`
+
+### 边界
+
+- 未删除不确定文件，只移动到历史隔离区。
+- 没移动 `PROJECT_XRAY_SCAN_2026-06-05.md`，因为它是当前 X-ray 报告并已被接力文档引用。
+- 没处理已跟踪的 `dist/`、`.tmp-cosyvoice-smoke/`、`.tmp-ui-smoke/`、`logs/` 历史内容；本次只收口后续噪音视图，不做危险清仓。
+- `历史/skills 要用啊/graphify` 是主仓 gitlink 嵌套仓；主仓可用 `git status --ignore-submodules=dirty` 避免显示内部脏状态。
+
+### 验证
+
+```text
+git status --ignore-submodules=dirty --untracked-files=all ✅
+git check-ignore -v .claude/settings.local.json .tmp-board-events-check/x 历史/uncertain-2026-06-05-cleanup/settings.local.json ✅
+Test-Path 原根层候选项均为 False ✅
+```
+
+### 下一步
+
+回到主线：只读定位 `boardSlice` 普通多行文本换行被压扁的位置，优先检查 `mathBoardText.ts` 空白归一链路。
+
+---
+
+## [扫描] 全仓 X-ray 对齐：页面 / 组件 / API / SOP (2026-06-05)
+
+### 背景
+
+用户要求不按经验主义猜测，而是至少四层深挖项目，重点读 MD，梳理页面数量、页面内容/样式/组件、前后端 API 设计位置与触发条件，并绘制 SOP。
+
+### 走读范围
+
+- 根目录核心文档：`真相路标-当前唯一入口.md`、`认知图-核心逻辑动态图.md`、`ABC字段函数前端映射表.md`、`落地项目开发说明明细文档-代码直敲版.md`、`CHANGE_TREE变更树.md`。
+- 接力文档：`.claude/PROJECT_STATE.md`、`.claude/ENGINEERING_LOG.md`、`.claude/PROJECT_COGNITION.md`、`.workbuddy/memory/2026-06-05.md`。
+- 代码主链：`main.tsx`、`App.tsx`、`store/useTeachingEditorStore.ts`、`domain/*`、`workflow/*`、`components/*`、`modules/*`、`services/*`、`vite.config.mjs`、`scripts/zeabur-server.mjs`。
+- proof 页面：`CStickerStandalonePage`、`DrawboardCoreStandalonePage`、`DrawboardHybridPrototypePage`、`KonvaProofPage`。
+
+### 实证结论
+
+- 页面数量：主工作台 1 个；active standalone 4 个；tldraw deprecated 2 个。
+- 主工作台结构：顶部状态/配置/归档，左侧 Workflow，中央 `StagePreview + TeachingTimeline`，右侧 Inspector，Agent modal，Settings drawer。
+- API：前端只通过 `services/*GatewayClient` 调同源网关；Vite dev 网关比 Zeabur server 完整，生产缺 OCR/TTS/LayoutPreview。
+- A/B/C：A 轨真实 duration 是主时钟；B 站场窗口由 A 返回后生成；C 是板书演员，默认写完留场，显式 `hideAtMs` 才下台。
+- 当前技术债：`BoardPreviewCard` 仍活用 tldraw；`mathBoardText.ts` 空白压缩是 C 多行文本换行丢失的高危点；VoiceTrack 数字 B 控件与 lock 语义需复核。
+
+### 产物
+
+- 新增：`PROJECT_XRAY_SCAN_2026-06-05.md`。
+- 同步：`PROJECT_STATE.md`、本日志、`CHANGE_TREE变更树.md`。
+
+### 验证
+
+```text
+npm run typecheck                         ✅
+node scripts/check-abc-architecture.mjs   ✅
+node scripts/check-board-boundaries.mjs   ✅
+```
+
+### 下一步
+
+1. 按当前真相路标，先修 C 普通多行文本换行保留。
+2. 再做 `BoardPreviewCard` 去 tldraw 化。
+3. 生产部署前补齐 Zeabur API parity。
 
 ---
 

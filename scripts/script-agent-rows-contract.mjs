@@ -1,4 +1,129 @@
 const rowFieldNames = ['rows', 'scriptRows', 'script_rows', 'tableRows', 'table_rows', '步骤表', '表格', '分片表'];
+const mathJsonEscapeCommands = new Set([
+  ',',
+  ';',
+  ':',
+  '!',
+  'Rightarrow',
+  'Re',
+  'Huge',
+  'Im',
+  'LARGE',
+  'Large',
+  'angle',
+  'alpha',
+  'approx',
+  'because',
+  'begin',
+  'beta',
+  'bf',
+  'boxed',
+  'cap',
+  'cdot',
+  'circ',
+  'cos',
+  'cot',
+  'csc',
+  'cup',
+  'degree',
+  'delta',
+  'dfrac',
+  'displaystyle',
+  'div',
+  'dprime',
+  'ell',
+  'emptyset',
+  'end',
+  'equiv',
+  'exists',
+  'exp',
+  'footnotesize',
+  'forall',
+  'frac',
+  'gamma',
+  'gcd',
+  'ge',
+  'geq',
+  'hbar',
+  'huge',
+  'iiint',
+  'iint',
+  'in',
+  'infty',
+  'int',
+  'it',
+  'lambda',
+  'large',
+  'le',
+  'left',
+  'leftarrow',
+  'leftrightarrow',
+  'leq',
+  'lg',
+  'lim',
+  'liminf',
+  'limsup',
+  'lcm',
+  'ln',
+  'log',
+  'mathbb',
+  'mathcal',
+  'mathbf',
+  'mathrm',
+  'max',
+  'min',
+  'mod',
+  'mp',
+  'mu',
+  'nabla',
+  'ne',
+  'neq',
+  'normalsize',
+  'notin',
+  'odot',
+  'oint',
+  'omega',
+  'overline',
+  'parallel',
+  'partial',
+  'perp',
+  'pi',
+  'pm',
+  'prime',
+  'prod',
+  'propto',
+  'qquad',
+  'quad',
+  'rightarrow',
+  'right',
+  'rm',
+  'sec',
+  'sigma',
+  'sin',
+  'small',
+  'sqrt',
+  'subset',
+  'sum',
+  'supset',
+  'tan',
+  'text',
+  'therefore',
+  'theta',
+  'tfrac',
+  'times',
+  'tiny',
+  'to',
+  'triangle',
+  'tt',
+  'underline',
+  'varepsilon',
+  'vartheta',
+]);
+
+export function parseJsonWithMathStringEscapes(jsonText) {
+  const source = String(jsonText || '');
+  return JSON.parse(repairMathJsonStringBackslashes(source));
+}
 
 export function readScriptAgentRows(source) {
   const rawRows = findRows(source);
@@ -169,4 +294,87 @@ function createAbcChainLabels(chainKey) {
 
 function isBoardMaterialChainKey(chainKey) {
   return chainKey === 'template-open' || chainKey === 'template-pre' || chainKey === 'template-end' || /^step-(\d+)$/.test(String(chainKey ?? ''));
+}
+
+function repairMathJsonStringBackslashes(jsonText) {
+  let result = '';
+  let inString = false;
+
+  for (let index = 0; index < jsonText.length; index += 1) {
+    const char = jsonText[index];
+
+    if (!inString) {
+      result += char;
+      if (char === '"') {
+        inString = true;
+      }
+      continue;
+    }
+
+    if (char === '"') {
+      result += char;
+      inString = false;
+      continue;
+    }
+
+    if (char !== '\\') {
+      result += char;
+      continue;
+    }
+
+    if (readMathJsonEscape(jsonText, index)) {
+      result += '\\\\';
+      continue;
+    }
+
+    const nextChar = jsonText[index + 1] || '';
+    if (!nextChar) {
+      result += char;
+      continue;
+    }
+
+    if (nextChar === '"' || nextChar === '\\' || nextChar === '/') {
+      result += char + nextChar;
+      index += 1;
+      continue;
+    }
+
+    if (nextChar === 'u') {
+      const unicodeDigits = jsonText.slice(index + 2, index + 6);
+      if (/^[0-9a-fA-F]{4}$/.test(unicodeDigits)) {
+        result += char + nextChar;
+        index += 1;
+        continue;
+      }
+
+      result += char;
+      continue;
+    }
+
+    if ('bfnrt'.includes(nextChar)) {
+      result += char + nextChar;
+      index += 1;
+      continue;
+    }
+
+    result += char;
+  }
+
+  return result;
+}
+
+function readMathJsonEscape(text, backslashIndex) {
+  const singleCharMathDelimiter = text[backslashIndex + 1] || '';
+  if (['(', ')', '[', ']'].includes(singleCharMathDelimiter)) {
+    return singleCharMathDelimiter;
+  }
+
+  const command = String(text)
+    .slice(backslashIndex + 1)
+    .match(/^(?:[,;:!]|[A-Za-z]+)/)?.[0];
+  if (!command) {
+    return '';
+  }
+
+  return mathJsonEscapeCommands.has(command) ? command : '';
 }

@@ -9,6 +9,7 @@ import { defineConfig } from 'vite';
 import { createFeishuBoardScriptImportResponse } from './scripts/feishu-board-script-import.mjs';
 import {
   compileScriptAgentRowsToDraft,
+  parseJsonWithMathStringEscapes,
   readScriptAgentRows,
 } from './scripts/script-agent-rows-contract.mjs';
 import {
@@ -615,7 +616,7 @@ function parseScriptAgentDraft(content) {
 
   const jsonText = extractJsonObject(normalized);
   if (jsonText) {
-    const parsed = JSON.parse(jsonText);
+    const parsed = parseJsonWithMathStringEscapes(jsonText);
     const rows = readScriptAgentRows(parsed);
     if (rows.length) {
       return compileScriptAgentRowsToDraft(rows);

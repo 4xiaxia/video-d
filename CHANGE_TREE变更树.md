@@ -4,6 +4,277 @@
 
 cleanroom 的枝桠变动树。每次 side/枝桠动文件后，都在这里登记目标、文件变动、校验和下一枝入口。
 
+## 2026-06-06_秩序专武落地到项目桌面工具目录
+
+- 目标：
+  - 按用户新落点，把秩序专武放入 `D:\video-dev-cleanroom\.claude\desktop-tools`，作为桌面工具配套入口。
+- 已做：
+  - 核实 `.claude/desktop-tools` 已存在，包含原桌面鼠标专武：`eye-full.ps1`、`eye-region.ps1`、`hand-click.ps1`、`tclaw-start.ps1`、`gui-support/`、`T.Claw/`。
+  - 新增 `.claude/desktop-tools/continuity-weapon/`，不覆盖原工具。
+  - 专武文件：
+    - `秩序专武说明书.md`
+    - `continuity-audit.ps1`
+    - `continuity-doctor.ps1`
+    - `continuity-install-project.ps1`
+    - `continuity-install-system-skill.ps1`
+    - `continuity-stack.sample.json`
+  - 更新 `.gitignore`，忽略桌面工具运行产物：`.venv/`、`captures/`、`__pycache__/`、`*.pyc`。
+  - 更新 `PROJECT_STATE.md`、`PROJECT_TREE.md`、`DECISIONS.md`、`KNOWN_ISSUES.md`、`ENGINEERING_LOG.md`。
+- 边界：
+  - 秩序专武不捆死项目或本机路径；具体路径通过参数传入。
+  - 现有桌面鼠标专武不改、不覆盖。
+  - 本刀不安装系统级 Codex skill，不安装第三方候选工具。
+- 校验：
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File .claude\desktop-tools\continuity-weapon\continuity-doctor.ps1 -ProjectPath D:\video-dev-cleanroom -SkillPath D:\video-dev-cleanroom\.tmp-system-skill-source\local-continuity-standard` -> ORDERED。
+  - `rg` 扫 `.claude/desktop-tools/continuity-weapon` 项目/本机硬编码 -> 无命中。
+- 下一枝：
+  - 跑 `npm run check:continuity-docs`，再确认 git 噪音边界。
+
+## 2026-06-06_规则包去环境绑定与自动安装引导
+
+- 目标：
+  - 响应用户硬边界：技能套件规则包不能捆死某个项目或本机环境。
+  - 做好自动安装引导，但默认只预览，不偷偷安装。
+- 已做：
+  - 改写 `.tmp-system-skill-source/local-continuity-standard/SKILL.md`：
+    - 删除固定用户路径、固定项目路径、固定 `.claude` 路径。
+    - 增加 Portable Stack Contract。
+    - 明确工具栈由配置声明，不写死进规则包。
+    - 增加系统安装 dry-run / `--yes` / `--replace` 规则。
+  - 改造审计脚本：
+    - `.tmp-system-skill-source/local-continuity-standard/scripts/audit-local-order.mjs`
+    - `scripts/audit-local-order.mjs`
+    - 默认只检查项目连续性文档。
+    - 读取 `scripts/continuity-stack.config.json` 或 `CONTINUITY_STACK_CONFIG`。
+    - 支持 `${HOME}` / `${USERPROFILE}` / `${CODEX_HOME}` / `${CLAUDE_HOME}` 变量。
+    - 命令探测改为跨平台。
+  - 新增安装引导：
+    - `.tmp-system-skill-source/local-continuity-standard/scripts/install-system-skill.mjs`
+    - 默认 dry-run。
+    - `--yes` 才安装。
+    - `--target` 可指定技能目录。
+    - 已存在目标默认不覆盖，除非 `--replace`。
+  - 新增配置模板：
+    - `.tmp-system-skill-source/local-continuity-standard/assets/templates/continuity-stack.config.json`
+    - `scripts/continuity-stack.config.json`
+  - 更新项目入口：
+    - `AGENTS.md`
+    - `PROJECT_TREE.md`
+    - `package.json`
+- 边界：
+  - 本刀不安装系统技能。
+  - 不安装第三方候选工具。
+  - 不把本机路径放进规则包本体。
+- 校验：
+  - `rg` 扫规则包硬编码：无命中。
+  - `node scripts/audit-local-order.mjs`：ORDERED。
+  - `quick_validate.py .tmp-system-skill-source/local-continuity-standard`：通过。
+  - `install-system-skill.mjs --dry-run`：成功预览。
+- 下一枝：
+  - 用全新临时目录 smoke `install-continuity-standard.mjs`，确认模板、审计脚本、配置文件能被自动投放。
+
+## 2026-06-06_外部token与workflow工具评估
+
+- 目标：
+  - 评估用户给出的外部工具是否适合并入本机级连续性范式。
+- 候选：
+  - `ourzeta/cc-wf-studio/tree/main/packages`
+  - `samuelfaj/distill`
+  - `ojuschugh1/sqz`
+  - `csabakecskemeti/cc_token_saver_mcp`
+  - `houtini-ai/houtini-lm`
+- 结论：
+  - 第一优先级：`sqz`，命令/文件输出压缩 + 去重引用，和当前“少读、缓存、减少重复 token”目标最贴。
+  - 第二优先级：`houtini-lm`，bounded tasks local/cloud LLM 分流，适合替代更薄的 `cc_token_saver_mcp`。
+  - 第三优先级：`distill`，适合管道式命令输出摘要，但与 `sqz` 功能有交叠。
+  - 暂缓：`cc-wf-studio`，价值在可视化工作流编排，不是当前缓存/连续性核心。
+  - 不推荐优先接入：`cc_token_saver_mcp`，成熟度和功能完整度不如 `houtini-lm`。
+- 本机检查：
+  - `sqz` / `distill` / `houtini-lm` 当前未在 PATH 中发现。
+  - 全局 npm 包未发现上述候选。
+- 边界：
+  - 本刀只评估，不安装第三方包，不改 Claude/Codex 系统配置。
+- 校验：
+  - 待运行：`npm run check:continuity-docs`。
+- 下一枝：
+  - 把 `sqz` / `houtini-lm` 写进 `local-continuity-standard` 的可选适配层；安装前必须单独审批。
+
+## 2026-06-06_Claude配套搜索：确认系统级范式可复用上游
+
+- 目标：
+  - 按用户要求搜索 `.claude` 与相关 skills 配套，避免重复造本机级连续性系统。
+- 已做：
+  - 扫描项目 `.claude`：发现旧接力镜像 `PROJECT_STATE.md`、`ENGINEERING_LOG.md`、`PROJECT_COGNITION.md` 等。
+  - 扫描用户级 `C:\Users\admin\.claude\skills`：确认存在 `xiaxia-continuity`、`xiaxia-context-compression`、`xiaxia-anchor-marking`、`graphify`、`zeta-remembering-anchors`。
+  - 扫描 `C:\Users\admin\.claude\commands`：确认 `imptokens.md` 命令入口。
+  - 扫描 `C:\Users\admin\.claude\cache\ib-mcp-cache-server`：确认这是 memory-cache 原包位置，含 `build/`、`src/`、`config.json`、`package.json`、`README.md`。
+  - 扫描 `C:\Users\admin\.claude\plugins`：确认 `imptokens`、`imptokens-pruner`。
+  - 扫描 `C:\Users\admin\.workbuddy\skills` 与 `历史/skills 要用啊`：确认同类技能镜像存在。
+- 结论：
+  - 本机级 `local-continuity-standard` 不应从零造，而应作为编排层：
+    - `xiaxia-continuity` 管接力与漂移恢复。
+    - `xiaxia-context-compression` 管压缩与主线提炼。
+    - `xiaxia-anchor-marking` 管施工锚点。
+    - `graphify` 管图谱与架构关系。
+    - `imptokens` 与 `memory-cache` 管 token 与缓存。
+- 风险：
+  - `.claude/settings*.json` 含敏感路由/API 环境值，不能复制真实密钥。
+- 校验：
+  - 只读扫描与入口文件读取完成。
+- 下一枝：
+  - 更新 `.tmp-system-skill-source/local-continuity-standard/SKILL.md`，把它改成“本机级编排层”，引用这些现有配套。
+
+## 2026-06-06_memory-cache原包路径纠偏
+
+- 目标：
+  - 修正上一条 Claude 配套搜索中 memory-cache 路径口径。
+- 用户纠偏：
+  - memory-cache 原包位置是 `C:\Users\admin\.claude\cache\ib-mcp-cache-server`。
+- 已核实：
+  - 该目录存在，并包含 `.git`、`build/`、`node_modules/`、`src/`、`config.json`、`package-lock.json`、`package.json`、`project.md`、`README.md`、`tsconfig.json`。
+- 已改：
+  - `ENGINEERING_LOG.md`
+  - `CHANGE_TREE变更树.md`
+- 边界：
+  - 只修正记录口径，不改系统目录，不迁移包。
+- 校验：
+  - 待运行：`npm run check:continuity-docs`。
+
+## 2026-06-06_本机级连续性标准技能包：准备完成安装待批准
+
+- 目标：
+  - 把脱稿工作制从项目内文档提升为电脑本机 Codex 可复用范式。
+- 已做：
+  - 使用 `skill-creator` 指南确认技能结构。
+  - 新增临时技能源：`.tmp-system-skill-source/local-continuity-standard/`。
+  - 技能包含：
+    - `SKILL.md`：本机连续性标准触发与执行规则。
+    - `agents/openai.yaml`：UI 元数据。
+    - `assets/templates/`：项目五件套与 `AGENTS.md`、`PROJECT_TREE.md` 模板。
+    - `scripts/install-continuity-standard.mjs`：项目实例安装脚本，只创建缺失文件。
+  - 在临时项目 `.tmp-system-skill-source/` 验证安装脚本首次创建、二次跳过。
+- 系统安装状态：
+  - 目标目录：`C:\Users\admin\.codex\skills\local-continuity-standard`。
+  - 尚未安装成功。
+  - 原因：工作区外写入审批第一次超时，第二次审批服务 503 自动拒绝。
+  - 安全边界：不绕过审批，不用变通方式写系统目录。
+- 校验：
+  - `quick_validate.py D:\video-dev-cleanroom\.tmp-system-skill-source\local-continuity-standard` -> 通过。
+  - `node D:\video-dev-cleanroom\.tmp-system-skill-source\local-continuity-standard\scripts\install-continuity-standard.mjs` -> 通过。
+  - `node D:\video-dev-cleanroom\.tmp-system-skill-source\scripts\check-continuity-docs.mjs` -> 通过。
+  - `npm run check:continuity-docs` -> 通过。
+- 下一枝：
+  - 用户明确批准后，把临时技能源复制到 `C:\Users\admin\.codex\skills\local-continuity-standard`，再运行技能校验。
+
+## 2026-06-06_脱稿工程范式落地：五件套与连续性检查
+
+- 目标：
+  - 把“所有工程信息都有家，不散在对话记录里”落成根目录标准范式。
+  - 让 SessionStart、工作中、完成工作单元、Stop Hook 都有固定文件承接。
+- 已做：
+  - 新增 `AGENTS.md`：统一开工/收工协议、真相源顺序、工作闭环。
+  - 新增 `PROJECT_STATE.md`：当前状态、已确认决策、边界、下一步接力棒。
+  - 新增 `ENGINEERING_LOG.md`：工作单元 #001，自包含记录本次范式落地。
+  - 新增 `ARCHITECTURE.md`：当前主流程、ABC 边界、文档连续性架构。
+  - 新增 `KNOWN_ISSUES.md`：记录 C 换行高危点与对话散落风险。
+  - 新增 `PROJECT_TREE.md`：关键工程结构快照，排除 `node_modules/dist/历史` 噪音展开。
+  - 新增 `scripts/check-continuity-docs.mjs`，并在 `package.json` 增加 `check:continuity-docs`。
+  - 更新 `DECISIONS.md`：登记根目录五件套范式决策。
+- 边界：
+  - 本刀不改业务代码。
+  - 不替代 `.workbuddy/memory`，只把根目录工程连续性标准化。
+  - `ENGINEERING_LOG.md` 不替代 `CHANGE_TREE变更树.md`；前者是工作单元记录，后者是变更树时间线。
+- 校验：
+  - 待运行：`npm run check:continuity-docs`。
+- 下一枝：
+  - 回到 `src/modules/boardSticker/mathBoardText.ts`，只修普通 C 文本归一化保留用户换行，并做最小验证。
+
+## 2026-06-05_文档噪音边界收口：真相源层级与下一刀冻结
+
+- 目标：
+  - 先清理认知噪音，明确文档层级和下一刀边界。
+  - 不碰业务代码，不把旧 `.claude` 足迹当最高真相。
+- 已做：
+  - 新增 `DECISIONS.md`，把当前真相源顺序、主线、排除项和下一刀写成根层决策。
+  - 追加 `.workbuddy/memory/2026-06-05.md` 当日记忆，记录本轮只做文档边界收口。
+  - 同步 `.claude/PROJECT_STATE.md` / `.claude/ENGINEERING_LOG.md`，标明它们现在是辅助接力镜像。
+- 当前真相源顺序：
+  1. `.workbuddy/memory/MEMORY.md`
+  2. `.workbuddy/memory/2026-06-05.md`
+  3. 根目录 `DECISIONS.md` / `真相路标-当前唯一入口.md` / `认知图-核心逻辑动态图.md` / `ABC字段函数前端映射表.md` / `CHANGE_TREE变更树.md`
+  4. 代码实证
+  5. `.claude` 旧足迹辅助
+- 当前冻结主线：
+  - `boardSlice` 普通多行原文 -> 保留用户 `\n` -> 手写字体文本渲染 -> 按字符 reveal -> C 默认留场。
+- 下一刀不要混：
+  - Konva 主迁移。
+  - SVG/path/逐笔轨迹。
+  - Agent 智能排版。
+  - 标签 manual override。
+  - 数学公式大改。
+  - tldraw 清理。
+- 校验：
+  - 纯文档边界收口，未改业务代码。
+- 下一枝：
+  - 只围绕 `src/modules/boardSticker/mathBoardText.ts` 的普通手写文本归一化保留换行做最小修复和最小验证。
+
+## 2026-06-05_根层噪音隔离：不确定文件进历史
+
+- 目标：
+  - 按夏夏建议，先把特别明显的根层噪音清理掉，避免碍眼。
+  - 不确定文件不删除，统一移入历史文件夹。
+- 已做：
+  - 新建隔离区：`历史/uncertain-2026-06-05-cleanup/`。
+  - 移入：`.claude/settings.local.json`、`.claude/worktrees/`、`.tmp-board-events-check/`、`.tmp-board-handwriting-support-check/`、`mcp/`、`skills/`。
+  - 更新 `.gitignore`：本地 env、`.claude/settings.local.json`、`dist/`、`logs/`、`.tmp-*/`、`历史/uncertain-*/`。
+- 同步文件：
+  - `.gitignore`
+  - `.claude/PROJECT_STATE.md`
+  - `.claude/ENGINEERING_LOG.md`
+  - `CHANGE_TREE变更树.md`
+- 边界：
+  - 未删除文件，只做历史隔离。
+  - `PROJECT_XRAY_SCAN_2026-06-05.md` 是当前 X-ray 报告，暂留根层。
+  - `历史/skills 要用啊/graphify` 是 gitlink 嵌套仓；内部脏状态不在本刀处理。
+  - 已跟踪历史产物不清仓，避免误删证据。
+- 校验：
+  - `git status --ignore-submodules=dirty --untracked-files=all` ✅
+  - `git check-ignore -v` 对新增隔离规则命中 ✅
+  - 原根层候选路径 `Test-Path` 均为 `False` ✅
+- 下一枝：
+  - 回到 C 普通多行文本换行保真：只读定位 `boardSlice` 在显示链路哪里被压扁。
+
+## 2026-06-05_全仓X-ray扫描：页面组件API与SOP对齐
+
+- 目标：
+  - 按用户要求做至少四层深度扫描，不按普通项目经验猜测。
+  - 梳理当前页面数量、每个页面内容/样式/组件构成、API 设计位置、触发条件与主流程 SOP。
+- 已做：
+  - 读取根目录核心真相文档与 `.claude` 接力文档。
+  - 追踪 `main.tsx -> App -> workflow/components/store/services/vite gateway`。
+  - 追踪第 4 步舞台：`StagePreview -> LegacyStagePreview -> DrawboardStage -> AutoHandwritingLayer -> BoardTextSticker -> CStickerFrame`。
+  - 追踪 TTS 与 timeline：`VoiceWorkspace -> splitScriptIntoTtsSentenceUnits -> requestCosyVoiceSentences -> createBoardEventsFromTtsUnits -> mapBoardEventsToTimelineClips -> applyBoardEventsToTeachingTimeline`。
+  - 追踪 API：recognition/script-agent/layout-preview/cosyvoice/feishu/health。
+  - 追踪 active standalone：`c-sticker`、`drawboard-core`、`drawboard-hybrid`、`konva-proof`。
+- 新增文件：
+  - `PROJECT_XRAY_SCAN_2026-06-05.md`：页面/组件/API/SOP/风险/下一步完整报告。
+- 同步文件：
+  - `.claude/PROJECT_STATE.md`
+  - `.claude/ENGINEERING_LOG.md`
+  - `CHANGE_TREE变更树.md`
+- 关键发现：
+  - 当前共 1 个正式主工作台 + 4 个 active standalone proof/prototype；tldraw 两页在 `_deprecated/`。
+  - `BoardPreviewCard` 仍是活 tldraw 尾巴，`abcToTldrawShapes.ts` 暂不能删。
+  - Vite dev 网关比 Zeabur server API 完整，生产缺 OCR/TTS/LayoutPreview。
+  - C 多行换行当前高危点在 `mathBoardText.ts` 的空白归一。
+  - VoiceTrack 数字 B 控件与默认 lock 语义需要单独复核。
+- 校验：
+  - `npm run typecheck` ✅
+  - `node scripts/check-abc-architecture.mjs` ✅
+  - `node scripts/check-board-boundaries.mjs` ✅
+- 下一枝：
+  - 小刀修复 `boardSlice` 普通多行文本换行保留，保持 DOM 预览 / Canvas 录制同源。
+
 ## 2026-06-05_C文本降配安全实施步骤：先定位，后抽 layout，最后标签两刀
 
 - 目标：
@@ -4001,3 +4272,128 @@ untime/node/npm.cmd run check:board-event-clips 通过。
 - 下一刀不要混：
   - 步骤类标签 `A1/B1/C1` 保持原样，不带 `-pre`。
   - `unbound` 标签保持原样。
+
+## 2026-06-05_230920_REDUCTION_MAINLINE_ALIGNMENT
+
+- 本包性质：
+  - 认知对齐 + 下一步规划。
+  - 不改业务代码，不引入新实现路线。
+  - 按 `dev-conduct`、`xiaxia-context-compression`、`xiaxia-continuity`、`xiaxia-anchor-marking` 的纪律收口当前主线。
+- 真相源顺序：
+  - `.workbuddy/memory/MEMORY.md`
+  - `.workbuddy/memory/2026-06-05.md`
+  - 根目录 `真相路标-当前唯一入口.md` / `认知图-核心逻辑动态图.md` / `ABC字段函数前端映射表.md` / 本变更树
+  - 代码实证
+  - `.claude` 只作旧足迹辅助，不压过 WorkBuddy + 根目录 MD
+- 认知纠偏：
+  - 当前项目在做减法，不是换更高级实现。
+  - 当前唯一 C 普通文本主线是：`boardSlice` 原文多行 -> 保留用户 `\n` -> 手写字体文本渲染 -> 按字符 reveal -> 默认留场。
+  - 普通 C 文本不以 PNG/SVG/path/逐笔轨迹/Konva 大迁移作为当前主验收。
+- 下一刀目标：
+  - 修普通 C 文本换行丢失：先围绕 `src/modules/boardSticker/mathBoardText.ts` 的普通手写文本归一化逻辑做最小修复。
+  - 只保留用户换行，逐行归一普通空白，不改写 `boardSlice`。
+- 完成标志：
+  - `\n` 不丢。
+  - 普通文本逐字 reveal 的字符索引可解释。
+  - 页面预览与录制不另造内容真相。
+  - 有最小运行验证，不用旧 PNG/SVG 路线证明普通文本主链。
+- 不涉及：
+  - Konva 主迁移。
+  - SVG/path/逐笔轨迹重启。
+  - Agent 智能排版。
+  - 标签 manual override。
+  - 数学公式大改。
+  - tldraw 清理。
+- 已更新记录：
+  - `.workbuddy/memory/2026-06-05.md`
+  - `CHANGE_TREE变更树.md`
+- 验证：
+  - 记录型工作单元：已用 `rg` / `Get-Content` 校正 skill 与真相源位置。
+  - 未运行业务测试，因为本单元未改业务代码。
+
+## 2026-06-06_024248_CONTINUITY_GATE_VERIFIED
+
+- 本包性质：
+  - 秩序门禁验证 + 接力记录。
+  - 不改业务代码，不安装系统 skill。
+- 已做：
+  - SessionStart 读取 `PROJECT_STATE.md`、`DECISIONS.md`、`ENGINEERING_LOG.md` 最新接力棒、`PROJECT_TREE.md`。
+  - 跑 `npm run check:continuity-docs`。
+  - 跑 `node scripts/audit-local-order.mjs`。
+  - 更新 `PROJECT_STATE.md`、`PROJECT_TREE.md`、`ENGINEERING_LOG.md`、本变更树。
+- 已验证：
+  - `npm run check:continuity-docs` -> `Continuity docs check passed.`
+  - `node scripts/audit-local-order.mjs` -> `Audit result: ORDERED`
+- 下一步不要混：
+  - 系统级 Codex skill 安装仍需显式确认。
+  - 如果不安装系统 skill，下一刀可以恢复 `src/modules/boardSticker/mathBoardText.ts` 普通文本换行修复。
+
+## 2026-06-06_054216_SCRIPT_BOARD_ROWS_JSON_ESCAPE_FIX
+
+- 本包性质：
+  - 第二步文稿/板书 rows 对应关系核对 + Agent JSON 入口修复。
+  - 不改 C 渲染层，不改 rows 合同，不生成正式时间轴。
+- 用户现象：
+  - 第二步对话出现 `Bad escaped character in JSON at position 263 (line 1 column 264)`。
+- 对应关系：
+  - 第二步只生成候选 `rows`。
+  - `voiceText` 是讲解文稿候选。
+  - `boardSlice` 是 C 素材候选 / 课堂板书内容候选。
+  - 确认应用后才编译成 `spokenScript` / `boardPlan` 并写入正式 `scriptText` / `boardLayout`。
+- 根因：
+  - 报错发生在模型输出进入 rows 前的网关 `JSON.parse(jsonText)`。
+  - 模型可能输出未按 JSON 双写的 LaTeX 单反斜杠，如 `\left`、`\frac`、`\div`。
+- 已改：
+  - `scripts/script-agent-rows-contract.mjs`
+    - 新增 `parseJsonWithMathStringEscapes()`。
+    - 只修复 JSON 字符串内部明确数学/LaTeX 命令反斜杠。
+    - 合法 JSON 转义如 `\n` 保持原语义。
+  - `vite.config.mjs`
+    - 本地 `/api/agent/script-board` 改用共享 parser。
+  - `scripts/zeabur-server.mjs`
+    - Node/部署 `/api/agent/script-board` 改用共享 parser。
+  - `scripts/check-script-agent-rows-contract.mjs`
+    - 加入未转义 LaTeX 反斜杠回归。
+    - `runtime/node/node.exe` 不存在时回退 `process.execPath`。
+  - `PROJECT_STATE.md`、`DECISIONS.md`、`KNOWN_ISSUES.md`、`PROJECT_TREE.md`、`ENGINEERING_LOG.md`、`.workbuddy/memory/2026-06-06.md`
+    - 更新本轮状态、决策、问题、结构入口和接力棒。
+- 已验证：
+  - 直接 Node 复现未转义 `\left/\frac/\div` 通过。
+  - 直接 Node 验证合法 JSON `\n` 保留通过。
+  - 直接 Node 验证未知非法转义拒绝通过。
+  - `npm run check:script-agent-rows` 通过。
+  - `npm run typecheck` 通过。
+- 下一步不要混：
+  - 第二步 JSON 入口已修，不要把下一刀 C 文本换行问题混到 Agent rows 合同里。
+  - 下一刀回 `src/modules/boardSticker/mathBoardText.ts`，修普通 C 文本换行被压扁。
+
+## 2026-06-06_产品语义纠偏：第二步 JSON 不是普通技术通道
+
+- 本包性质：
+  - 纠正上一包 parser 命名和边界过宽的问题。
+  - 把第二步 JSON 修复从“技术容错”改成“老师讲稿/板书数学内容保护”。
+- 用户指出：
+  - 产品开发必须结合产品是什么，理解产品而不是只看到技术。
+  - 这种细节错不可原谅。
+- 已改：
+  - `scripts/script-agent-rows-contract.mjs`
+    - parser 改名为 `parseJsonWithMathStringEscapes()`。
+    - 只修复明确数学/LaTeX 反斜杠和数学定界符。
+    - 未知非法转义不再兜底修复，继续抛错。
+  - `vite.config.mjs`
+    - 本地第二步网关同步调用数学场景限定 parser。
+  - `scripts/zeabur-server.mjs`
+    - Node/部署第二步网关同步调用数学场景限定 parser。
+  - `scripts/check-script-agent-rows-contract.mjs`
+    - 加产品级断言：数学可修、`\n` 保留、未知非法转义拒绝。
+- 产品边界：
+  - 第二步是老师讲解稿和课堂板书入口，不是普通 JSON 清洗器。
+  - 可以保护学生能看懂的数学表达。
+  - 不能把未知脏转义偷偷带进候选文稿/板书。
+- 已验证：
+  - `npm run check:script-agent-rows` 通过。
+  - 直接 Node product checks 通过。
+  - `npm run typecheck` 通过。
+- 下一步不要混：
+  - 继续回到 C 普通文本换行修复。
+  - 所有修复都必须先问产品含义：老师讲什么、黑板写什么、学生看见什么。

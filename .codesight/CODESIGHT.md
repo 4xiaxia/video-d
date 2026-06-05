@@ -1,0 +1,1080 @@
+# teaching-cut-cleanroom — AI Context Map
+
+> **Stack:** raw-http | none | react | typescript
+
+> 12 routes (12 inferred) | 0 models | 61 components | 161 lib files | 58 env vars | 9 middleware | 12 events | 8% test coverage
+> **Token savings:** this file is ~19,300 tokens. Without it, AI exploration would cost ~89,200 tokens. **Saves ~70,000 tokens per conversation.**
+> **Last scanned:** 2026-06-05 19:34 — re-run after significant changes
+
+---
+
+# Routes
+
+- `GET` `/api/tts/cosyvoice/audio/` [auth] `[inferred]`
+- `ALL` `/api/health` [auth, payment] `[inferred]`
+- `ALL` `/api/feishu/board-script/import` [auth, payment] `[inferred]`
+- `ALL` `/api/feishu/board-script/import/latest` [auth, payment] `[inferred]`
+- `ALL` `/api/agent/script-board` [auth, payment] `[inferred]`
+- `ALL` `/api/` [auth, payment] `[inferred]`
+- `ALL` `/api/ontology/patch/validate` [auth, cache] `[inferred]`
+- `ALL` `/api/ontology/patch/dry-run` [auth, cache] `[inferred]`
+- `ALL` `/api/ontology/patch/apply` [auth, cache] `[inferred]`
+- `ALL` `/api/ontology/reconciliation/candidates` [auth, cache] `[inferred]`
+- `ALL` `/api/ontology/reconciliation/decision-log` [auth, cache] `[inferred]`
+- `ALL` `/api/ontology/rebuild-status` [auth, cache] `[inferred]` ✓
+
+---
+
+# Components
+
+- **App** — `src\App.tsx`
+- **AgentReviewCard** — props: autoApplyDraft, autoRunRequestId, draft, onCandidateDraftChange, problemText, scriptAgentConfig, onApplyDraft — `src\components\AgentReviewCard.tsx`
+- **AppSettingsDrawer** — props: config, open, onClose, onSaveConfig — `src\components\AppSettingsDrawer.tsx`
+- **AssetList** — props: assets — `src\components\AssetList.tsx`
+- **AssetPanel** — props: assets, automationConfig, recognitionConfig, ttsConfig, scriptAgentConfig, scriptAgentCandidateDraft, layoutPreviewDraft, onImportProblemImage, onApplyBoardEventsToTimeline, onSyncCAssetPrewarmQueue — `src\components\AssetPanel.tsx`
+- **AssetWorkflowTabs** — props: activeKey, onActiveKeyChange, steps — `src\components\AssetWorkflowTabs.tsx`
+- **AutoHandwritingLayer** — props: boardClips, boardFontLoadKey, boardFontSize, canvas, playheadMs, selectedBoardClipId, onRecordingCanvasReady, onSelectBoardClip, onUpdateBoardClip — `src\components\AutoHandwritingLayer.tsx`
+- **BoardClipLightGroup** — props: dataAnchor, title — `src\components\boardClipInspector\BoardClipInspectorSections.tsx`
+- **BoardClipContentSection** — props: clipId, label, onChange — `src\components\boardClipInspector\BoardClipInspectorSections.tsx`
+- **BoardClipBindingHintSection** — props: displayEndMs, displayStartMs, revealEndMs, revealStartMs, sourceEndMs, sourceStartMs — `src\components\boardClipInspector\BoardClipInspectorSections.tsx`
+- **BoardClipSkinSection** — props: draft, onChange, onScaleChange, scalePercent — `src\components\boardClipInspector\BoardClipInspectorSections.tsx`
+- **BoardClipCanvasPositionSection** — props: draft, onChange — `src\components\boardClipInspector\BoardClipInspectorSections.tsx`
+- **BoardClipDrawFeelSection** — props: drawSpeed, onChange — `src\components\boardClipInspector\BoardClipInspectorSections.tsx`
+- **BoardClipFontGapSection** — `src\components\boardClipInspector\BoardClipInspectorSections.tsx`
+- **BoardClipInspectorActions** — props: hasDraftChanges, onConfirm, onReset — `src\components\boardClipInspector\BoardClipInspectorSections.tsx`
+- **BoardClipInspector** — props: defaultFontSize, selectedClip, onUpdateBoardClip — `src\components\BoardClipInspector.tsx`
+- **BoardControlResponsibilitiesPanel** — `src\components\BoardControlResponsibilitiesPanel.tsx`
+- **BoardHandwritingStickerContent** — props: color, fontFamily, fontLoadKey, fontSize, text — `src\components\BoardHandwritingStickerContent.tsx`
+- **BoardMathStickerContent** — props: color, text — `src\components\BoardMathStickerContent.tsx`
+- **BoardPreviewCard** — props: draft, stageCanvas — `src\components\BoardPreviewCard.tsx`
+- **BoardStageToolOverlay** — props: activeColor, activeToolMode, activeStrokeWidth, onChangeColor, onChangeStrokeWidth, onChangeToolMode, onClear, onUndo — `src\components\BoardStageToolOverlay.tsx`
+- **BoardTextSticker** — props: color, fontFamily, fontLoadKey, fontSize, isDragging, isSelected, onPointerDown, onResizePointerDown, revealProgress, stackIndex — `src\components\BoardTextSticker.tsx`
+- **BoardTypographyFormFields** — props: helpText, labelPrefix, namePrefix — `src\components\BoardTypographyFields.tsx`
+- **BoardTypographyControlledFields** — props: labelPrefix, onChange, value — `src\components\BoardTypographyFields.tsx`
+- **CanvasInspector** — props: canvas, onUpdateCanvas — `src\components\CanvasInspector.tsx`
+- **CanvasRecordingSurface** — props: canvas, onCanvasReady, problemSummary — `src\components\CanvasRecordingSurface.tsx`
+- **CStickerFrame** — props: color, contentKind, fontSize, isDragging, isSelected, onPointerDown, onResizePointerDown, revealProgress, stackIndex, text — `src\components\CStickerFrame.tsx`
+- **CurrentProblemPreview** — props: asset — `src\components\CurrentProblemPreview.tsx`
+- **CurrentProjectBoardFontInspector** — props: canvas, onUpdateCanvas — `src\components\CurrentProjectBoardFontInspector.tsx`
+- **DrawboardStage** — props: activeToolMode, boardFontSize, canvas, onClearGoldenFinger, onChangeStrokeColor, onChangeStrokeWidth, onChangeToolMode, onGoldenFingerLayerReady, onRecordingCanvasesReady, onUndoGoldenFinger — `src\components\DrawboardStage.tsx`
+- **FloatingToolDock** — `src\components\FloatingToolDock.tsx`
+- **FormulaText** — props: as, className, classNamePrefix, rootClassName — `src\components\FormulaText.tsx`
+- **GoldenFingerCanvasLayer** — props: activeToolMode, strokeWidth, strokeColor — `src\components\GoldenFingerCanvasLayer.tsx`
+- **InspectorPanel** — props: canvas, selectedClip, onUpdateBoardClip, onUpdateCanvas — `src\components\InspectorPanel.tsx`
+- **KonvaRecordingSurface** — props: canvas, onCanvasReady, problemSummary — `src\components\KonvaRecordingSurface.tsx`
+- **StagePreview** — props: boardClips, canvas, playheadMs, problemText, selectedBoardClipId, onRecordingActiveChange, onSelectBoardClip, onUpdateBoardClip — `src\components\LegacyStagePreview.tsx`
+- **MathText** — `src\components\MathText.tsx`
+- **ProblemImportCard** — props: onImportProblemImage — `src\components\ProblemImportCard.tsx`
+- **ProblemOcrCard** — `src\components\ProblemOcrCard.tsx`
+- **ProblemUploadPreview** — props: asset, boardSummary, hasConfirmedBoard, onImportProblemImage — `src\components\ProblemUploadPreview.tsx`
+- **ProblemWorkspace** — props: boardSummary, hasConfirmedBoard, imageAsset, isRecognizingProblem, onConfirmProblemText, onGenerateScriptAgent, onImportProblemImage, onOpenScriptAgent, onUpdateProblemText, recognitionConfig — `src\components\ProblemWorkspace.tsx`
+- **ProjectArchiveActions** — props: defaultSaveDirectoryLabel, onImportLocalTaskArchive, onRefreshLocalTaskSnapshots, onRestoreLocalTaskSnapshot, onSaveLocalTaskArchive, onSetDefaultSaveDirectory, recentTaskSnapshots — `src\components\ProjectArchiveActions.tsx`
+- **ScriptAgentWorkspace** — props: autoApplyDraft, autoRunRequestId, assets, candidateDraft, scriptAgentConfig, onApplyDraft, onCandidateDraftChange — `src\components\ScriptAgentWorkspace.tsx`
+- **ScriptBoardSummaryStep** — props: boardLayoutAsset, canOpenAgent, onOpenScriptAgent, onGenerateScriptAgent, scriptTextAsset, layoutPreviewDraft, stageCanvas — `src\components\ScriptBoardSummaryStep.tsx`
+- **StagePreviewToolbar** — props: onRecordingActiveChange, recordingCanvases — `src\components\StagePreviewToolbar.tsx`
+- **StageRecorderControl** — props: onRecordingActiveChange, recordingCanvases — `src\components\StageRecorderControl.tsx`
+- **TeachingTimeline** — props: tracks, clips, boardTimingClips, isPlaying, selectedClipId, playheadMs, onSelectClip, onSetPlaying, onSetLivePlayhead, onSetPlayhead — `src\components\TeachingTimeline.tsx`
+- **TimelineClipBlock** — props: clip, durationMs, isActive, isSelected, layerIndex, onSelectClip, onUpdateBoardTiming — `src\components\TimelineClipBlock.tsx`
+- **TimelineTrackRow** — props: track, clips, durationMs, playheadMs, selectedClipId, onSelectClip, onUpdateBoardTiming — `src\components\TimelineTrackRow.tsx`
+- **VoiceBatchStatusPanel** — props: batches, isRealGatewayReady — `src\components\VoiceBatchStatusPanel.tsx`
+- **VoiceTrack** — props: track, clips, boardTimingClips, durationMs, playheadMs, selectedClipId, onSelectClip, onUpdateBoardTiming — `src\components\VoiceTrack.tsx`
+- **VoiceWorkspace** — props: assets, ttsConfig, scriptAgentConfig, scriptAgentCandidateDraft, onApplyBoardEventsToTimeline, onSyncCAssetPrewarmQueue, onApplyTtsSentenceResults, onSyncLayoutPreviewDraft, stageCanvas — `src\components\VoiceWorkspace.tsx`
+- **ScriptAgentTableEditor** — props: onChange, onCompile, rows, showRules — `src\modules\scriptAgentTable\ScriptAgentTableEditor.tsx`
+- **ScriptSegmentPreview** — props: emptyText, maxVisibleSegments, scriptChainKeys, scriptText, title — `src\modules\scriptSegments\ScriptSegmentPreview.tsx`
+- **ScriptSegmentWorkbench** — props: actionLabel, emptyText, maxVisibleSegments, onEditScript, scriptChainKeys, scriptText, title — `src\modules\scriptSegments\ScriptSegmentWorkbench.tsx`
+- **CStickerStandalonePage** — `src\standalone\CStickerStandalonePage.tsx`
+- **DrawboardCoreStandalonePage** — `src\standalone\DrawboardCoreStandalonePage.tsx`
+- **DrawboardHybridPrototypePage** — `src\standalone\DrawboardHybridPrototypePage.tsx`
+- **KonvaProofPage** — `src\standalone\KonvaProofPage.tsx`
+- **TldrawProofPage** — `src\_deprecated\TldrawProofPage.tsx`
+- **TldrawStagePreview** — props: boardClips, canvas, playheadMs, problemText, selectedBoardClipId, onRecordingActiveChange, onSelectBoardClip, onUpdateBoardClip — `src\_deprecated\TldrawStagePreview.tsx`
+
+---
+
+# Libraries
+
+- `scripts\check-board-boundaries.mjs`
+  - function createBoardClipInspectorPatch: (draft) => BoardClipInspectorPatch') ||
+  - type BoardClipInspectorPatch
+  - type BoardClipInspectorWritableDraft
+  - type BoardClipInspectorDraft
+  - const DEFAULT_BOARD_DRAW_SPEED
+- `scripts\cosyvoice-contract.mjs`
+  - function createCosyVoiceRunTaskCommand: ({...}, sampleRate, taskId) => void
+  - function createCosyVoiceContinueTaskCommand: ({...}, text }) => void
+  - function createCosyVoiceFinishTaskCommand: ({...}) => void
+  - function createCosyVoiceSentenceRequest: ({...}, model, voice, }) => void
+  - function createCosyVoiceRestRequestBody: ({...}, model, voice, format, sampleRate, rate, wordTimestampEnabled, }) => void
+  - function createExpectedSentenceResultShape: (sentence) => void
+  - _...5 more_
+- `scripts\feishu-board-script-import.mjs`
+  - function createFeishuBoardScriptImportResponse: (payload, options) => void
+  - function normalizeFeishuBoardScriptPayload: (payload) => void
+  - function parseTeachingOutputSections: (text) => void
+  - const FEISHU_IMPORT_ACCEPTED_FIELDS
+  - const FEISHU_IMPORT_VISIBLE_FIELD_HINTS
+- `scripts\load-local-env.mjs` — function loadLocalEnv: ({...}) => void
+- `scripts\script-agent-rows-contract.mjs` — function readScriptAgentRows: (source) => void, function compileScriptAgentRowsToDraft: (rows) => void
+- `src\agent\scriptBoardAgentPrompt.ts`
+  - function createLocalScriptAgentDraft: (problemText) => ScriptAgentDraft
+  - const scriptBoardAgentRuleSummary
+  - const scriptBoardAgentPromptContract
+- `src\config\runtimeConfigBox.ts` — function readRuntimeConfigBox: (config) => RuntimeConfigBox, type RuntimeConfigBox
+- `src\domain\globalRules.ts`
+  - function isValidSection: (value) => value is typeof SCRIPT_SECTION[keyof typeof SCRIPT_SECTION]
+  - function isValidChainKeyTemplate: (value) => boolean
+  - function getChainKeyTemplateForSection: (section) => string
+  - interface BTimingClip
+  - interface CVisualClip
+  - type AbcChainKey
+  - _...17 more_
+- `src\domain\teachingProject.ts`
+  - function createSeedProject
+  - type TrackKind
+  - type TimelineTrack
+  - type TimelineClipKind
+  - type TimelineClip
+  - type TeachingTimeline
+  - _...24 more_
+- `src\modules\abcChain\abcChainKey.ts`
+  - function createTemplateChainKey: (section, purpose?) => AbcChainKey
+  - function createStepChainKey: (stepIndex) => AbcChainKey
+  - function createRowChainKey: (rows, row) => AbcChainKey
+  - function createAbcChainLabels: (chainKey) => AbcChainLabels
+  - function createAbcChainLabel: (chainKey, layer) => string
+  - function isBoardMaterialChainKey: (chainKey) => boolean
+  - _...2 more_
+- `src\modules\aTrackProduction\scriptRowsOutput.ts`
+  - function createATrackScriptRowsOutput: (rows) => ATrackScriptRowsOutput
+  - function createATrackScriptRowsOutputFromDraft: (draft, 'rows'>) => ATrackScriptRowsOutput
+  - type ATrackScriptRowsOutput
+- `src\modules\audioPlayback\activeVoiceAudioElement.ts` — function setActiveVoiceAudioElement: (audio) => void, function getActiveVoiceAudioElement: () => void
+- `src\modules\audioPlayback\useVoiceTrackAudio.ts` — function useVoiceTrackAudio: ({...}, isPlaying, onSetPlayhead, onStop, playheadMs, }) => void, type VoiceTrackAudioStatus
+- `src\modules\audioPlayback\voiceAudioSeek.ts`
+  - function prepareVoiceAudioSeek: ({...}, offsetMs, signal, source, }) => Promise<void>
+  - function normalizeVoiceAudioSeekSeconds: (offsetMs) => number
+  - type PrepareVoiceAudioSeekInput
+- `src\modules\audioPlayback\voicePlaybackStart.ts` — function resolveVoicePlaybackStart: (playheadMs, playableClips) => VoicePlaybackStart | null, type VoicePlaybackStart
+- `src\modules\boardFont\boardFontConfig.ts`
+  - function createBoardTypographyConfig: (input) => BoardTypographyConfig
+  - function normalizeBoardFontUrl: (url) => string
+  - function normalizeBoardFontName: (fontName) => string
+  - function createBoardFontFamily: (fontName) => string
+  - function normalizeBoardFontSize: (fontSize) => number
+  - type BoardTypographyConfig
+  - _...5 more_
+- `src\modules\boardOrdering\boardClipLayerOrder.ts` — function compareBoardClipLayerOrder: (left, right) => number
+- `src\modules\boardReveal\getBoardRevealProgress.ts` — function getBoardRevealProgress: ({...}, playheadMs, revealEndMs, revealStartMs, }) => number
+- `src\modules\boardReveal\normalizeBoardRevealWindow.ts`
+  - function normalizeBoardRevealWindow: ({...}, displayStartMs, patch, previousDisplayEndMs, previousDisplayStartMs, previousRevealEndMs, previousRevealStartMs, sourceEndMs, sourceStartMs, }) => BoardRevealWindow
+  - type BoardRevealWindowPatch
+  - type NormalizeBoardRevealWindowInput
+  - type BoardRevealWindow
+- `src\modules\boardSticker\boardStickerGeometry.ts`
+  - function clampBoardStickerPercent: (value, fallback) => number
+  - function clampBoardStickerWidthPercent: (value) => number
+  - function getBoardStickerFontSize: (value, fallback) => number
+  - function getBoardStickerDrawSpeed: (value) => number
+  - function normalizeBoardStickerVisualPatch: ({...}, fontSize, widthPercent, xPercent, yPercent, }) => Required<BoardStickerVisualPatch>
+  - function createBoardStickerUniformResizePatch: ({...}, currentClientX, fallbackFontSize, originClientX, originFontSize, originWidthPercent, }) => BoardStickerUniformResizePatch
+  - _...9 more_
+- `src\modules\boardSticker\boardStickerPluginContract.ts`
+  - function resolveBoardStickerPluginState: ({...}, visual, }) => BoardStickerPluginState
+  - type BoardStickerPluginInput
+  - type BoardStickerPluginState
+  - const BOARD_STICKER_PLUGIN_ID
+- `src\modules\boardSticker\boardTextDisplayRoute.ts` — function resolveBoardTextDisplayRoute: (text) => BoardTextDisplayRoute, type BoardTextDisplayRoute
+- `src\modules\boardSticker\mathBoardText.ts`
+  - function normalizeBoardMathText: (text) => void
+  - function hasBoardMath: (text) => void
+  - function stripSimpleBoardMathDelimiters: (text) => void
+  - function normalizeElementaryBoardHandwritingText: (text) => string
+  - function tokenizeBoardText: (text) => BoardTextToken[][]
+  - function isBoardTextSupportedByHandwritingFont: (line) => void
+  - _...2 more_
+- `src\modules\boardSticker\renderBoardMathStickerImage.ts`
+  - function renderBoardMathStickerImage: (text, options) => Promise<BoardTextStickerImage>
+  - type BoardTextStickerImage
+  - type BoardTextStickerImageOptions
+- `src\modules\boardSticker\renderBoardTextStickerImage.ts`
+  - function renderBoardTextStickerImage: (text, options) => Promise<BoardTextStickerImage>
+  - type BoardTextStickerImage
+  - type BoardTextStickerImageOptions
+- `src\modules\boardSticker\useBoardStickerDragController.ts` — function useBoardStickerDragController: ({...}, onCommitPatch, }, patch) => void
+- `src\modules\boardTiming\boardDisplayTiming.ts`
+  - function normalizeBoardDisplayWindow: ({...}, minDurationMs, startMs, }) => void
+  - function createBoardDisplayTimingDragPatch: ({...}, durationMs, laneWidth, minDurationMs, mode, originEndMs, originStartMs, pointerX, }) => BoardDisplayWindowPatch
+  - type BoardDisplayWindowPatch
+  - type BoardDisplayTimingDragMode
+- `src\modules\canvasStage\coursewareChrome.ts`
+  - function createCoursewareChromeStyleVars: (canvas) => CSSProperties
+  - function resolveProblemFontSize: (canvas) => void
+  - const COURSEWARE_SYSTEM_FONT_FAMILY
+  - const COURSEWARE_LABEL_LEFT_RATIO
+  - const COURSEWARE_LABEL_WIDTH_RATIO
+  - const COURSEWARE_LABEL_HEIGHT_RATIO
+  - _...6 more_
+- `src\modules\canvasStage\drawCoursewareStageFrame.ts` — function drawCoursewareStageFrame: (context, canvas, problemSummary) => void
+- `src\modules\cAssetPrewarm\createCAssetPrewarmQueue.ts` — function createCAssetPrewarmQueue: ({...}, canvas, readyResults, units, }) => TeachingCAsset[]
+- `src\modules\feishuImport\index.ts`
+  - function normalizeFeishuBoardScriptRecord: (record) => FeishuBoardScriptImport
+  - function hasUsableFeishuBoardScriptRecord: (record) => void
+  - type FeishuBoardScriptRecord
+  - type FeishuBoardScriptImport
+- `src\modules\localTaskArchive\localTaskArchive.ts`
+  - function saveProjectToLocalTaskFolder: (project) => Promise<LocalTaskArchiveResult>
+  - function selectDefaultLocalTaskFolder: () => Promise<
+  - function importProjectFromLocalTaskFolder: () => Promise<LocalTaskImportResult>
+  - type LocalTaskArchiveResult
+  - type LocalProjectEditRecord
+  - type LocalProjectProductManifestItem
+  - _...2 more_
+- `src\modules\localTaskArchive\localTaskDb.ts`
+  - function loadCurrentProjectSnapshot: () => Promise<LocalTaskSnapshot | null>
+  - function loadLocalTaskSnapshot: (snapshotId) => Promise<LocalTaskSnapshot | null>
+  - function loadRecentTaskSnapshots: (limit) => Promise<LocalTaskSnapshot[]>
+  - function saveCurrentProjectSnapshot: (project) => Promise<void>
+  - function saveNamedProjectSnapshot: (project, archiveFolderName, metadata?) => Promise<LocalTaskSnapshot>
+  - type LocalTaskSnapshot
+- `src\modules\scriptAgentDraft\normalizeScriptAgentDraft.ts` — function normalizeScriptAgentDraft: (draft) => ScriptAgentDraft
+- `src\modules\scriptAgentDraft\scriptAgentDraftState.ts` — function hasScriptAgentDraftContent: (draft) => boolean, function createScriptAgentDraftSignature: (draft) => string
+- `src\modules\scriptAgentTable\compileScriptAgentTableDraft.ts` — function compileScriptAgentTableDraft: (tableDraft) => ScriptAgentDraft
+- `src\modules\scriptAgentTable\normalizeScriptAgentTableDraft.ts` — function normalizeScriptAgentTableRows: (rows) => ScriptAgentTableRow[]
+- `src\modules\scriptSegments\createScriptSegments.ts` — function createScriptSegments: (scriptText, options) => ScriptSegment[]
+- `src\modules\scriptSegments\scriptSegmentBoardMarkers.ts`
+  - function readAllowedBoardMarkers: (segment) => ScriptSegmentBoardMarker[]
+  - function countAllowedBoardMarkers: (segments) => number
+  - type ScriptSegmentBoardMarker
+- `src\modules\scriptSegments\scriptSegmentDisplayLabels.ts` — function readUserFacingSegmentLabel: (chainKey, fallbackIndex) => string, function readUserFacingSegmentLabelFromChainKey: (chainKey) => string
+- `src\modules\speechText\aliyunMathSpeechText.ts`
+  - function prepareAliyunMathSpeechText: (text) => string
+  - function normalizeAliyunMathFormula: (formula) => string
+  - function repairCommonLatexEscapeDamage: (text) => string
+- `src\modules\stageRecorder\useCanvasRecorder.ts` — function useCanvasRecorder: () => void
+- `src\modules\timeline\timelineWindow.ts` — function isPlayheadInsideTimelineWindow: (playheadMs, startMs, endMs) => void, function isBoardClipVisibleAtPlayhead: (playheadMs, startMs, hideAtMs?) => boolean
+- `src\modules\timeline-factory\applyBoardEventsToTeachingTimeline.ts` — function applyBoardEventsToTeachingTimeline: (timeline, boardEvents) => TeachingTimeline
+- `src\modules\timeline-factory\createBoardEventsFromTtsUnits.ts` — function createBoardEventsFromTtsUnits: (units, sentenceResults, options) => BoardEvent[]
+- `src\modules\timeline-factory\createTtsBatchJobs.ts` — function createTtsBatchJobs: (units, options) => TtsBatchJob[]
+- `src\modules\timeline-factory\mapBoardEventsToTimelineClips.ts` — function mapBoardEventsToTimelineClips: (boardEvents, options) => TimelineClip[]
+- `src\modules\timeline-factory\mergeBoardClipsIntoTimelineClips.ts` — function mergeBoardClipsIntoTimelineClips: (existingClips, generatedBoardClips, options) => TimelineClip[]
+- `src\modules\timeline-factory\orderTtsSentenceResults.ts`
+  - function isReadyTtsSentenceResult: (result) => boolean
+  - function sortTtsSentenceResultsBySentenceOrder: (results) => TtsSentenceResult[]
+  - function filterTtsUnitsBySentenceResults: (units, results) => TtsSentenceUnit[]
+- `src\modules\timeline-factory\splitScriptIntoTtsSentenceUnits.ts` — function stripBoardMarkersForTts: (text) => string, function splitScriptIntoTtsSentenceUnits: (scriptText, options) => SplitScriptResult
+- `src\modules\tldrawStage\abcToTldrawShapes.ts`
+  - function syncAbcStageToTldraw: ({...}, editor, playheadMs, problemText, boardClips, }) => TldrawStageBoardShapeMeta[]
+  - function resolveTldrawStageSize: (canvas) => void
+  - type TldrawStageBoardShapeMeta
+  - const TL_STAGE_SHAPE_IDS
+- `src\modules\ttsPreprocessor\ttsFormatFilterLayer.ts`
+  - function createTtsFormatFilterLayer: (draft) => Promise<TtsFormatFilterResult>
+  - function batchProcessTtsFormatFilter: (drafts) => Promise<TtsFormatFilterResult[]>
+  - type TtsFormatFilterResult
+- `src\services\boardLayoutPreviewGatewayClient.ts` — function requestBoardLayoutPreview: ({...}, problemText, rows, stageCanvas, }) => Promise<CLayoutPreviewDraft>
+- `src\services\cosyvoiceGatewayClient.ts`
+  - function requestCosyVoiceSentences: (sentences, config) => Promise<CosyVoiceGatewayResponse>
+  - type CosyVoiceGatewaySentenceInput
+  - type CosyVoiceGatewayConfig
+  - type CosyVoiceGatewayResult
+  - type CosyVoiceGatewayResponse
+- `src\services\recognitionGatewayClient.ts` — function requestProblemTextRecognition: ({...}, imageFile, }) => Promise<string>
+- `src\services\scriptAgentGatewayClient.ts` — function requestScriptAgentDraft: ({...}, problemText, revisionPrompt, }) => Promise<ScriptAgentDraft>
+- `历史\skills 要用啊\graphify\src\analyze.ts`
+  - function isFileNode: (G, nodeId) => boolean
+  - function isConceptNode: (G, nodeId) => boolean
+  - function isJsonKeyNode: (G, nodeId) => boolean
+  - function godNodes: (G, topN) => GodNodeEntry[]
+  - function surprisingConnections: (G, communities?, topN) => SurpriseEntry[]
+  - function suggestQuestions: (G, communities, communityLabels, topN) => SuggestedQuestion[]
+  - _...1 more_
+- `历史\skills 要用啊\graphify\src\benchmark.ts` — function runBenchmark: (graphPath) => void, function printBenchmark: (result) => void
+- `历史\skills 要用啊\graphify\src\build.ts`
+  - function deduplicateByLabel: (extraction) => Extraction
+  - function buildFromJson: (extraction, options?) => Graph
+  - function build: (extractions, options?) => Graph
+  - function buildMerge: (newChunks, options?) => Graph
+  - interface BuildOptions
+  - interface BuildMergeOptions
+- `历史\skills 要用啊\graphify\src\cache.ts`
+  - function fileHash: (filePath, root) => string
+  - function _resetStatIndexForTesting: () => void
+  - function cacheDir: (root, options) => string
+  - function loadCached: (filePath, root, options) => Record<string, unknown> | null
+  - function saveCached: (filePath, result, unknown>, root, options) => void
+  - function cachedFiles: (root, options) => Set<string>
+  - _...4 more_
+- `历史\skills 要用啊\graphify\src\cli.ts`
+  - function platformInstallPreview: (projectDir, platformName) => InstallMutationPreview
+  - function globalSkillInstallPreview: (platformName) => InstallMutationPreview
+  - function uninstallAll: (projectDir, options) => void
+  - function getInvocationExample: (platformName) => string
+  - function getAgentsMdSection: (platformName) => string
+  - function cursorInstall: (projectDir) => void
+  - _...19 more_
+- `历史\skills 要用啊\graphify\src\cluster.ts`
+  - function cluster: (G, options) => Map<number, string[]>
+  - function cohesionScore: (G, communityNodes) => number
+  - function scoreAll: (G, communities) => Map<number, number>
+  - interface ClusterOptions
+- `历史\skills 要用啊\graphify\src\collections.ts`
+  - function toNumericMap: (value) => Map<number, T>
+  - function toStringMap: (value) => Map<string, T>
+  - type NumericMapLike
+  - type StringMapLike
+- `历史\skills 要用啊\graphify\src\community-labels.ts` — function resolveCommunityLabels: (communities, string[]>, options) => Map<number, string>, function persistCommunityLabels: (labels, string>, labelsPath) => void
+- `历史\skills 要用啊\graphify\src\configured-dataprep.ts`
+  - function buildConfiguredDetectionInputs: (config) => ConfiguredDetectionInputs
+  - function applyConfiguredExcludes: (detection, config) => DetectionResult
+  - function writeProfileState: (paths, state) => void
+  - function runConfiguredDataprep: (root, options) => Promise<ConfiguredDataprepResult>
+  - interface ConfiguredDetectionInputs
+  - interface ProfileState
+  - _...2 more_
+- `历史\skills 要用啊\graphify\src\detect-changes.ts`
+  - function isSafeGitRef: (ref) => boolean
+  - function parseUnifiedDiff: (diffText) => Record<string, Array<[number, number]>>
+  - function mapChangesToNodes: (store, changedRanges) => ReviewGraphNode[]
+  - function computeRiskScore: (store, node, options) => number
+  - function analyzeChanges: (store, changedFilesInput, options) => DetectChangesResult
+  - function detectChangesToMinimal: (result) => DetectChangesMinimalResult
+  - _...9 more_
+- `历史\skills 要用啊\graphify\src\detect.ts`
+  - function shebangInterpreter: (filePath) => string | null
+  - function classifyFile: (filePath) => FileType | null
+  - function extractPdfText: (filePath) => Promise<string>
+  - function docxToMarkdown: (filePath) => Promise<string>
+  - function xlsxToMarkdown: (filePath) => Promise<string>
+  - function convertOfficeFile: (filePath, outDir) => Promise<string | null>
+  - _...12 more_
+- `历史\skills 要用啊\graphify\src\direct-llm-extract.ts`
+  - function packSemanticFilesByTokenBudget: (files, options) => DirectSemanticChunk[]
+  - function createDirectSemanticExtractionClient: (options) => DirectSemanticExtractionClient
+  - function extractSemanticFilesDirectParallel: (files, options) => Promise<Extraction>
+  - class AllChunksFailedError
+  - interface DirectSemanticFile
+  - interface DirectSemanticChunk
+  - _...4 more_
+- `历史\skills 要用啊\graphify\src\export.ts`
+  - function backupIfProtected: (outDir) => string | null
+  - function inferNodeShape: (fileType, sourceFile) => string
+  - function inferEdgeDashes: (relation, confidenceTier) => boolean | number[]
+  - function resolveNodeShape: (args) => string
+  - function resolveNodeColor: (args) => string
+  - function computeTopologySignatureFromLinks: (nodes, links) => string
+  - _...8 more_
+- `历史\skills 要用啊\graphify\src\extract.ts`
+  - function foo: () => void
+  - function extractPython: (filePath, rootDir?) => Promise<ExtractionResult>
+  - function extractJs: (filePath, rootDir?) => Promise<ExtractionResult>
+  - function extractJava: (filePath, rootDir?) => Promise<ExtractionResult>
+  - function extractC: (filePath, rootDir?) => Promise<ExtractionResult>
+  - function extractCpp: (filePath, rootDir?) => Promise<ExtractionResult>
+  - _...24 more_
+- `历史\skills 要用啊\graphify\src\flows.ts`
+  - function detectEntryPoints: (store, options) => ReviewGraphNode[]
+  - function traceFlows: (store, options) => ReviewFlow[]
+  - function computeFlowCriticality: (flow, store) => number
+  - function buildFlowArtifact: (store, options) => ReviewFlowArtifact
+  - function writeFlowArtifact: (artifact, path) => void
+  - function readFlowArtifact: (path) => ReviewFlowArtifact
+  - _...16 more_
+- `历史\skills 要用啊\graphify\src\git.ts`
+  - function execGit: (cwd, args) => string
+  - function safeExecGit: (cwd, args) => string | null
+  - function resolveFromGitCwd: (cwd, value) => string
+  - function gitRevParse: (cwd, args) => string
+  - function safeGitRevParse: (cwd, args) => string | null
+  - function userEditableHooksDir: (hooksDir) => string
+  - _...2 more_
+- `历史\skills 要用啊\graphify\src\google-workspace.ts`
+  - function googleWorkspaceEnabled: (value?) => boolean
+  - function readGoogleShortcut: (path) => GoogleWorkspaceShortcut
+  - function createDefaultGoogleWorkspaceFetcher: (fetchImpl) => GoogleWorkspaceFetcher
+  - function convertGoogleWorkspaceFile: (stubPath, outDir, options) => Promise<string | null>
+  - interface GoogleWorkspaceShortcut
+  - interface GoogleWorkspaceFetcher
+  - _...2 more_
+- `历史\skills 要用啊\graphify\src\graph-size-guard.ts`
+  - function assertGraphJsonSize: (bytes, mode, path?) => void
+  - function assertGraphJsonFileSize: (path, mode) => void
+  - type GraphSizeMode
+  - const GRAPH_JSON_MAX_BYTES
+- `历史\skills 要用啊\graphify\src\graph.ts`
+  - function createGraph: (directed) => Graph
+  - function isDirectedGraph: (G) => boolean
+  - function loadGraphFromData: (raw) => Graph
+  - function serializeGraph: (G) => SerializedGraphData
+  - function toUndirectedGraph: (G) => Graph
+  - function forEachTraversalNeighbor: (G, node, callback) => void
+  - _...2 more_
+- `历史\skills 要用啊\graphify\src\hooks.ts`
+  - function install: (path) => string
+  - function uninstall: (path) => string
+  - function status: (path) => string
+- `历史\skills 要用啊\graphify\src\html-export.ts` — function safeToHtml: (graph, communities, string[]>, outputPath, options?, safeOptions?) => string | undefined
+- `历史\skills 要用啊\graphify\src\hyperedges.ts`
+  - function validateHyperedge: (value) => value is Hyperedge
+  - function loadHyperedges: (graph) => Hyperedge[]
+  - function setHyperedges: (graph, edges) => void
+  - function mergeHyperedges: (a, b) => Hyperedge[]
+  - const HYPEREDGES_ATTRIBUTE
+- `历史\skills 要用啊\graphify\src\image-caption-schema.ts` — function validateImageCaption: (value) => string[], function validateImageRouting: (value) => string[]
+- `历史\skills 要用啊\graphify\src\image-dataprep-batch.ts`
+  - function exportImageDataprepBatchRequests: (options) => ExportImageDataprepBatchRequestsResult
+  - function importImageDataprepBatchResults: (options) => ImportImageDataprepBatchResultsResult
+  - interface ExportImageDataprepBatchRequestsOptions
+  - interface ExportImageDataprepBatchRequestsResult
+  - interface ImportImageDataprepBatchResultsOptions
+  - interface ImportImageDataprepBatchResultsResult
+- `历史\skills 要用啊\graphify\src\image-dataprep.ts`
+  - function buildImageDataprepManifest: (options) => ImageDataprepManifest
+  - function runImageDataprep: (options) => RunImageDataprepResult
+  - interface ImageDataprepArtifact
+  - interface ImageDataprepManifest
+  - interface BuildImageDataprepManifestOptions
+  - interface RunImageDataprepOptions
+  - _...2 more_
+- `历史\skills 要用啊\graphify\src\image-routing-calibration.ts`
+  - function imageRoutingSampleFromCaption: (artifactId, caption) => ImageRoutingSample
+  - function loadImageRoutingLabels: (path) => ImageRoutingLabelsFile
+  - function loadImageRoutingRules: (path) => ImageRoutingRulesFile
+  - function assertAcceptedImageRoutingRules: (rules) => void
+  - function writeImageRoutingCalibrationSamples: (options) => WriteImageRoutingCalibrationSamplesResult
+  - function routeImageWithRules: (rules, sample) => ImageRoutingDecision
+  - _...15 more_
+- `历史\skills 要用啊\graphify\src\ingest.ts` — function ingest: (url, targetDir, authorOrOptions, contributor) => Promise<string>, function saveQueryResult: (questionOrOptions, answer?, memoryDir?, queryType, sourceNodes) => string
+- `历史\skills 要用啊\graphify\src\input-scope.ts`
+  - function inspectInputScope: (root, options) => InputScopeInventory
+  - function isInputScopeMode: (value) => value is GraphifyInputScopeMode
+  - function parseInputScopeMode: (value, fallback) => GraphifyInputScopeMode
+  - function resolveCliInputScopeSelection: (options, fallback) => InputScopeSelection
+  - function resolveConfiguredInputScopeSelection: (config, "inputs">, options) => InputScopeSelection
+  - interface InspectInputScopeOptions
+  - _...2 more_
+- `历史\skills 要用啊\graphify\src\lifecycle.ts`
+  - function lifecyclePaths: (root) => void
+  - function readLifecycleMetadata: (root) => LifecycleMetadata | null
+  - function refreshLifecycleMetadata: (root, options) => LifecycleMetadata
+  - function markLifecycleStale: (root, reason) => LifecycleMetadata
+  - function markLifecycleAnalyzed: (root) => LifecycleMetadata
+  - function planLifecyclePrune: (root) => PrunePlan
+  - _...6 more_
+- `历史\skills 要用啊\graphify\src\llm-execution.ts`
+  - function isDirectLlmProvider: (value) => value is DirectLlmProvider
+  - function defaultDirectLlmModel: (provider) => string
+  - function directProviderCredentialEnv: (provider) => string[]
+  - function parseJsonFromLlmText: (text) => unknown
+  - function preflightLlmExecution: (policy, capability) => void
+  - function createAssistantTextJsonClient: (options) => TextJsonGenerationClient
+  - _...28 more_
+- `历史\skills 要用啊\graphify\src\llm-mesh-bridge.ts`
+  - function createGraphifyMesh: (options) => LlmMesh
+  - function meshTextJsonClient: (mesh, options) => TextJsonGenerationClient
+  - interface CreateGraphifyMeshOptions
+  - interface MeshTextJsonClientOptions
+- `历史\skills 要用啊\graphify\src\merge-driver.ts` — function mergeGraphJsonFiles: (ancestorPath, currentPath, otherPath) => MergeGraphJsonResult, interface MergeGraphJsonResult
+- `历史\skills 要用啊\graphify\src\merge-graphs.ts`
+  - function mergeGraphsFromFiles: (options) => MergeGraphsResult
+  - interface MergeGraphsOptions
+  - interface MergeGraphsResult
+- `历史\skills 要用啊\graphify\src\migrate-state.ts`
+  - function planGraphifyOutMigration: (options) => GraphifyOutMigrationPlan
+  - function migrateGraphifyOut: (options) => GraphifyOutMigrationResult
+  - function migrationResultToText: (result) => string
+  - interface MigrationEntry
+  - interface MigrationGitAdvice
+  - interface GraphifyOutMigrationPlan
+  - _...4 more_
+- `历史\skills 要用啊\graphify\src\minimal-context.ts`
+  - function buildMinimalContext: (store, options) => MinimalContextResult
+  - function minimalContextToText: (result) => string
+  - interface BuildMinimalContextOptions
+  - interface MinimalContextResult
+  - type MinimalContextRisk
+- `历史\skills 要用啊\graphify\src\ontology-discovery.ts`
+  - function buildOntologyDiscoverySample: (context, options) => OntologyDiscoverySample
+  - function buildOntologyDiscoveryDiff: (profile, proposalsFile, sample?) => OntologyProfileDiff
+  - function ontologyDiscoveryDiffToMarkdown: (diff) => string
+  - function loadOntologyDiscoveryContext: (profileStatePath) => OntologyDiscoveryContext
+  - function writeOntologyDiscoverySample: (path, sample) => void
+  - function writeOntologyDiscoveryDiff: (path, diff) => void
+  - _...15 more_
+- `历史\skills 要用啊\graphify\src\ontology-output.ts`
+  - function compileOntologyOutputs: (options) => CompileOntologyOutputsResult
+  - interface OntologyOutputConfig
+  - interface CompileOntologyOutputsOptions
+  - interface CompileOntologyOutputsResult
+- `历史\skills 要用啊\graphify\src\ontology-patch-context.ts` — function loadOntologyPatchContext: (profileStatePath) => OntologyPatchContext
+- `历史\skills 要用啊\graphify\src\ontology-patch.ts`
+  - function normalizeOntologyPatch: (value) => OntologyPatch | null
+  - function validateOntologyPatch: (value, context) => OntologyPatchValidationResult
+  - function loadOntologyReconciliationDecisionLog: (options) => OntologyReconciliationDecisionLogResponse
+  - function applyOntologyPatch: (value, context, options) => OntologyPatchApplyResult
+  - interface OntologyPatch
+  - interface OntologyPatchNode
+  - _...15 more_
+- `历史\skills 要用啊\graphify\src\ontology-profile.ts`
+  - function parseOntologyProfile: (raw, unknown>, sourcePath?) => OntologyProfile
+  - function validateOntologyProfile: (profile) => string[]
+  - function hashOntologyProfile: (profile) => string
+  - function normalizeOntologyProfile: (profile, sourcePath?) => NormalizedOntologyProfile
+  - function bindOntologyProfile: (profile, projectConfig) => NormalizedOntologyProfile
+  - function loadOntologyProfile: (profilePath, options) => NormalizedOntologyProfile
+- `历史\skills 要用啊\graphify\src\ontology-reconciliation-api.ts`
+  - function readableStatePath: (context, path) => string
+  - function ontologyReconciliationCandidatesPath: (context) => string
+  - function ontologyAppliedPatchesPath: (context) => string
+  - function ontologyNeedsUpdatePath: (context) => string
+  - function loadReadonlyReconciliationCandidates: (context) => OntologyReconciliationCandidateQueue
+  - function reconciliationQueueIsStale: (context, queue) => boolean
+  - _...5 more_
+- `历史\skills 要用啊\graphify\src\ontology-reconciliation.ts`
+  - function loadOntologyReconciliationCandidates: (path) => OntologyReconciliationCandidateQueue
+  - function queryOntologyReconciliationCandidates: (queue, options) => OntologyReconciliationCandidatesResponse
+  - function filterOntologyReconciliationCandidates: (queue, options) => OntologyReconciliationCandidatesResponse
+  - function generateOntologyReconciliationCandidates: (context, options) => OntologyReconciliationCandidateQueue
+  - function writeOntologyReconciliationCandidates: (outPath, queue) => void
+  - interface OntologyReconciliationCandidate
+  - _...8 more_
+- `历史\skills 要用啊\graphify\src\ontology-studio-workspace.ts` — function renderOntologyStudioWorkspace: (context, opts) => string, interface RenderOntologyStudioWorkspaceOptions
+- `历史\skills 要用啊\graphify\src\ontology-studio.ts`
+  - function injectStudioMode: (html) => string
+  - function generateOntologyStudioToken: () => string
+  - function createOntologyStudioRequestHandler: (options) => void
+  - function handleOntologyStudioRequest: (options, method, requestUrl) => OntologyStudioRouteResult
+  - function startOntologyStudioServer: (options) => Promise<StartedOntologyStudioServer>
+  - interface OntologyStudioWriteOptions
+  - _...4 more_
+- `历史\skills 要用啊\graphify\src\paths.ts`
+  - function resolveGraphifyPaths: (options) => GraphifyPaths
+  - function defaultGraphPath: (root?) => string
+  - function legacyGraphPath: (root?) => string
+  - function resolveGraphInputPath: (graphPath?, root?) => string
+  - function defaultManifestPath: (root?) => string
+  - function defaultTranscriptsDir: (root?) => string
+  - _...10 more_
+- `历史\skills 要用啊\graphify\src\pdf-ocr.ts`
+  - function augmentDetectionWithPdfPreflight: (detection, options) => Promise<
+  - interface PdfPreparationArtifact
+  - interface PdfPreparationOptions
+- `历史\skills 要用啊\graphify\src\pdf-preflight.ts`
+  - function parsePdfOcrMode: (value) => PdfOcrMode
+  - function extractPdfTextLayer: (filePath, buffer) => void
+  - function preflightPdf: (filePath, mode) => void
+  - function pdfOcrSidecarStem: (filePath, sha) => string
+  - interface PdfPreflightOptions
+  - interface PdfPreflightResult
+  - _...3 more_
+- `历史\skills 要用啊\graphify\src\pipeline.ts`
+  - function buildProject: (root, options?) => Promise<BuildProjectResult>
+  - interface BuildProjectOptions
+  - interface BuildProjectWarning
+  - interface BuildProjectArtifacts
+  - interface BuildProjectResult
+- `历史\skills 要用啊\graphify\src\portable-artifacts.ts`
+  - function toProjectRelativePath: (root, filePath) => string
+  - function projectRootLabel: (root) => string
+  - function makeExtractionPortable: (extraction, root) => Extraction
+  - function makeDetectionPortable: (detection, root) => DetectionResult
+  - function makeGraphPortable: (graph, root) => T
+  - function scanPortableGraphifyArtifacts: (graphifyDir) => PortableCheckResult
+  - _...3 more_
+- `历史\skills 要用啊\graphify\src\pr.ts`
+  - function githubRepoFromRemote: (remoteUrl) => string | undefined
+  - function listPullRequests: (options) => PullRequestSummary[]
+  - function getPullRequest: (number, options) => PullRequestDetails
+  - function listConflictingPullRequests: (options) => PullRequestSummary[]
+  - function parseGitWorktreePorcelain: (raw) => WorktreePrInfo[]
+  - function listPrWorktrees: (options) => WorktreePrInfo[]
+  - _...9 more_
+- `历史\skills 要用啊\graphify\src\profile-prompts.ts`
+  - function buildProfileExtractionPrompt: (state, options) => string
+  - function buildProfileChunkPrompt: (state, chunk, options) => string
+  - function buildProfileValidationPrompt: (state, extraction, options) => string
+  - function buildProfileDiscoveryPrompt: (state, sample, options) => string
+  - interface ProfilePromptState
+  - interface ProfilePromptOptions
+  - _...1 more_
+- `历史\skills 要用啊\graphify\src\profile-registry.ts`
+  - function normalizeRegistryRecord: (registryId, registrySpec, rawRecord, unknown>, sourceFile) => RegistryRecord
+  - function loadProfileRegistry: (registryId, registrySpec) => RegistryRecord[]
+  - function loadProfileRegistries: (profile) => Record<string, RegistryRecord[]>
+  - function registryRecordsToExtraction: (registries, RegistryRecord[]>, profile) => Extraction
+- `历史\skills 要用啊\graphify\src\profile-report.ts`
+  - function buildProfileReport: (context) => string
+  - interface ProfileReportGraphData
+  - interface ProfileReportPdfArtifact
+  - interface ProfileReportContext
+- `历史\skills 要用啊\graphify\src\profile-validate.ts`
+  - function validateProfileExtraction: (extraction, profileState) => ProfileValidationResult
+  - function profileValidationResultToJson: (result) => ProfileValidationResult
+  - function profileValidationResultToMarkdown: (result) => string
+  - interface ProfileValidationIssue
+  - interface ProfileValidationContext
+  - interface ProfileValidationResult
+  - _...1 more_
+- `历史\skills 要用啊\graphify\src\project-config.ts`
+  - function discoverProjectConfig: (root) => ProjectConfigDiscoveryResult
+  - function parseProjectConfig: (raw, sourcePath) => GraphifyProjectConfig
+  - function validateProjectConfig: (config) => string[]
+  - function normalizeProjectConfig: (config, sourcePath) => NormalizedProjectConfig
+  - function loadProjectConfig: (configPath) => NormalizedProjectConfig
+- `历史\skills 要用啊\graphify\src\recommend.ts`
+  - function buildCommitRecommendation: (G, changedFilesInput, options) => CommitRecommendation
+  - function commitRecommendationToText: (recommendation) => string
+  - interface CommitRecommendationStaleness
+  - interface CommitRecommendationGroup
+  - interface CommitRecommendation
+  - interface CommitRecommendationOptions
+  - _...1 more_
+- `历史\skills 要用啊\graphify\src\repo-clone.ts`
+  - function defaultCloneDestination: (url, cacheRoot) => void
+  - function cloneRepo: (options) => CloneRepoResult
+  - interface CloneRepoOptions
+  - interface CloneRepoResult
+- `历史\skills 要用啊\graphify\src\report.ts`
+  - function generate: (G, communities, cohesionScores, communityLabels, godNodeList, surpriseList, detectionResult, tokenCost, root, suggestedQuestions?) => string
+  - interface ReportHighRiskNode
+  - interface ReportTestGap
+  - interface ReportReviewOptions
+  - interface GenerateReportOptions
+- `历史\skills 要用啊\graphify\src\review-analysis.ts`
+  - function buildReviewAnalysis: (G, changedFiles, options) => ReviewAnalysis
+  - function reviewAnalysisToText: (analysis) => string
+  - function evaluateReviewAnalysis: (G, cases, options) => ReviewEvaluationResult
+  - function reviewEvaluationToText: (result) => string
+  - interface ReviewBlastRadius
+  - interface ReviewImpactedCommunity
+  - _...8 more_
+- `历史\skills 要用啊\graphify\src\review-benchmark.ts`
+  - function evaluateReviewBenchmarks: (store, cases, options) => ReviewBenchmarkResult
+  - function reviewBenchmarkToMarkdown: (result) => string
+  - interface ReviewBenchmarkCase
+  - interface ReviewBenchmarkOptions
+  - interface ReviewBenchmarkMetrics
+  - interface ReviewBenchmarkCaseResult
+  - _...2 more_
+- `历史\skills 要用啊\graphify\src\review-context.ts`
+  - function extractRelevantLines: (lines, nodes, filePath) => string
+  - function buildReviewContext: (store, changedFilesInput, options) => ReviewContextResult
+  - function reviewContextToText: (result) => string
+  - interface BuildReviewContextOptions
+  - interface ReviewContextPayload
+  - interface ReviewContextResult
+  - _...2 more_
+- `历史\skills 要用啊\graphify\src\review-store.ts`
+  - function createReviewGraphStore: (G) => ReviewGraphStoreLike
+  - interface ReviewGraphNode
+  - interface ReviewGraphEdge
+  - interface ReviewImpactRadius
+  - interface ReviewGraphStats
+  - interface ReviewGraphStoreLike
+  - _...1 more_
+- `历史\skills 要用啊\graphify\src\review.ts`
+  - function buildReviewDelta: (G, changedFilesInput, options) => ReviewDelta
+  - function reviewDeltaToText: (delta) => string
+  - function computeAffectedFiles: (G, changedFilesInput, options) => string[]
+  - function affectedFilesToText: (files) => string
+  - interface ReviewNode
+  - interface ReviewChain
+  - _...3 more_
+- `历史\skills 要用啊\graphify\src\search.ts`
+  - function normalizeSearchText: (value) => string
+  - function queryTerms: (question) => string[]
+  - function textMatchesQuery: (text, query) => boolean
+  - function scoreSearchText: (label, source, terms) => number
+- `历史\skills 要用啊\graphify\src\security.ts`
+  - function validateUrl: (url) => Promise<string>
+  - function validateUrlSync: (url) => string
+  - function safeFetch: (url, maxBytes, timeout) => Promise<Buffer>
+  - function safeFetchText: (url, maxBytes, timeout) => Promise<string>
+  - function validateGraphPath: (filePath, base?) => string
+  - function sanitizeLabel: (text) => string
+  - _...2 more_
+- `历史\skills 要用啊\graphify\src\semantic-cleanup.ts`
+  - function cleanupStaleNodes: (graph, options) => CleanupStaleNodesResult
+  - interface CleanupStaleNodesOptions
+  - interface CleanupStaleNodesResult
+- `历史\skills 要用啊\graphify\src\semantic-fragment-validation.ts`
+  - function validateSemanticFragment: (fragment) => string[]
+  - function loadValidatedSemanticFragment: (filePath) => LoadValidatedResult
+  - function sanitizeSemanticFragment: (fragment) => SemanticFragment
+  - interface SemanticFragment
+  - interface LoadValidatedResult
+  - const MAX_SEMANTIC_FRAGMENT_BYTES
+  - _...6 more_
+- `历史\skills 要用啊\graphify\src\semantic-prepare.ts`
+  - function prepareSemanticDetection: (detection, options) => Promise<SemanticPreparationResult>
+  - interface SemanticPreparationOptions
+  - interface SemanticPreparationResult
+- `历史\skills 要用啊\graphify\src\serve.ts` — function serve: (graphPath) => void, interface ServeOptions
+- `历史\skills 要用啊\graphify\src\skill-install.ts` — function replaceOrAppendSection: (content, marker, newSection) => string
+- `历史\skills 要用啊\graphify\src\skill-runtime.ts` — function main: (argv) => Promise<void>
+- `历史\skills 要用啊\graphify\src\summary.ts`
+  - function buildFirstHopSummary: (G, options) => FirstHopSummary
+  - function firstHopSummaryToText: (summary) => string
+  - interface FirstHopHub
+  - interface FirstHopCommunity
+  - interface FirstHopSummary
+  - interface FirstHopSummaryOptions
+- `历史\skills 要用啊\graphify\src\transcribe.ts`
+  - function isUrl: (pathLike) => boolean
+  - function downloadAudio: (url, outputDir) => Promise<string>
+  - function buildWhisperPrompt: (godNodes) => string
+  - function transcribe: (videoPath, outputDir) => void
+  - function transcribeAll: (videoFiles, outputDir?, initialPrompt?, force) => Promise<string[]>
+  - function augmentDetectionWithTranscripts: (detection, options?) => Promise<
+- `历史\skills 要用啊\graphify\src\tree.ts` — function renderTree: (G, rootId, options) => string, interface RenderTreeOptions
+- `历史\skills 要用啊\graphify\src\validate.ts`
+  - function validateExtraction: (data) => string[]
+  - function assertValid: (data) => void
+  - const VALID_FILE_TYPES
+  - const VALID_CONFIDENCES
+  - const REQUIRED_NODE_FIELDS
+  - const REQUIRED_EDGE_FIELDS
+- `历史\skills 要用啊\graphify\src\watch.ts`
+  - function rebuildCode: (watchPath, followSymlinks, options) => void
+  - function checkUpdate: (root) => CheckUpdateResult
+  - function acquireRebuildLock: (watchPath) => boolean
+  - function releaseRebuildLock: (watchPath) => void
+  - function watch: (watchPath, debounce, options) => Promise<void>
+  - interface CheckUpdateResult
+- `历史\skills 要用啊\graphify\src\wiki-description-batch.ts`
+  - function buildWikiDescriptionBatchExport: (targets, options) => BatchTextJsonExportInput
+  - function exportWikiDescriptionBatchToJsonl: (client, input) => Promise<BatchTextJsonExportResult>
+  - function parseWikiDescriptionBatchResults: (records, options) => void
+  - function buildTargetKindsMap: (targets) => Map<string, WikiDescriptionTargetKind>
+  - interface BuildWikiDescriptionBatchOptions
+  - interface WikiDescriptionBatchResultRecord
+  - _...2 more_
+- `历史\skills 要用啊\graphify\src\wiki-description-generation.ts`
+  - function collectWikiDescriptionTargets: (graph, options) => WikiDescriptionTargetCollection
+  - function buildWikiDescriptionPrompt: (target, options) => string
+  - function generateWikiDescriptionSidecars: (graph, options) => Promise<WikiDescriptionGenerationResult>
+  - interface WikiDescriptionNeighbor
+  - interface CollectWikiDescriptionTargetsOptions
+  - interface WikiDescriptionTargetCollection
+  - _...9 more_
+- `历史\skills 要用啊\graphify\src\wiki-descriptions.ts`
+  - function buildWikiDescriptionCacheKey: (input) => string
+  - function createInsufficientEvidenceRecord: (input, TTargetId, TMode>) => WikiInsufficientEvidenceSidecar<TTargetKind, TTargetId, TMode>
+  - function checkWikiDescriptionFreshness: (sidecar, "target_id" | "target_kind" | "graph_hash" | "cache_key" | "generator"
+  >, inputs) => WikiDescriptionFreshnessResult
+  - function selectFreshWikiDescriptions: (index, inputs) => void
+  - function validateWikiDescriptionSidecar: (value) => string[]
+  - interface WikiDescriptionGenerator
+  - _...17 more_
+- `历史\skills 要用啊\graphify\src\wiki.ts` — function toWiki: (G, communities, outputDir, options?) => number
+- `历史\skills 要用啊\graphify\src\workspace\entity-panel.ts`
+  - function renderEntityPanel: (opts) => string
+  - function entityPanelStyles: () => string
+  - interface EntityOccurrence
+  - interface RenderEntityPanelOptions
+  - type EntityPanelOccurrences
+- `历史\skills 要用啊\graphify\src\workspace\facet-panel.ts`
+  - function discoverWorkspaceFacets: (dataset, options) => WorkspaceFacet[]
+  - function recordMatchesFacets: (record, facetState, string>) => boolean
+  - interface WorkspaceFacetRecord
+  - interface WorkspaceFacetValue
+  - interface WorkspaceFacet
+  - interface DiscoverFacetsOptions
+- `历史\skills 要用啊\graphify\src\workspace\graph-panel.ts` — function renderGraphPanel: (opts) => string, interface RenderGraphPanelOptions
+- `历史\skills 要用啊\graphify\src\workspace\graph-selection.ts`
+  - function computeFocusSubgraph: (graph, state) => FocusSubgraph
+  - interface GraphNodeLike
+  - interface GraphEdgeLike
+  - interface GraphLike
+  - interface FocusSubgraphMetrics
+  - interface FocusSubgraph
+- `历史\skills 要用啊\graphify\src\workspace\rail.ts`
+  - function renderWorkspaceRail: (opts) => string
+  - function workspaceRailStyles: () => string
+  - interface WorkspaceRailLayout
+  - interface RenderRailOptions
+- `历史\skills 要用啊\graphify\src\workspace\result-groups.ts`
+  - function groupRecordsByType: (records, options) => WorkspaceResultGroup[]
+  - function countMatchingRecords: (records, options) => number
+  - interface WorkspaceResultRecord
+  - interface WorkspaceResultEntry
+  - interface WorkspaceResultGroup
+  - interface GroupRecordsOptions
+- `历史\skills 要用啊\graphify\src\workspace\search-index.ts`
+  - function buildWorkspaceSearchIndex: (records) => WorkspaceSearchIndex
+  - function searchWorkspaceIndex: (index, query, options) => WorkspaceSearchRecord[]
+  - function searchWorkspace: (records, query, options) => WorkspaceSearchRecord[]
+  - interface WorkspaceSearchRecord
+  - interface WorkspaceSearchIndex
+- `历史\skills 要用啊\graphify\src\workspace\shell.ts`
+  - function renderWorkspaceShell: (opts) => string
+  - interface WorkspaceDescriptionSidecar
+  - interface WorkspaceEntityLayout
+  - interface RenderWorkspaceShellOptions
+- `历史\skills 要用啊\graphify\src\workspace\tokens-ds.ts` — function normaliseDesignSystemTokens: (value) => WorkspaceThemedTokens | null, function tryGetDsTokens: () => Promise<WorkspaceThemedTokens | null>
+- `历史\skills 要用啊\graphify\src\workspace\tokens-fallback.ts`
+  - function getWorkspaceTokensFallback: () => WorkspaceThemedTokens
+  - function getWorkspaceTokens: (theme) => WorkspaceTokens
+  - function resolveWorkspaceTokens: (theme) => Promise<ResolvedWorkspaceTokens>
+  - function serialiseTokensToCss: (tokens) => string
+- `历史\skills 要用啊\graphify\src\workspace\viewer-state.ts`
+  - function createDefaultViewerState: () => WorkspaceViewerState
+  - function normalizeViewerState: (partial) => WorkspaceViewerState
+  - function viewerStateToQuery: (state) => WorkspaceQuery
+  - function viewerStateFromQuery: (query) => WorkspaceViewerState
+  - function workspaceReducer: (state, action) => WorkspaceViewerState
+  - interface WorkspaceSelectionState
+  - _...6 more_
+- `历史\skills 要用啊\graphify\worked\example\raw\api.py`
+  - function handle_upload: (paths) -> dict
+  - function handle_get: (record_id) -> dict
+  - function handle_delete: (record_id) -> dict
+  - function handle_list: () -> dict
+  - function handle_search: (query) -> dict
+  - function handle_enrich: (record_id) -> dict
+- `历史\skills 要用啊\graphify\worked\example\raw\parser.py`
+  - function parse_file: (path) -> dict
+  - function parse_markdown: (text) -> dict
+  - function parse_json: (text) -> dict
+  - function parse_plaintext: (text) -> dict
+  - function parse_and_save: (path) -> str
+  - function batch_parse: (paths) -> list
+- `历史\skills 要用啊\graphify\worked\example\raw\processor.py`
+  - function normalize_text: (text) -> str
+  - function extract_keywords: (text) -> list
+  - function enrich_document: (doc) -> dict
+  - function find_cross_references: (doc) -> list
+  - function process_and_save: (doc) -> str
+  - function reprocess_all: () -> int
+- `历史\skills 要用啊\graphify\worked\example\raw\storage.py`
+  - function load_index: () -> dict
+  - function save_index: (index) -> None
+  - function save_parsed: (doc) -> str
+  - function save_processed: (doc) -> str
+  - function load_record: (record_id) -> dict
+  - function delete_record: (record_id) -> bool
+  - _...1 more_
+- `历史\skills 要用啊\graphify\worked\example\raw\validator.py`
+  - function validate_document: (doc) -> dict
+  - function check_required_fields: (doc) -> None
+  - function check_format: (doc) -> None
+  - function normalize_fields: (doc) -> dict
+  - function validate_batch: (docs) -> tuple
+  - class ValidationError
+- `历史\skills 要用啊\graphify\worked\httpx\raw\auth.py`
+  - class Auth
+  - class BasicAuth
+  - class BearerAuth
+  - class DigestAuth
+  - class NetRCAuth
+- `历史\skills 要用啊\graphify\worked\httpx\raw\client.py`
+  - class Timeout
+  - class Limits
+  - class BaseClient
+  - class Client
+  - class AsyncClient
+- `历史\skills 要用啊\graphify\worked\httpx\raw\exceptions.py`
+  - class HTTPError
+  - class RequestError
+  - class TransportError
+  - class TimeoutException
+  - class ConnectTimeout
+  - class ReadTimeout
+  - _...14 more_
+- `历史\skills 要用啊\graphify\worked\httpx\raw\models.py`
+  - class URL
+  - class Headers
+  - class Cookies
+  - class Request
+  - class Response
+- `历史\skills 要用啊\graphify\worked\httpx\raw\transport.py`
+  - class BaseTransport
+  - class AsyncBaseTransport
+  - class ConnectionPool
+  - class HTTPTransport
+  - class AsyncHTTPTransport
+  - class MockTransport
+  - _...1 more_
+- `历史\skills 要用啊\graphify\worked\httpx\raw\utils.py`
+  - function primitive_value_to_str: (value) -> str
+  - function normalize_header_key: (key) -> str
+  - function flatten_queryparams: (params) -> list
+  - function parse_content_type: (content_type) -> tuple
+  - function obfuscate_sensitive_headers: (headers) -> dict
+  - function unset_all_cookies: (cookies) -> None
+  - _...2 more_
+- `历史\skills 要用啊\graphify\worked\mixed-corpus\raw\analyze.py`
+  - function god_nodes: (G, top_n) -> list[dict]
+  - function surprising_connections: (G, communities, list[str]] | None, top_n) -> list[dict]
+  - function suggest_questions: (G, communities, list[str]], community_labels, str], top_n) -> list[dict]
+  - function graph_diff: (G_old, G_new) -> dict
+- `历史\skills 要用啊\graphify\worked\mixed-corpus\raw\build.py` — function build_from_json: (extraction) -> nx.Graph, function build: (extractions) -> nx.Graph
+- `历史\skills 要用啊\graphify\worked\mixed-corpus\raw\cluster.py`
+  - function build_graph: (nodes, edges) -> nx.Graph
+  - function cluster: (G) -> dict[int, list[str]]
+  - function cohesion_score: (G, community_nodes) -> float
+  - function score_all: (G, communities, list[str]]) -> dict[int, float]
+
+---
+
+# Config
+
+## Environment Variables
+
+- `ANTHROPIC_API_KEY` **required** — 历史\skills 要用啊\graphify\tests\llm-execution.test.ts
+- `BIGMODEL_API_KEY` (has default) — .env.local
+- `CLAUDE_CONFIG_DIR` **required** — 历史\skills 要用啊\graphify\src\cli.ts
+- `CLAUDE_HOME` **required** — scripts\audit-local-order.mjs
+- `CLEANROOM_CHROMIUM_PATH` **required** — scripts\debug-browser-monitor.mjs
+- `CLEANROOM_PORTABLE_DIST` **required** — scripts\smoke-portable-playwright-math.mjs
+- `CLEANROOM_PROBLEM` **required** — scripts\live-fill-and-generate.mjs
+- `CLEANROOM_SMOKE_URL` **required** — scripts\live-fill-and-generate.mjs
+- `CLEANROOM_TARGET_URL` **required** — scripts\debug-browser-monitor.mjs
+- `CODEX_HOME` **required** — scripts\audit-local-order.mjs
+- `COHERE_API_KEY` **required** — 历史\skills 要用啊\graphify\tests\llm-execution.test.ts
+- `CONTINUITY_STACK_CONFIG` **required** — scripts\audit-local-order.mjs
+- `COSYVOICE_GATEWAY_HOST` **required** — scripts\cosyvoice-gateway.mjs
+- `COSYVOICE_GATEWAY_PORT` **required** — scripts\cosyvoice-gateway.mjs
+- `COSYVOICE_SMOKE_MODEL` **required** — scripts\smoke-cosyvoice-sentence.mjs
+- `COSYVOICE_SMOKE_VOICE` **required** — scripts\smoke-cosyvoice-sentence.mjs
+- `DASHSCOPE_API_KEY` (has default) — .env.local
+- `DEV` **required** — src\store\useTeachingEditorStore.ts
+- `FASTER_WHISPER_FFMPEG_PATH` **required** — 历史\skills 要用啊\graphify\src\transcribe.ts
+- `FEISHU_WEBHOOK_SECRET` **required** — scripts\zeabur-server.mjs
+- `FEISHU_WEBHOOK_SECRET_HEADER` **required** — scripts\zeabur-server.mjs
+- `GEMINI_API_KEY` **required** — 历史\skills 要用啊\graphify\tests\llm-execution.test.ts
+- `GOOGLE_GENERATIVE_AI_API_KEY` **required** — 历史\skills 要用啊\graphify\src\llm-execution.ts
+- `GOOGLE_OAUTH_ACCESS_TOKEN` **required** — 历史\skills 要用啊\graphify\src\google-workspace.ts
+- `GOOGLE_OAUTH_CLIENT_ID` **required** — 历史\skills 要用啊\graphify\src\google-workspace.ts
+- `GOOGLE_OAUTH_CLIENT_SECRET` **required** — 历史\skills 要用啊\graphify\src\google-workspace.ts
+- `GOOGLE_OAUTH_REFRESH_TOKEN` **required** — 历史\skills 要用啊\graphify\src\google-workspace.ts
+- `GRAPHIFY_CHANGED` **required** — 历史\skills 要用啊\graphify\src\cli.ts
+- `GRAPHIFY_DIRECT_LLM_PROVIDER` **required** — 历史\skills 要用啊\graphify\tests\direct-llm.integration.test.ts
+- `GRAPHIFY_FFMPEG_BIN` **required** — 历史\skills 要用啊\graphify\src\transcribe.ts
+- `GRAPHIFY_GOOGLE_WORKSPACE` **required** — 历史\skills 要用啊\graphify\src\google-workspace.ts
+- `GRAPHIFY_MAX_OUTPUT_TOKENS` **required** — 历史\skills 要用啊\graphify\src\llm-execution.ts
+- `GRAPHIFY_NO_BACKUP` **required** — 历史\skills 要用啊\graphify\src\export.ts
+- `GRAPHIFY_PDF_OCR` **required** — 历史\skills 要用啊\graphify\src\pdf-preflight.ts
+- `GRAPHIFY_PDF_OCR_MODEL` **required** — 历史\skills 要用啊\graphify\src\pdf-ocr.ts
+- `GRAPHIFY_RUN_DIRECT_LLM_UAT` **required** — 历史\skills 要用啊\graphify\tests\direct-llm.integration.test.ts
+- `GRAPHIFY_RUN_MISTRAL_OCR_UAT` **required** — 历史\skills 要用啊\graphify\tests\mistral-ocr.integration.test.ts
+- `GRAPHIFY_WHISPER_CACHE_DIR` **required** — 历史\skills 要用啊\graphify\src\transcribe.ts
+- `GRAPHIFY_WHISPER_COMPUTE_TYPE` **required** — 历史\skills 要用啊\graphify\src\transcribe.ts
+- `GRAPHIFY_WHISPER_DEVICE` **required** — 历史\skills 要用啊\graphify\src\transcribe.ts
+- `GRAPHIFY_WHISPER_LANGUAGE` **required** — 历史\skills 要用啊\graphify\src\transcribe.ts
+- `GRAPHIFY_WHISPER_MODEL` **required** — 历史\skills 要用啊\graphify\src\transcribe.ts
+- `GRAPHIFY_WHISPER_MODEL_DIR` **required** — 历史\skills 要用啊\graphify\src\transcribe.ts
+- `GRAPHIFY_WHISPER_MODEL_ID` **required** — 历史\skills 要用啊\graphify\src\transcribe.ts
+- `GRAPHIFY_WHISPER_MODEL_REVISION` **required** — 历史\skills 要用啊\graphify\src\transcribe.ts
+- `GRAPHIFY_WHISPER_PROMPT` **required** — 历史\skills 要用啊\graphify\src\transcribe.ts
+- `HOME` **required** — scripts\audit-local-order.mjs
+- `LOCALAPPDATA` **required** — 历史\skills 要用啊\graphify\src\transcribe.ts
+- `MISTRAL_API_KEY` **required** — 历史\skills 要用啊\graphify\src\pdf-ocr.ts
+- `OLLAMA_BASE_URL` **required** — 历史\skills 要用啊\graphify\src\llm-execution.ts
+- `OPENAI_API_KEY` **required** — 历史\skills 要用啊\graphify\tests\llm-execution.test.ts
+- `PORT` **required** — scripts\zeabur-server.mjs
+- `TARGET_URL` **required** — scripts\smoke-c-drag-offset.mjs
+- `USERPROFILE` **required** — scripts\audit-local-order.mjs
+- `VITE_BIGMODEL_API_KEY` (has default) — .env.local
+- `VITE_COSYVOICE_GATEWAY_URL` **required** — src\services\cosyvoiceGatewayClient.ts
+- `XDG_CACHE_HOME` **required** — 历史\skills 要用啊\graphify\src\transcribe.ts
+- `ZEABUR_PORT` **required** — scripts\zeabur-server.mjs
+
+## Config Files
+
+- `.env.example`
+- `tsconfig.json`
+
+## Key Dependencies
+
+- react: ^19.2.0
+
+---
+
+# Middleware
+
+## custom
+- generate-project-health-report — `scripts\generate-project-health-report.mjs`
+- graph-size-guard — `历史\skills 要用啊\graphify\src\graph-size-guard.ts`
+
+## validation
+- live-fill-and-generate — `scripts\live-fill-and-generate.mjs`
+- live-step1-agent-generate — `scripts\live-step1-agent-generate.mjs`
+- smoke-user-click-generate-repro — `scripts\smoke-user-click-generate-repro.mjs`
+- migrate-state — `历史\skills 要用啊\graphify\src\migrate-state.ts`
+- graph-size-guard.test — `历史\skills 要用啊\graphify\tests\graph-size-guard.test.ts`
+- migrate-state.test — `历史\skills 要用啊\graphify\tests\migrate-state.test.ts`
+
+## auth
+- auth — `历史\skills 要用啊\graphify\worked\httpx\raw\auth.py`
+
+---
+
+# Dependency Graph
+
+## Most Imported Files (change these carefully)
+
+- `src\domain\teachingProject.ts` — imported by **63** files
+- `历史\skills 要用啊\graphify\src\types.ts` — imported by **42** files
+- `历史\skills 要用啊\graphify\src\export.ts` — imported by **26** files
+- `历史\skills 要用啊\graphify\src\git.ts` — imported by **19** files
+- `历史\skills 要用啊\graphify\src\flows.ts` — imported by **19** files
+- `历史\skills 要用啊\graphify\src\review-store.ts` — imported by **18** files
+- `历史\skills 要用啊\graphify\src\graph.ts` — imported by **16** files
+- `历史\skills 要用啊\graphify\src\security.ts` — imported by **15** files
+- `历史\skills 要用啊\graphify\src\cli.ts` — imported by **15** files
+- `历史\skills 要用啊\graphify\src\paths.ts` — imported by **14** files
+- `src\config\defaultConfig.ts` — imported by **13** files
+- `历史\skills 要用啊\graphify\src\detect.ts` — imported by **13** files
+- `历史\skills 要用啊\graphify\src\review.ts` — imported by **13** files
+- `src\components\drawboardStageTypes.ts` — imported by **12** files
+- `历史\skills 要用啊\graphify\src\cluster.ts` — imported by **12** files
+- `历史\skills 要用啊\graphify\src\configured-dataprep.ts` — imported by **12** files
+- `历史\skills 要用啊\graphify\src\project-config.ts` — imported by **12** files
+- `历史\skills 要用啊\graphify\src\analyze.ts` — imported by **12** files
+- `历史\skills 要用啊\graphify\src\wiki-descriptions.ts` — imported by **11** files
+- `历史\skills 要用啊\graphify\src\extract.ts` — imported by **11** files
+
+## Import Map (who imports what)
+
+- `src\domain\teachingProject.ts` ← `src\agent\scriptBoardAgentPrompt.ts`, `src\App.tsx`, `src\components\AgentReviewCard.tsx`, `src\components\AssetList.tsx`, `src\components\AssetPanel.tsx` +58 more
+- `历史\skills 要用啊\graphify\src\types.ts` ← `历史\skills 要用啊\graphify\src\analyze.ts`, `历史\skills 要用啊\graphify\src\benchmark.ts`, `历史\skills 要用啊\graphify\src\build.ts`, `历史\skills 要用啊\graphify\src\cli.ts`, `历史\skills 要用啊\graphify\src\detect.ts` +37 more
+- `历史\skills 要用啊\graphify\src\export.ts` ← `历史\skills 要用啊\graphify\src\cli.ts`, `历史\skills 要用啊\graphify\src\cli.ts`, `历史\skills 要用啊\graphify\src\cli.ts`, `历史\skills 要用啊\graphify\src\cli.ts`, `历史\skills 要用啊\graphify\src\cli.ts` +21 more
+- `历史\skills 要用啊\graphify\src\git.ts` ← `历史\skills 要用啊\graphify\src\cli.ts`, `历史\skills 要用啊\graphify\src\cli.ts`, `历史\skills 要用啊\graphify\src\export.ts`, `历史\skills 要用啊\graphify\src\hooks.ts`, `历史\skills 要用啊\graphify\src\hooks.ts` +14 more
+- `历史\skills 要用啊\graphify\src\flows.ts` ← `历史\skills 要用啊\graphify\src\cli.ts`, `历史\skills 要用啊\graphify\src\cli.ts`, `历史\skills 要用啊\graphify\src\cli.ts`, `历史\skills 要用啊\graphify\src\cli.ts`, `历史\skills 要用啊\graphify\src\cli.ts` +14 more
+- `历史\skills 要用啊\graphify\src\review-store.ts` ← `历史\skills 要用啊\graphify\src\cli.ts`, `历史\skills 要用啊\graphify\src\cli.ts`, `历史\skills 要用啊\graphify\src\cli.ts`, `历史\skills 要用啊\graphify\src\cli.ts`, `历史\skills 要用啊\graphify\src\cli.ts` +13 more
+- `历史\skills 要用啊\graphify\src\graph.ts` ← `历史\skills 要用啊\graphify\src\analyze.ts`, `历史\skills 要用啊\graphify\src\benchmark.ts`, `历史\skills 要用啊\graphify\src\build.ts`, `历史\skills 要用啊\graphify\src\cli.ts`, `历史\skills 要用啊\graphify\src\cluster.ts` +11 more
+- `历史\skills 要用啊\graphify\src\security.ts` ← `历史\skills 要用啊\graphify\src\cli.ts`, `历史\skills 要用啊\graphify\src\export.ts`, `历史\skills 要用啊\graphify\src\index.ts`, `历史\skills 要用啊\graphify\src\ingest.ts`, `历史\skills 要用啊\graphify\src\recommend.ts` +10 more
+- `历史\skills 要用啊\graphify\src\cli.ts` ← `历史\skills 要用啊\graphify\tests\aider-integration.test.ts`, `历史\skills 要用啊\graphify\tests\aider-integration.test.ts`, `历史\skills 要用啊\graphify\tests\claude-integration.test.ts`, `历史\skills 要用啊\graphify\tests\cli-cluster-only-missing-graphify-out.test.ts`, `历史\skills 要用啊\graphify\tests\cli-runtime.test.ts` +10 more
+- `历史\skills 要用啊\graphify\src\paths.ts` ← `历史\skills 要用啊\graphify\src\benchmark.ts`, `历史\skills 要用啊\graphify\src\cache.ts`, `历史\skills 要用啊\graphify\src\cli.ts`, `历史\skills 要用啊\graphify\src\configured-dataprep.ts`, `历史\skills 要用啊\graphify\src\index.ts` +9 more
+
+---
+
+# Events & Queues
+
+- `uncaughtException` [event] — `历史/dist（这就是部署包？？？？？）/assets/index-CNS3jz-2.js`
+- `\\\\cdleft` [event] — `历史/dist（这就是部署包？？？？？）/assets/index-CNS3jz-2.js`
+- `\\Big` [event] — `历史/dist（这就是部署包？？？？？）/assets/index-CNS3jz-2.js`
+- `\\\\cdright` [event] — `历史/dist（这就是部署包？？？？？）/assets/index-CNS3jz-2.js`
+- `\\\\cdparent` [event] — `历史/dist（这就是部署包？？？？？）/assets/index-CNS3jz-2.js`
+- `\\\\cdlongequal` [event] — `历史/dist（这就是部署包？？？？？）/assets/index-CNS3jz-2.js`
+- `abort` [event] — `历史/dist（这就是部署包？？？？？）/assets/index-CNS3jz-2.js`
+- `readwrite` [event] — `历史/dist（这就是部署包？？？？？）/assets/index-CNS3jz-2.js`
+- `versionchange` [event] — `历史/dist（这就是部署包？？？？？）/assets/index-CNS3jz-2.js`
+- `Cannot enter a sub-transaction with READWRITE mode when parent transaction is READONLY` [event] — `历史/dist（这就是部署包？？？？？）/assets/index-CNS3jz-2.js`
+- `Table ` [event] — `历史/dist（这就是部署包？？？？？）/assets/index-CNS3jz-2.js`
+- `blocked` [event] — `历史/dist（这就是部署包？？？？？）/assets/index-CNS3jz-2.js`
+
+---
+
+# Test Coverage
+
+> **8%** of routes and models are covered by tests
+> 133 test files found
+
+## Covered Routes
+
+- ALL:/api/ontology/rebuild-status
+
+---
+
+_Generated by [codesight](https://github.com/Houseofmvps/codesight) — see your codebase clearly_

@@ -1,0 +1,37 @@
+{
+  "projectDocs": [
+    "AGENTS.md",
+    "PROJECT_STATE.md",
+    "ENGINEERING_LOG.md",
+    "DECISIONS.md",
+    "ARCHITECTURE.md",
+    "KNOWN_ISSUES.md",
+    "PROJECT_TREE.md"
+  ],
+  "requiredPaths": [
+    {
+      "name": "example-continuity-skill",
+      "path": "${HOME}/.example/skills/continuity/SKILL.md"
+    }
+  ],
+  "optionalCommands": [
+    {
+      "command": "sqz"
+    },
+    {
+      "command": "distill"
+    },
+    {
+      "command": "ccwf"
+    },
+    {
+      "command": "ccwf-mcp"
+    },
+    {
+      "command": "houtini-lm"
+    },
+    {
+      "command": "cc-token-saver-mcp"
+    }
+  ]
+}

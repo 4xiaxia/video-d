@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { createFeishuBoardScriptImportResponse } from './feishu-board-script-import.mjs';
 import {
   compileScriptAgentRowsToDraft,
+  parseJsonWithMathStringEscapes,
   readScriptAgentRows,
 } from './script-agent-rows-contract.mjs';
 import { loadLocalEnv } from './load-local-env.mjs';
@@ -302,7 +303,7 @@ function parseScriptAgentDraft(content) {
 
   const jsonText = extractJsonObject(normalized);
   if (jsonText) {
-    const parsed = JSON.parse(jsonText);
+    const parsed = parseJsonWithMathStringEscapes(jsonText);
     const rows = readScriptAgentRows(parsed);
     if (rows.length) {
       return compileScriptAgentRowsToDraft(rows);

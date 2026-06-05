@@ -1,8 +1,9 @@
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import {
   compileScriptAgentRowsToDraft,
+  parseJsonWithMathStringEscapes,
   readScriptAgentRows,
 } from './script-agent-rows-contract.mjs';
 
@@ -113,6 +114,17 @@ const missingIdentityRows = readScriptAgentRows({
   ],
 });
 const missingIdentityDraft = compileScriptAgentRowsToDraft(missingIdentityRows);
+const mathLatexJsonRows = readScriptAgentRows(parseJsonWithMathStringEscapes(String.raw`{"rows":[{"id":"row-latex-1","section":"解题环节","stepLabel":"第二步","voiceText":"我们把 \left( \frac{1}{4}+\frac{3}{8} \right) \div \frac{1}{4} 算出来。","boardSlice":"\left( \frac{1}{4}+\frac{3}{8} \right) \div \frac{1}{4}=\frac{5}{2}"}]}`));
+const mathDelimiterJsonRows = readScriptAgentRows(parseJsonWithMathStringEscapes(String.raw`{"rows":[{"id":"row-latex-2","section":"解题环节","stepLabel":"第三步","voiceText":"写成 \(\frac{5}{8}\) 再继续。","boardSlice":"\[\frac{5}{8}\]"}]}`));
+const classroomMathJsonRows = readScriptAgentRows(parseJsonWithMathStringEscapes(String.raw`{"rows":[{"id":"row-latex-3","section":"解题环节","stepLabel":"图形","voiceText":"这里用 \angle A 加上 \pi r^2，还会遇到 \sin x 和 \sqrt{2}。","boardSlice":"\angle A，\pi r^2，\sin x，\sqrt{2}"}]}`));
+const validNewlineJson = parseJsonWithMathStringEscapes('{"rows":[{"id":"row-newline","section":"解题环节","stepLabel":"换行","voiceText":"第一行\\n第二行","boardSlice":"板书第一行\\n板书第二行"}]}');
+const mathLatexDraft = compileScriptAgentRowsToDraft(mathLatexJsonRows);
+let unknownEscapeRejected = false;
+try {
+  parseJsonWithMathStringEscapes(String.raw`{"rows":[{"id":"row-bad","section":"解题环节","stepLabel":"错误","voiceText":"未知转义 \q 不能进老师讲稿","boardSlice":""}]}`);
+} catch {
+  unknownEscapeRejected = true;
+}
 
 if (!draft.spokenScript.includes('<br>')) {
   throw new Error('compiled rows must create <br> only inside the compiler output.');
@@ -155,6 +167,23 @@ if (missingIdentityRows[0]?.chainKey !== 'unbound') {
 
 if (missingIdentityDraft.boardPlan) {
   throw new Error('compiled boardPlan must not create B/C material for missing row identity.');
+}
+
+if (
+  !mathLatexJsonRows[0]?.voiceText.includes('\\left') ||
+  !mathLatexJsonRows[0]?.voiceText.includes('\\frac') ||
+  !mathLatexJsonRows[0]?.voiceText.includes('\\div') ||
+  !mathDelimiterJsonRows[0]?.voiceText.includes('\\(') ||
+  !mathDelimiterJsonRows[0]?.boardSlice.includes('\\[') ||
+  !classroomMathJsonRows[0]?.voiceText.includes('\\angle') ||
+  !classroomMathJsonRows[0]?.voiceText.includes('\\pi') ||
+  !classroomMathJsonRows[0]?.voiceText.includes('\\sin') ||
+  !classroomMathJsonRows[0]?.voiceText.includes('\\sqrt') ||
+  validNewlineJson.rows[0]?.voiceText !== '第一行\n第二行' ||
+  !unknownEscapeRejected ||
+  !mathLatexDraft.boardPlan.includes('B1/C1')
+) {
+  throw new Error('gateway rows parser must repair only math backslashes, preserve newlines, and reject unknown JSON escapes.');
 }
 
 if (
@@ -362,7 +391,8 @@ if (!stylesText.includes('.script-agent-table-workbench') || !stylesText.include
 }
 
 mkdirSync(outDir, { recursive: true });
-execFileSync(join(root, 'runtime', 'node', 'node.exe'), [join(root, 'node_modules', 'typescript', 'bin', 'tsc'), '--noEmit', 'false', '--outDir', outDir], {
+const typecheckNodePath = existsSync(join(root, 'runtime', 'node', 'node.exe')) ? join(root, 'runtime', 'node', 'node.exe') : process.execPath;
+execFileSync(typecheckNodePath, [join(root, 'node_modules', 'typescript', 'bin', 'tsc'), '--noEmit', 'false', '--outDir', outDir], {
   cwd: root,
   stdio: 'inherit',
 });
@@ -433,7 +463,7 @@ writeFileSync(
   `console.log('[script-agent-rows:ts-normalizer] passed', JSON.stringify(manualEmptyDraft, null, 2));\n`,
 );
 
-execFileSync(join(root, 'runtime', 'node', 'node.exe'), [checkFile], {
+execFileSync(typecheckNodePath, [checkFile], {
   cwd: outDir,
   stdio: 'inherit',
 });

@@ -1,14 +1,47 @@
 ---
 title: PROJECT_STATE.md
 description: 当前阶段、已确认设计、边界、下一步接力点
-lastUpdate: 2026-06-04
+lastUpdate: 2026-06-05
 ---
 
 # 项目状态快照
 
-**当前日期：** 2026-06-04  
-**当前阶段：** 问题1已修复；问题2代码语义已纠偏，待用户视角播放验收  
-**当前结论：** 已撤掉 `STATIC_HOLD_DURATION_MS = 1000` 错误口径，改为“C 默认留场；只有显式 `hideAtMs` 才下台”。
+**当前日期：** 2026-06-05
+**当前阶段：** 全仓 X-ray 扫描完成；问题1已修复，问题2代码语义已纠偏；根层明显噪音已隔离；当前主线转向 C 普通多行文本保留换行
+**当前结论：** 项目主链已确认：`rows -> A真实时长 -> B站场 -> C手写演绎 -> canvas合成录制`。当前最小继续点是修 `boardSlice` 多行换行被压扁的显示路由。
+
+> 边界提示：本文件现在是 SessionStart 辅助接力镜像。最高真相源为 `.workbuddy/memory`，其次根目录 `DECISIONS.md` / 核心真相 MD / `CHANGE_TREE变更树.md`，再其次代码实证；本文件不得压过这些来源。
+
+---
+
+## 2026-06-05 文档噪音边界状态
+
+- 已新增根层 `DECISIONS.md`，记录当前真相源层级、主线、排除项与下一刀。
+- 当前唯一施工主线：`boardSlice` 普通多行原文 -> 保留用户 `\n` -> 手写字体文本渲染 -> 按字符 reveal -> C 默认留场。
+- 下一刀只碰 `src/modules/boardSticker/mathBoardText.ts` 的普通手写文本归一化换行保留问题，并做最小验证。
+- 不涉及：Konva 主迁移、SVG/path/逐笔轨迹、Agent 智能排版、标签 manual override、数学公式大改、tldraw 清理。
+
+---
+
+## 2026-06-05 根层噪音隔离状态
+
+- 已把不确定但碍眼的未跟踪项移入：`历史/uncertain-2026-06-05-cleanup/`。
+- 本次隔离项：`.claude/settings.local.json`、`.claude/worktrees/`、`.tmp-board-events-check/`、`.tmp-board-handwriting-support-check/`、`mcp/`、`skills/`。
+- `.gitignore` 已补窄范围规则：本地 env / `.claude/settings.local.json` / `dist/` / `logs/` / `.tmp-*/` / `历史/uncertain-*/`。
+- `PROJECT_XRAY_SCAN_2026-06-05.md` 保留根层，因为已被本状态文件与工程日志引用为当前扫描报告。
+- `历史/skills 要用啊/graphify` 是主仓 gitlink 嵌套仓；内部脏状态用 `git status --ignore-submodules=dirty` 可隐藏，不在本次移动。
+- 验证：`git status --ignore-submodules=dirty --untracked-files=all` 只剩真实接力文件与 `PROJECT_XRAY_SCAN_2026-06-05.md`；`git check-ignore -v` 命中新增隔离规则。
+
+---
+
+## 2026-06-05 X-ray 扫描新增状态
+
+- 新增报告：`PROJECT_XRAY_SCAN_2026-06-05.md`。
+- 页面数量确认：1 个正式主工作台 + 4 个 active standalone proof/prototype；2 个 tldraw 页面在 `_deprecated/`，不在路由。
+- API 边界确认：开发 Vite 网关包含 health/Feishu/TTS/OCR/ScriptAgent/LayoutPreview；生产 `zeabur-server.mjs` 目前只包含 health/Feishu/ScriptAgent，存在生产 API parity 缺口。
+- 技术债确认：`BoardPreviewCard` 仍是活 tldraw 尾巴；`abcToTldrawShapes.ts` 因此暂不能删。
+- 当前主线风险：`mathBoardText.ts` 的 `normalizeElementaryBoardHandwritingText()` 会把 `\s+` 压成空格，是 C 多行 `boardSlice` 换行丢失的高危点。
+- 验证：`npm run typecheck`、`node scripts/check-abc-architecture.mjs`、`node scripts/check-board-boundaries.mjs` 均通过。
 
 ---
 

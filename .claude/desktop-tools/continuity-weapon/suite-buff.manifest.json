@@ -1,0 +1,166 @@
+{
+  "schema": "continuity-weapon.suite-buff.v1",
+  "principle": "Every named helper suite must be captured exactly once with layer, purpose, boundary, and activation policy.",
+  "requiredIds": [
+    "local-continuity-standard",
+    "continuity-weapon",
+    "xiaxia-continuity",
+    "xiaxia-context-compression",
+    "xiaxia-anchor-marking",
+    "graphify",
+    "codesight",
+    "imptokens",
+    "ib-mcp-cache-server",
+    "cc-wf-studio",
+    "distill",
+    "sqz",
+    "cc_token_saver_mcp",
+    "houtini-lm",
+    "desktop-control-tools"
+  ],
+  "suites": [
+    {
+      "id": "local-continuity-standard",
+      "layer": "core-rules",
+      "source": "local skill package",
+      "purpose": "Portable rules package for SessionStart, Stop Hook, continuity docs, audit, and installation guidance.",
+      "boundary": "Rules and templates only; no project-specific or machine-specific hardcoding.",
+      "activation": "install as Codex skill or call scripts directly",
+      "defaultAction": "use",
+      "config": ["scripts/continuity-stack.config.json"]
+    },
+    {
+      "id": "continuity-weapon",
+      "layer": "desktop-entrypoint",
+      "source": ".claude/desktop-tools/continuity-weapon",
+      "purpose": "Portable PowerShell entrypoints for doctor, audit, project install, and system skill install.",
+      "boundary": "No embedded project path or user path; paths are passed as parameters.",
+      "activation": "run PowerShell wrappers",
+      "defaultAction": "use"
+    },
+    {
+      "id": "xiaxia-continuity",
+      "layer": "continuity",
+      "source": "local assistant skill",
+      "purpose": "Baton, drift recovery, handoff continuity, and cross-window survival.",
+      "boundary": "Continuity lane only; does not replace project state/log/decision files.",
+      "activation": "declare path in continuity-stack.config.json when present",
+      "defaultAction": "use-if-present"
+    },
+    {
+      "id": "xiaxia-context-compression",
+      "layer": "compression",
+      "source": "local assistant skill",
+      "purpose": "Context compression, mainline extraction, milestone summaries, and task-card structuring.",
+      "boundary": "Compression lane only; does not create runtime truth.",
+      "activation": "declare path in continuity-stack.config.json when present",
+      "defaultAction": "use-if-present"
+    },
+    {
+      "id": "xiaxia-anchor-marking",
+      "layer": "anchor-marking",
+      "source": "local assistant skill",
+      "purpose": "Searchable construction anchors for data, API, events, state, risks, and verification.",
+      "boundary": "Index and verification aid only; code and contracts remain source of truth.",
+      "activation": "declare path in continuity-stack.config.json when present",
+      "defaultAction": "use-if-present"
+    },
+    {
+      "id": "graphify",
+      "layer": "graph",
+      "source": "local assistant skill or external CLI",
+      "purpose": "Knowledge graph, architecture relationship discovery, graph queries, and persistent project maps.",
+      "boundary": "Graph understanding lane; does not replace current state or decisions.",
+      "activation": "declare path or command in continuity-stack.config.json",
+      "defaultAction": "use-if-present"
+    },
+    {
+      "id": "codesight",
+      "layer": "code-insight",
+      "source": "https://github.com/Houseofmvps/codesight",
+      "purpose": "Static project map, wiki, blast radius, routes, schema, components, dependencies, and MCP context tools.",
+      "boundary": "Code insight lane only; generated maps do not replace code evidence, decisions, or validation.",
+      "activation": "install command only when needed and verify with codesight --version plus a project scan",
+      "defaultAction": "use-if-present",
+      "commands": ["codesight"]
+    },
+    {
+      "id": "imptokens",
+      "layer": "token-pruning",
+      "source": "local command/plugin",
+      "purpose": "Token pruning and context budget control.",
+      "boundary": "Only one token-pruning/hook layer should actively rewrite context at a time.",
+      "activation": "manual command or local hook, never auto-installed by this package",
+      "defaultAction": "use-if-present"
+    },
+    {
+      "id": "ib-mcp-cache-server",
+      "layer": "cache",
+      "source": "MCP cache package",
+      "purpose": "Repeated-read cache and token savings for stable local data.",
+      "boundary": "Cache lane only; stale cache must not override current file evidence.",
+      "activation": "declare package path or MCP config outside the portable rules package",
+      "defaultAction": "use-if-present"
+    },
+    {
+      "id": "cc-wf-studio",
+      "layer": "workflow-studio",
+      "source": "https://github.com/ourzeta/cc-wf-studio",
+      "purpose": "Workflow authoring, validation, export, execution, MCP editing, and visual workflow studio.",
+      "boundary": "Workflow assets do not replace PROJECT_STATE, ENGINEERING_LOG, DECISIONS, or runtime validation.",
+      "activation": "optional commands ccwf and ccwf-mcp; trial before global install",
+      "defaultAction": "candidate",
+      "commands": ["ccwf", "ccwf-mcp"],
+      "components": ["packages/core", "packages/cli", "packages/mcp", "packages/vscode"]
+    },
+    {
+      "id": "distill",
+      "layer": "compression",
+      "source": "https://github.com/samuelfaj/distill",
+      "purpose": "CLI or text output summarization for long command outputs.",
+      "boundary": "Summarizer only; use source command logs when exact details matter.",
+      "activation": "candidate only until the intended package or source repo is confirmed",
+      "defaultAction": "record-only",
+      "commands": ["distill"]
+    },
+    {
+      "id": "sqz",
+      "layer": "compression",
+      "source": "https://github.com/ojuschugh1/sqz",
+      "purpose": "Compact command/file output with token-saving references.",
+      "boundary": "Compression aid only; not a durable memory or decision record.",
+      "activation": "optional command sqz; install progressively when smoke can pass",
+      "defaultAction": "candidate",
+      "commands": ["sqz"]
+    },
+    {
+      "id": "cc_token_saver_mcp",
+      "layer": "token-mcp",
+      "source": "https://github.com/csabakecskemeti/cc_token_saver_mcp",
+      "purpose": "MCP token saver candidate.",
+      "boundary": "Do not enable together with another tool controlling the same token-saving/MCP hook layer.",
+      "activation": "record only until a one-project trial is planned",
+      "defaultAction": "record-only"
+    },
+    {
+      "id": "houtini-lm",
+      "layer": "local-llm-routing",
+      "source": "https://github.com/houtini-ai/houtini-lm",
+      "purpose": "Bounded task routing to local or cheaper LLMs for summaries, extraction, and classification.",
+      "boundary": "Routing lane only; high-risk decisions still need primary model plus verification.",
+      "activation": "optional command houtini-lm",
+      "defaultAction": "priority-candidate",
+      "commands": ["houtini-lm"]
+    },
+    {
+      "id": "desktop-control-tools",
+      "layer": "desktop-control",
+      "source": ".claude/desktop-tools",
+      "purpose": "Screen capture, region zoom, mouse click, and T.Claw desktop control.",
+      "boundary": "Desktop control lane; captures, virtualenvs, and caches are generated artifacts, not truth.",
+      "activation": "run PowerShell entrypoints manually",
+      "defaultAction": "use-if-present",
+      "commands": ["eye-full.ps1", "eye-region.ps1", "hand-click.ps1", "tclaw-start.ps1"]
+    }
+  ]
+}
