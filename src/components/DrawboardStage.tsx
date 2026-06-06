@@ -8,9 +8,15 @@
 // @content-contract: courseware labels and problem text are non-handwriting chrome, rendered with the system font stack; handwriting board content lives in child C layers only.
 
 import type { CSSProperties, ReactNode, RefObject } from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { StageCanvasConfig, TeachingAsset } from '../domain/teachingProject';
 import { createCoursewareChromeStyleVars } from '../modules/canvasStage/coursewareChrome';
+import type { CoursewareZoneBoxRecord, CoursewareZoneKey } from '../modules/canvasStage/coursewareZoneLayout';
+import {
+  buildCoursewareZoneBoxesFromDom,
+  COURSEWARE_ZONE_KEYS,
+  createFallbackCoursewareZoneBoxes,
+} from '../modules/canvasStage/coursewareZoneLayout';
 import type { BoardStageToolMode, StageRecordingCanvases } from './drawboardStageTypes';
 import { BoardStageToolOverlay } from './BoardStageToolOverlay';
 import { CanvasRecordingSurface } from './CanvasRecordingSurface';
@@ -53,6 +59,16 @@ export function DrawboardStage({
 }) {
   const problemSummary = problemText?.summary.trim();
   const [baseCanvasEl, setBaseCanvasEl] = useState<HTMLCanvasElement | null>(null);
+  const [autoZoneBoxes, setAutoZoneBoxes] = useState<CoursewareZoneBoxRecord>(() => createFallbackCoursewareZoneBoxes());
+  const [draggingZoneKey, setDraggingZoneKey] = useState<CoursewareZoneKey | null>(null);
+  const [labelOverrides, setLabelOverrides] = useState<Partial<Record<CoursewareZoneKey, { leftRatio: number; topRatio: number }>>>({});
+  const dragStateRef = useRef<{
+    key: CoursewareZoneKey;
+    originClientX: number;
+    originClientY: number;
+    originLeftRatio: number;
+    originTopRatio: number;
+  } | null>(null);
   const overlayContainerRef = useRef<HTMLDivElement | null>(null);
   /** 画笔层是否需要拦截事件：pen/eraser/highlight/circle/cross 时拦截，off 时穿透给 C 层 */
   const canDrawOverlay = activeToolMode !== 'off';
@@ -77,6 +93,110 @@ export function DrawboardStage({
     syncRecordingCanvases();
   }, [syncRecordingCanvases]);
 
+  useEffect(() => {
+    const stageElement = stageRef.current;
+    if (!stageElement) {
+      return;
+    }
+
+    const frameId = window.requestAnimationFrame(() => {
+      const stageRect = stageElement.getBoundingClientRect();
+      const problemRect = stageElement.querySelector('.stage-problem-text')?.getBoundingClientRect() ?? null;
+      const stickerRectsByZone = Object.fromEntries(
+        COURSEWARE_ZONE_KEYS.map((zoneKey) => [
+          zoneKey,
+          Array.from(stageElement.querySelectorAll(`.board-text-sticker--zone-${zoneKey}`)).map((node) =>
+            node.getBoundingClientRect(),
+          ),
+        ]),
+      ) as Parameters<typeof buildCoursewareZoneBoxesFromDom>[0]['stickerRectsByZone'];
+
+      const nextZoneBoxes = buildCoursewareZoneBoxesFromDom({
+        problemRect,
+        stageRect,
+        stickerRectsByZone,
+      });
+
+      setAutoZoneBoxes((current) => (areZoneBoxesEqual(current, nextZoneBoxes) ? current : nextZoneBoxes));
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [children, problemSummary, stageRef]);
+
+  const zoneBoxes = useMemo(() => {
+    const nextBoxes = createFallbackCoursewareZoneBoxes();
+    for (const zoneKey of COURSEWARE_ZONE_KEYS) {
+      const box = autoZoneBoxes[zoneKey];
+      const override = labelOverrides[zoneKey];
+      nextBoxes[zoneKey] = override
+        ? {
+            ...box,
+            labelAnchor: 'left',
+            labelLeftRatio: override.leftRatio,
+            labelTopRatio: override.topRatio,
+          }
+        : box;
+    }
+    return nextBoxes;
+  }, [autoZoneBoxes, labelOverrides]);
+
+  useEffect(() => {
+    if (!draggingZoneKey) {
+      return;
+    }
+
+    const handlePointerMove = (event: PointerEvent) => {
+      const dragState = dragStateRef.current;
+      const stageElement = stageRef.current;
+      if (!dragState || !stageElement) {
+        return;
+      }
+
+      const stageRect = stageElement.getBoundingClientRect();
+      setLabelOverrides((current) => ({
+        ...current,
+        [dragState.key]: {
+          leftRatio: clampRatio(
+            dragState.originLeftRatio + ((event.clientX - dragState.originClientX) / Math.max(1, stageRect.width)),
+          ),
+          topRatio: clampRatio(
+            dragState.originTopRatio + ((event.clientY - dragState.originClientY) / Math.max(1, stageRect.height)),
+          ),
+        },
+      }));
+    };
+
+    const handlePointerUp = () => {
+      dragStateRef.current = null;
+      setDraggingZoneKey(null);
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+    };
+  }, [draggingZoneKey, stageRef]);
+
+  const startLabelDrag = useCallback(
+    (zoneKey: CoursewareZoneKey, event: React.PointerEvent<HTMLDivElement>) => {
+      const zoneBox = zoneBoxes[zoneKey];
+      dragStateRef.current = {
+        key: zoneKey,
+        originClientX: event.clientX,
+        originClientY: event.clientY,
+        originLeftRatio: zoneBox.labelLeftRatio,
+        originTopRatio: zoneBox.labelTopRatio,
+      };
+      event.preventDefault();
+      event.stopPropagation();
+      event.currentTarget.setPointerCapture(event.pointerId);
+      setDraggingZoneKey(zoneKey);
+    },
+    [zoneBoxes],
+  );
+
   return (
     <div className="drawboard-stage-shell">
       <BoardStageToolOverlay
@@ -100,11 +220,75 @@ export function DrawboardStage({
           '--board-handwriting-font': canvas.boardFontFamily,
         } as CSSProperties}
       >
-        <CanvasRecordingSurface canvas={canvas} onCanvasReady={setBaseCanvasEl} problemSummary={problemSummary} />
-        <div className="courseware-label courseware-label--problem">题目</div>
-        <div className="courseware-label courseware-label--analysis">分析</div>
-        <div className="courseware-label courseware-label--solution">解答</div>
-        <div className="courseware-label courseware-label--summary">总结</div>
+        <CanvasRecordingSurface
+          canvas={canvas}
+          onCanvasReady={setBaseCanvasEl}
+          problemSummary={problemSummary}
+          zoneBoxes={zoneBoxes}
+        />
+        {Object.values(zoneBoxes).map((zoneBox) =>
+          zoneBox.hasContent ? (
+            <div
+              key={zoneBox.key}
+              aria-hidden="true"
+              className="courseware-zone-box"
+              style={{
+                left: `${zoneBox.leftRatio * 100}%`,
+                top: `${zoneBox.topRatio * 100}%`,
+                width: `${zoneBox.widthRatio * 100}%`,
+                height: `${zoneBox.heightRatio * 100}%`,
+              }}
+            />
+          ) : null,
+        )}
+        <div
+          className="courseware-label courseware-label--problem"
+          data-dragging={draggingZoneKey === 'problem'}
+          data-anchor={zoneBoxes.problem.labelAnchor}
+          onPointerDown={(event) => startLabelDrag('problem', event)}
+          style={{
+            left: `${zoneBoxes.problem.labelLeftRatio * 100}%`,
+            top: `${zoneBoxes.problem.labelTopRatio * 100}%`,
+          }}
+        >
+          {zoneBoxes.problem.label}
+        </div>
+        <div
+          className="courseware-label courseware-label--analysis"
+          data-dragging={draggingZoneKey === 'analysis'}
+          data-anchor={zoneBoxes.analysis.labelAnchor}
+          onPointerDown={(event) => startLabelDrag('analysis', event)}
+          style={{
+            left: `${zoneBoxes.analysis.labelLeftRatio * 100}%`,
+            top: `${zoneBoxes.analysis.labelTopRatio * 100}%`,
+          }}
+        >
+          {zoneBoxes.analysis.label}
+        </div>
+        <div
+          className="courseware-label courseware-label--solution"
+          data-dragging={draggingZoneKey === 'solution'}
+          data-anchor={zoneBoxes.solution.labelAnchor}
+          onPointerDown={(event) => startLabelDrag('solution', event)}
+          style={{
+            left: `${zoneBoxes.solution.labelLeftRatio * 100}%`,
+            top: `${zoneBoxes.solution.labelTopRatio * 100}%`,
+          }}
+        >
+          {zoneBoxes.solution.label}
+        </div>
+        <div
+          className="courseware-label courseware-label--summary"
+          data-dragging={draggingZoneKey === 'summary'}
+          data-anchor={zoneBoxes.summary.labelAnchor}
+          onPointerDown={(event) => startLabelDrag('summary', event)}
+          style={{
+            left: `${zoneBoxes.summary.labelLeftRatio * 100}%`,
+            top: `${zoneBoxes.summary.labelTopRatio * 100}%`,
+          }}
+        >
+          {zoneBoxes.summary.label}
+        </div>
         <div className="courseware-problem-area">
           {problemSummary ? (
             <MathText as="p" className="stage-problem-text">
@@ -124,4 +308,25 @@ export function DrawboardStage({
       </div>
     </div>
   );
+}
+
+function areZoneBoxesEqual(previous: CoursewareZoneBoxRecord, next: CoursewareZoneBoxRecord) {
+  return COURSEWARE_ZONE_KEYS.every((zoneKey) => {
+    const before = previous[zoneKey];
+    const after = next[zoneKey];
+    return (
+      before.hasContent === after.hasContent &&
+      before.heightRatio === after.heightRatio &&
+      before.labelAnchor === after.labelAnchor &&
+      before.labelLeftRatio === after.labelLeftRatio &&
+      before.labelTopRatio === after.labelTopRatio &&
+      before.leftRatio === after.leftRatio &&
+      before.topRatio === after.topRatio &&
+      before.widthRatio === after.widthRatio
+    );
+  });
+}
+
+function clampRatio(value: number) {
+  return Math.min(0.98, Math.max(0, value));
 }

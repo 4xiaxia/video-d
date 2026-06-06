@@ -34,6 +34,21 @@ boardSlice 普通多行原文
 
 旧 SVG/path/逐笔轨迹路线冻结备用，不作为当前主验收。
 
+## 舞台样式边界
+
+```text
+src/styles.css
+  -> 页面壳子 / 时间轴 / 面板 / 非舞台区域
+
+src/stage.css
+  -> 画布内元素专用样式
+  -> 标签 / 题目 / C 板书 / 金手指 overlay / 舞台工具栏 / standalone 舞台壳子
+```
+
+- 画布是画布，其他是其他。
+- 舞台内样式不得继续散落回 `src/styles.css`。
+- `scripts/check-board-boundaries.mjs` 现在同时读取 `styles.css` 与 `stage.css`，并守门这条边界。
+
 ## 文档与连续性架构
 
 ```text
@@ -67,4 +82,3 @@ CHANGE_TREE变更树.md
 - 架构变更必须更新本文件。
 - 只做局部修复但不改变架构时，在 `ENGINEERING_LOG.md` 和 `CHANGE_TREE变更树.md` 记录即可。
 - 文档不能替代运行验证；每个工作单元必须写明验证命令和结果。
-

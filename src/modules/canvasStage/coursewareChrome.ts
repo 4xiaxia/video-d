@@ -31,6 +31,16 @@ export const COURSEWARE_ZONE_BOUNDS = {
   summary: { topRatio: 0.74, heightRatio: 0.24 },     // 总结区：顶部 74% ~ 98%
 } as const;
 
+export type CoursewareProblemSummaryLayout = {
+  fontSize: number;
+  height: number;
+  left: number;
+  lineHeight: number;
+  lines: string[];
+  top: number;
+  width: number;
+};
+
 export function createCoursewareChromeStyleVars(canvas: StageCanvasConfig): CSSProperties {
   return {
     '--courseware-label-problem-left': toPercent(COURSEWARE_LABEL_LEFT_RATIOS.problem),
@@ -51,6 +61,79 @@ export function createCoursewareChromeStyleVars(canvas: StageCanvasConfig): CSSP
 
 export function resolveProblemFontSize(canvas: StageCanvasConfig) {
   return Math.max(18, canvas.height * 0.014);
+}
+
+export function resolveProblemSummaryLayout(
+  canvas: StageCanvasConfig,
+  problemSummary: string | undefined,
+): CoursewareProblemSummaryLayout | null {
+  const text = problemSummary?.trim();
+  if (!text) {
+    return null;
+  }
+
+  if (typeof document === 'undefined') {
+    return null;
+  }
+
+  const measureCanvas = document.createElement('canvas');
+  const measureContext = measureCanvas.getContext('2d');
+  if (!measureContext) {
+    return null;
+  }
+
+  const fontSize = resolveProblemFontSize(canvas);
+  const lineHeight = fontSize * 1.46;
+  const maxWidth = Math.min(canvas.width * COURSEWARE_PROBLEM_MAX_WIDTH_RATIO, 520 * (canvas.width / 1120));
+  measureContext.font = `600 ${fontSize}px ${COURSEWARE_SYSTEM_FONT_FAMILY}`;
+  const lines = wrapCoursewareSummaryText(measureContext, text, maxWidth, 4);
+  const width = lines.length
+    ? Math.min(maxWidth, Math.max(...lines.map((line) => measureContext.measureText(line).width)))
+    : 0;
+
+  return {
+    fontSize,
+    height: lines.length * lineHeight,
+    left: canvas.width * COURSEWARE_PROBLEM_LEFT_RATIO,
+    lineHeight,
+    lines,
+    top: canvas.height * COURSEWARE_PROBLEM_TOP_RATIO,
+    width,
+  };
+}
+
+export function wrapCoursewareSummaryText(
+  context: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  maxLines: number,
+) {
+  const normalizedText = text.replace(/\s+/g, ' ');
+  const result: string[] = [];
+  let current = '';
+
+  for (const char of normalizedText) {
+    const next = current + char;
+    if (current && context.measureText(next).width > maxWidth) {
+      result.push(current);
+      current = char.trimStart();
+      if (result.length >= maxLines) {
+        break;
+      }
+      continue;
+    }
+    current = next;
+  }
+
+  if (result.length < maxLines && current) {
+    result.push(current);
+  }
+
+  if (result.length === maxLines && context.measureText(result[maxLines - 1]).width > maxWidth * 0.94) {
+    result[maxLines - 1] = `${result[maxLines - 1].slice(0, -1)}...`;
+  }
+
+  return result;
 }
 
 function toPercent(ratio: number) {

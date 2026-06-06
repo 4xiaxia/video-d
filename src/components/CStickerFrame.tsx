@@ -7,6 +7,7 @@
 // @boundary: C sticker frame only; does not decide handwriting vs math content rendering
 
 import type { CSSProperties, PointerEventHandler, ReactNode } from 'react';
+import type { CoursewareZoneKey } from '../modules/canvasStage/coursewareZoneLayout';
 
 export function CStickerFrame({
   children,
@@ -23,6 +24,7 @@ export function CStickerFrame({
   widthPercent,
   xPercent,
   yPercent,
+  zoneKey,
 }: {
   children: ReactNode;
   color: string;
@@ -38,6 +40,7 @@ export function CStickerFrame({
   widthPercent: number;
   xPercent: number;
   yPercent: number;
+  zoneKey: CoursewareZoneKey;
 }) {
   const safeRevealProgress = clampRevealProgress(revealProgress);
 
@@ -46,6 +49,7 @@ export function CStickerFrame({
       aria-label={`C 素材：${text}`}
       className={[
         'board-text-sticker',
+        `board-text-sticker--zone-${zoneKey}`,
         contentKind === 'formula' ? 'board-text-sticker--math' : '',
         isDragging ? 'is-dragging' : '',
         isSelected ? 'is-selected' : '',

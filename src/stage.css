@@ -54,6 +54,7 @@
   background: #48d0eb;
   border-radius: 0.375rem;
   color: #ffffff;
+  cursor: grab;
   display: flex;
   font-family: var(--courseware-system-font, Inter, "Microsoft YaHei", "PingFang SC", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
   font-size: 0.75rem;
@@ -65,29 +66,22 @@
   min-width: 3.5rem;
   padding: 0 0.625rem;
   position: absolute;
+  touch-action: none;
+  user-select: none;
   width: auto;
-  z-index: 1;
+  z-index: 12;
 }
 
-.courseware-label--problem {
-  left: var(--courseware-label-problem-left, 1.7%);
-  top: var(--courseware-label-problem-top, 2.4%);
-}
-
-.courseware-label--analysis {
-  left: var(--courseware-label-analysis-left, 1.7%);
-  top: var(--courseware-label-analysis-top, 24%);
-}
-
-.courseware-label--solution {
-  left: var(--courseware-label-solution-left, 50%);
-  top: var(--courseware-label-solution-top, 2.4%);
+.courseware-label[data-anchor='center'] {
   transform: translateX(-50%);
 }
 
-.courseware-label--summary {
-  left: var(--courseware-label-summary-left, 1.7%);
-  top: var(--courseware-label-summary-top, 74%);
+.courseware-zone-box {
+  border: 1px dashed rgba(72, 208, 235, 0.58);
+  border-radius: 8px;
+  pointer-events: none;
+  position: absolute;
+  z-index: 6;
 }
 
 .courseware-problem-area {

@@ -18,8 +18,6 @@ import type { RcFile } from 'antd/es/upload';
 import type { TeachingAsset } from '../domain/teachingProject';
 import { MathText } from './MathText';
 
-const { Dragger } = Upload;
-
 export function ProblemUploadPreview({
   asset,
   boardSummary,
@@ -31,39 +29,46 @@ export function ProblemUploadPreview({
   hasConfirmedBoard: boolean;
   onImportProblemImage: (file: File) => void;
 }) {
+  const hasImage = Boolean(asset?.sourceRef);
+  const uploadTitle = hasImage ? asset?.title || '题图已上传' : '题图入口';
+  const uploadHint = hasImage ? '点击更换题图，当前题文链路会继续保留。' : '未接 API 时，先用本地题图跑通画布和素材流。';
+
   return (
-    <Dragger
+    <Upload
       accept="image/*"
       beforeUpload={(file: RcFile) => {
         onImportProblemImage(file);
         return false;
       }}
-      className={asset?.sourceRef ? 'problem-image-uploader has-image' : 'problem-image-uploader'}
+      className={hasImage ? 'problem-image-uploader has-image' : 'problem-image-uploader'}
       maxCount={1}
       showUploadList={false}
     >
-      {asset?.sourceRef ? (
-        <div className="upload-preview-frame">
-          <img alt={asset.title} src={asset.sourceRef} />
-          <Tag className="upload-preview-badge" color="blue">
-            预览图
-          </Tag>
+      <span className={hasImage ? 'problem-upload-rail problem-upload-rail--has-image' : 'problem-upload-rail'}>
+        <span className={hasImage ? 'problem-upload-thumb problem-upload-thumb--image' : 'problem-upload-thumb problem-upload-thumb--empty'} aria-hidden={!hasImage}>
+          {hasImage ? <img alt={asset?.title} src={asset?.sourceRef} /> : <InboxOutlined />}
+          {!hasImage ? <span className="problem-upload-thumb-label">待上传</span> : null}
+        </span>
+        <span className="problem-upload-copy">
+          <span className="problem-upload-title-row">
+            <strong className="problem-upload-title">{uploadTitle}</strong>
+            <Tag className="problem-upload-status-tag" color={hasImage ? 'blue' : 'default'}>
+              {hasImage ? '已上传' : '本地导入'}
+            </Tag>
+          </span>
+          <span className="problem-upload-hint">{uploadHint}</span>
           {hasConfirmedBoard ? (
-            <div className="board-confirm-overlay">
+            <span className="problem-upload-board-summary">
               <Tag color="green">C素材候选已生成</Tag>
               <MathText className="board-confirm-overlay-text">{boardSummary}</MathText>
-            </div>
+            </span>
           ) : null}
-        </div>
-      ) : (
-        <>
-          <p className="ant-upload-drag-icon">
-            <InboxOutlined />
-          </p>
-          <p className="ant-upload-text">上传/拖入题目图片</p>
-          <p className="ant-upload-hint">未接 API 时，先用本地题图跑通画布和素材流。</p>
-        </>
-      )}
-    </Dragger>
+          <span className="problem-upload-actions">
+            <span className="problem-upload-button">{hasImage ? '更换题图' : '选择题图'}</span>
+            <span className="problem-upload-subhint">{hasImage ? '保持当前识别入口' : '按钮导入，更省位置'}</span>
+          </span>
+        </span>
+      </span>
+    </Upload>
   );
 }

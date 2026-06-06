@@ -17,7 +17,10 @@ import {
   COURSEWARE_PROBLEM_TOP_RATIO,
   COURSEWARE_SYSTEM_FONT_FAMILY,
   resolveProblemFontSize,
+  wrapCoursewareSummaryText,
 } from './coursewareChrome';
+import type { CoursewareZoneBoxRecord } from './coursewareZoneLayout';
+import { COURSEWARE_ZONE_KEYS, createFallbackCoursewareZoneBoxes } from './coursewareZoneLayout';
 
 const LABEL_BG = '#59cee5';
 const LABEL_TEXT = '#ffffff';
@@ -28,29 +31,36 @@ export function drawCoursewareStageFrame(
   context: CanvasRenderingContext2D,
   canvas: StageCanvasConfig,
   problemSummary = '',
+  zoneBoxes: CoursewareZoneBoxRecord = createFallbackCoursewareZoneBoxes(),
 ) {
   context.save();
   context.setTransform(1, 0, 0, 1, 0, 0);
   context.clearRect(0, 0, canvas.width, canvas.height);
   context.fillStyle = canvas.background || '#ffffff';
   context.fillRect(0, 0, canvas.width, canvas.height);
-  drawCoursewareFrameChrome(context, canvas);
+  drawCoursewareFrameChrome(context, canvas, zoneBoxes);
   drawProblemSummary(context, canvas, problemSummary);
   context.restore();
 }
 
-function drawCoursewareFrameChrome(context: CanvasRenderingContext2D, canvas: StageCanvasConfig) {
+function drawCoursewareFrameChrome(
+  context: CanvasRenderingContext2D,
+  canvas: StageCanvasConfig,
+  zoneBoxes: CoursewareZoneBoxRecord,
+) {
   // 边框
   const lineWidth = Math.max(8, canvas.width * 0.007);
   context.strokeStyle = FRAME_STROKE;
   context.lineWidth = lineWidth;
   context.strokeRect(lineWidth / 2, lineWidth / 2, canvas.width - lineWidth, canvas.height - lineWidth);
 
-  // 四区标签 — 与 DOM .courseware-label 坐标同源
-  drawLabel(context, canvas, '题目', COURSEWARE_LABEL_LEFT_RATIOS.problem, COURSEWARE_LABEL_TOP_RATIOS.problem);
-  drawLabel(context, canvas, '分析', COURSEWARE_LABEL_LEFT_RATIOS.analysis, COURSEWARE_LABEL_TOP_RATIOS.analysis);
-  drawLabel(context, canvas, '解答', COURSEWARE_LABEL_LEFT_RATIOS.solution, COURSEWARE_LABEL_TOP_RATIOS.solution);
-  drawLabel(context, canvas, '总结', COURSEWARE_LABEL_LEFT_RATIOS.summary, COURSEWARE_LABEL_TOP_RATIOS.summary);
+  for (const zoneKey of COURSEWARE_ZONE_KEYS) {
+    const zoneBox = zoneBoxes[zoneKey];
+    if (zoneBox.hasContent) {
+      drawZoneBox(context, canvas, zoneBox);
+    }
+    drawLabel(context, canvas, zoneBox.label, zoneBox.labelLeftRatio, zoneBox.labelTopRatio, zoneBox.labelAnchor);
+  }
 }
 
 function drawLabel(
@@ -59,10 +69,14 @@ function drawLabel(
   text: string,
   leftRatio: number,
   topRatio: number,
+  anchor: 'left' | 'center',
 ) {
-  const x = canvas.width * leftRatio;
+  const resolvedLabelWidth = Math.max(canvas.width * COURSEWARE_LABEL_WIDTH_RATIO, 56);
+  const x = anchor === 'center'
+    ? (canvas.width * leftRatio) - (resolvedLabelWidth / 2)
+    : canvas.width * leftRatio;
   const y = canvas.height * topRatio;
-  const w = canvas.width * COURSEWARE_LABEL_WIDTH_RATIO;
+  const w = resolvedLabelWidth;
   const h = canvas.height * COURSEWARE_LABEL_HEIGHT_RATIO;
   const borderRadius = Math.max(4, h * 0.28);
   const fontSize = Math.max(14, h * 0.48);
@@ -80,6 +94,27 @@ function drawLabel(
   context.fillText(text, x + w / 2, y + h / 2);
 }
 
+function drawZoneBox(
+  context: CanvasRenderingContext2D,
+  canvas: StageCanvasConfig,
+  zoneBox: CoursewareZoneBoxRecord[keyof CoursewareZoneBoxRecord],
+) {
+  context.save();
+  context.strokeStyle = 'rgba(72, 208, 235, 0.58)';
+  context.lineWidth = 1;
+  context.setLineDash([8, 5]);
+  roundedRect(
+    context,
+    canvas.width * zoneBox.leftRatio,
+    canvas.height * zoneBox.topRatio,
+    canvas.width * zoneBox.widthRatio,
+    canvas.height * zoneBox.heightRatio,
+    8,
+  );
+  context.stroke();
+  context.restore();
+}
+
 function drawProblemSummary(context: CanvasRenderingContext2D, canvas: StageCanvasConfig, problemSummary: string) {
   const text = problemSummary.trim();
   if (!text) {
@@ -95,42 +130,13 @@ function drawProblemSummary(context: CanvasRenderingContext2D, canvas: StageCanv
   context.textAlign = 'left';
   context.textBaseline = 'top';
 
-  const lines = wrapCanvasText(context, text, maxWidth, 4);
+  const lines = wrapCoursewareSummaryText(context, text, maxWidth, 4);
   const left = canvas.width * COURSEWARE_PROBLEM_LEFT_RATIO;
   const top = canvas.height * COURSEWARE_PROBLEM_TOP_RATIO;
 
   for (let index = 0; index < lines.length; index += 1) {
     context.fillText(lines[index], left, top + index * lineHeight);
   }
-}
-
-function wrapCanvasText(context: CanvasRenderingContext2D, text: string, maxWidth: number, maxLines: number) {
-  const normalizedText = text.replace(/\s+/g, ' ');
-  const result: string[] = [];
-  let current = '';
-
-  for (const char of normalizedText) {
-    const next = current + char;
-    if (current && context.measureText(next).width > maxWidth) {
-      result.push(current);
-      current = char.trimStart();
-      if (result.length >= maxLines) {
-        break;
-      }
-      continue;
-    }
-    current = next;
-  }
-
-  if (result.length < maxLines && current) {
-    result.push(current);
-  }
-
-  if (result.length === maxLines && context.measureText(result[maxLines - 1]).width > maxWidth * 0.94) {
-    result[maxLines - 1] = `${result[maxLines - 1].slice(0, -1)}...`;
-  }
-
-  return result;
 }
 
 function roundedRect(

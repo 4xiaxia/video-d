@@ -10,6 +10,7 @@
 import { memo } from 'react';
 import type { PointerEventHandler } from 'react';
 import { resolveBoardTextDisplayRoute } from '../modules/boardSticker';
+import type { CoursewareZoneKey } from '../modules/canvasStage/coursewareZoneLayout';
 import { BoardHandwritingStickerContent } from './BoardHandwritingStickerContent';
 import { BoardMathStickerContent } from './BoardMathStickerContent';
 import { CStickerFrame } from './CStickerFrame';
@@ -29,6 +30,7 @@ type BoardTextStickerProps = {
   widthPercent: number;
   xPercent: number;
   yPercent: number;
+  zoneKey: CoursewareZoneKey;
 };
 
 function BoardTextStickerInner({
@@ -46,6 +48,7 @@ function BoardTextStickerInner({
   widthPercent,
   xPercent,
   yPercent,
+  zoneKey,
 }: BoardTextStickerProps) {
   const displayRoute = resolveBoardTextDisplayRoute(text);
   const contentKind = displayRoute.kind;
@@ -65,6 +68,7 @@ function BoardTextStickerInner({
       widthPercent={widthPercent}
       xPercent={xPercent}
       yPercent={yPercent}
+      zoneKey={zoneKey}
     >
       {contentKind === 'formula' ? (
         <BoardMathStickerContent color={color} text={displayRoute.text} />
@@ -96,6 +100,7 @@ function areBoardTextStickerPropsEqual(previous: BoardTextStickerProps, next: Bo
     previous.text === next.text &&
     previous.widthPercent === next.widthPercent &&
     previous.xPercent === next.xPercent &&
-    previous.yPercent === next.yPercent
+    previous.yPercent === next.yPercent &&
+    previous.zoneKey === next.zoneKey
   );
 }

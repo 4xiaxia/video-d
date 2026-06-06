@@ -110,6 +110,7 @@ export function CStickerStandalonePage() {
           widthPercent={widthPercent}
           xPercent={xPercent}
           yPercent={yPercent}
+          zoneKey="solution"
         />
       </section>
     </div>

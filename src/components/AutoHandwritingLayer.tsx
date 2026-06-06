@@ -14,6 +14,7 @@ import type { StageCanvasConfig, TimelineClip } from '../domain/teachingProject'
 import { getBoardRevealProgress } from '../modules/boardReveal';
 import { compareBoardClipLayerOrder } from '../modules/boardOrdering';
 import { COURSEWARE_ZONE_BOUNDS } from '../modules/canvasStage/coursewareChrome';
+import { getZoneNameFromChainKey } from '../modules/canvasStage/coursewareZoneLayout';
 import {
   DEFAULT_BOARD_STICKER_WIDTH_PERCENT,
   DEFAULT_BOARD_STICKER_X_PERCENT,
@@ -27,18 +28,6 @@ import {
 import { isBoardClipVisibleAtPlayhead } from '../modules/timeline/timelineWindow';
 import { BoardTextSticker } from './BoardTextSticker';
 import type { BoardClipPatch } from './drawboardStageTypes';
-
-/**
- * 根据 chainKey 获取 C 应该落在的四区域
- * template-open / template-pre / step-N / template-end → 对应的区域
- */
-function getZoneNameFromChainKey(chainKey: string | undefined): keyof typeof COURSEWARE_ZONE_BOUNDS {
-  if (chainKey === 'template-open') return 'problem';
-  if (chainKey === 'template-pre') return 'analysis';
-  if (chainKey === 'template-end') return 'summary';
-  if (chainKey?.startsWith('step-')) return 'solution';
-  return 'solution'; // 默认解答区
-}
 
 /**
  * 约束 C 的位置到指定区域内（自动对齐）
@@ -267,6 +256,7 @@ export function AutoHandwritingLayer({
               widthPercent={widthPercent}
               xPercent={xPercent}
               yPercent={yPercent}
+              zoneKey={zoneName}
             />
           );
         })

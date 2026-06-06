@@ -8,17 +8,20 @@
 
 import { useEffect, useRef } from 'react';
 import type { StageCanvasConfig } from '../domain/teachingProject';
+import type { CoursewareZoneBoxRecord } from '../modules/canvasStage/coursewareZoneLayout';
 import { drawCoursewareStageFrame } from '../modules/canvasStage/drawCoursewareStageFrame';
 
 export function CanvasRecordingSurface({
   canvas,
   onCanvasReady,
   problemSummary,
+  zoneBoxes,
 }: {
   canvas: StageCanvasConfig;
   /** 暴露底图 canvas DOM 元素，供合成录制使用 */
   onCanvasReady?: (el: HTMLCanvasElement | null) => void;
   problemSummary?: string;
+  zoneBoxes?: CoursewareZoneBoxRecord;
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -31,8 +34,8 @@ export function CanvasRecordingSurface({
 
     recordingCanvas.width = canvas.width;
     recordingCanvas.height = canvas.height;
-    drawCoursewareStageFrame(context, canvas, problemSummary);
-  }, [canvas, problemSummary]);
+    drawCoursewareStageFrame(context, canvas, problemSummary, zoneBoxes);
+  }, [canvas, problemSummary, zoneBoxes]);
 
   useEffect(() => {
     onCanvasReady?.(canvasRef.current);

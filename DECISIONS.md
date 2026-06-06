@@ -128,3 +128,117 @@
   - `npm run check:script-agent-rows`。
   - `npm run typecheck`。
   - 直接 Node 复现未转义 `\left/\frac/\div/\angle/\pi/\sin/\sqrt` 并确认 rows 编译到 `B1/C1`。
+
+## 2026-06-06_舞台内样式必须独立成册
+
+- 决策：
+  - 画布内元素样式独立到 `src/stage.css`。
+  - `src/styles.css` 只保留页面壳子、时间轴、面板与非舞台区域。
+  - `scripts/check-board-boundaries.mjs` 负责守门，禁止舞台样式 token 回流到 `src/styles.css`。
+- 背景：
+  - 用户明确要求“画布是画布，其他是其他”。
+  - 当前标签、题目、板书、金手指、舞台工具栏混在全局样式表里，不利于继续收“和画布比例同源”的尺寸真相。
+- 最终选择：
+  - 先做样式边界分家，再继续处理标签 / 题目 / 板书的比例真相。
+- 理由：
+  - 先把战场切干净，避免边处理尺寸来源边和页面壳子样式互相污染。
+  - 让“舞台内规则”先有单独真相层，后续继续收口时更可控。
+- 风险：
+  - 只拆样式边界，不代表尺寸真相已经统一。
+- 如何规避：
+  - 下一刀继续梳理标签、题目、板书三条尺寸链的唯一来源。
+  - 每次边界调整都继续跑 `npm run check:board-boundaries` 与 `npm run typecheck`。
+- 验证：
+  - `npm run check:board-boundaries`
+  - `npm run typecheck`
+
+## 2026-06-06_题图入口改为紧凑上传 rail
+
+- 决策：
+  - 第一步题图入口不再使用大面积拖拽面板，而改成紧凑的“左缩略 / 右按钮”上传 rail。
+  - 题图入口从 `Upload.Dragger` 收回到普通 `Upload`，减少默认大框高度和无谓占位。
+  - 空态与有图态共用同一稳定高度；题图缩略使用 `contain`，不为卡片尺寸裁图。
+  - 组件结构保持扁平，避免为样式继续叠 `div` 套层。
+- 背景：
+  - 用户指出原上传区溢出、占位过大，并明确希望改成“左边图缩略，右边按钮上传”的工具位。
+  - 当前阶段目标是做减法，让题图入口更像操作入口，而不是大海报位。
+- 最终选择：
+  - 更新 `src/components/ProblemUploadPreview.tsx` 与 `src/styles.css`，保留原上传链路，只改入口形态和样式。
+- 理由：
+  - 不动识别/素材流逻辑，风险最小。
+  - 入口高度稳定后，左侧工作区更利于继续承接题文确认和后续流程。
+  - 普通 `Upload` 比 `Dragger` 更贴合当前“按钮导入”为主的交互。
+- 风险：
+  - 过度压缩后可能牺牲拖拽可发现性，或让题图缩略被裁。
+- 如何规避：
+  - 保留“也可直接拖入 / 点击更换题图”文案。
+  - 缩略图使用 `object-fit: contain`。
+  - 空态/有图态都用 Playwright 实测尺寸和页面截图复核。
+- 验证：
+  - `npm run typecheck`
+  - `npm run check:board-boundaries`
+  - `npm run smoke:pending-new-problem`
+  - Playwright 实测空态 / 有图态 rail 高度稳定为 `104px`
+
+## 2026-06-06_标签分片容器先做内容 bbox 自适应，拖拽句柄只给标签 pill
+
+- 决策：
+  - 四区标签对应的分片容器先按当前题目正文 + 当前可见 C 板书的真实 bbox 自动生成，统一加 `5px` 视觉留白。
+  - 分片容器外框只负责显示边界，`pointer-events: none`，不参与交互命中。
+  - 标签拖拽句柄只允许标签 pill 本身承接；不能把整个容器做成可拖区域，避免与板书文字拖拽撞车。
+  - 当前标签拖动只保留在舞台运行态的本地预览，不写回 `boardSlice`、timeline clip 或其他业务真相字段。
+  - 录制底图同步消费同一份分区框/标签位置结果，避免 DOM 与录制各画一套。
+- 背景：
+  - 用户明确指出标签其实是分片容器的操作句柄，容器大小应由实际板书内容面积决定，并要求“按住标签才能移动，不是整个容器”。
+  - 旧实现里四区标签是硬编码定位，容器不存在；一旦直接让大容器响应拖拽，会和 `BoardTextSticker` 的现有拖拽链路撞车。
+- 最终选择：
+  - 新增 `src/modules/canvasStage/coursewareZoneLayout.ts`，从 `stage` 内 DOM 实测的题目正文与 `board-text-sticker--zone-*` bbox 生成四区分片框与标签位置。
+  - `DrawboardStage` 渲染动态分片框与标签 pill，标签层级高于板书；`CanvasRecordingSurface` / `drawCoursewareStageFrame` 同步消费同一份布局结果。
+- 理由：
+  - 这是“先 bbox 自适应、后考虑 manual override”的最小实现，符合此前变更树约束。
+  - 先守住交互命中边界，比急着把标签拖拽持久化更重要。
+  - 录制底图同步复用同源结果，能继续压住第二套尺寸真相的风险。
+- 风险：
+  - 当前 bbox 依赖运行态 DOM 实测，Konva proof 与真正持久化的 override 还没有完全对齐。
+  - 若标签层级落在板书下方，会导致“拖标签其实拖走板书”的假象。
+- 如何规避：
+  - 标签 pill 提升到高于板书的层级；容器外框不接管指针。
+  - 继续保持“标签拖动不得写回内容真相”的纪律；真正持久化另开独立字段。
+  - 后续再把 `KonvaRecordingSurface` / proof 页面接入同一套分区布局口径。
+- 验证：
+  - `npm run typecheck`
+  - `npm run check:board-boundaries`
+  - 本地 Playwright `standalone=drawboard-core` 交互回归：
+    - solution 标签拖动 `x:+51, y:+18`
+    - 拖标签期间板书位移 `x:0, y:0`
+    - 板书自身拖动位移 `x:+40, y:+13`
+    - 截图：`.tmp-ui-smoke/zone-label-drag-2026-06-06T06-12-59-865Z.png`
+
+## 2026-06-06_右栏职责表只允许在侧栏容器内展开和滚动
+
+- 决策：
+  - `A/B/C 控制层职责表` 继续保留在右侧 inspector 顶部，但展开后只能在自身容器里纵向滚动。
+  - 职责表卡片必须锁在侧栏单列宽度内，长文案、长字段名和 tag 都要允许断行，不能再横向撑爆 inspector。
+  - 这类职责表属于页面壳子信息面板，规则只放在 `src/styles.css`，不进入 `src/stage.css`。
+- 背景：
+  - 用户在页面上直接指出右栏职责表“容器没做好”，展开后视觉上像把侧栏当成无限高内容区。
+  - 实测发现旧样式同时有两个问题：职责表根节点宽度被内容撑到约 `555px`，且展开内容把整张卡片拉高到约 `3730px`，导致右栏横向溢出、纵向失控。
+- 最终选择：
+  - 不改 `boardControlResponsibilities` 文案真相，只在 `src/styles.css` 收紧 `.inspector-stack` 和 `.board-control-responsibilities-*` 的容器纪律。
+  - 把滚动边界挂到 Ant Collapse 当前真实的 `.ant-collapse-body`，而不是猜测性的内部层。
+- 理由：
+  - 这是最小修复，只改页面壳子容器，不触碰 A/B/C 边界文案和业务逻辑。
+  - 把宽度、断行和内滚三件事一起守住，才能避免“看似没溢出，其实只是把问题藏到别处”。
+- 风险：
+  - 如果未来 Ant Collapse DOM 结构升级，滚动边界的命中层可能再次变化。
+- 如何规避：
+  - 继续用浏览器实测 DOM 尺寸，而不是只凭类名印象下样式。
+  - 职责表后续若继续加字段，优先收紧信息密度，不要再让右栏承载海报式长文布局。
+- 验证：
+  - `npm run typecheck`
+  - `npm run check:board-boundaries`
+  - 本地 Playwright 侧栏容器实测：
+    - 修复后 `workspace-sider--inspector` `scrollWidth == clientWidth == 294`
+    - 职责表 `.ant-collapse-body` 高度约 `600px`，`scrollHeight` 约 `4829px`，已进入自身内滚
+    - 下方 `画布变量 / 录屏舞台` 与 `C 默认字体 / 当前工程` 面板重新回到首屏可达
+    - 截图：`.tmp-ui-smoke/inspector-responsibilities-2026-06-06T06-37-32-344Z.png`

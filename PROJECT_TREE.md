@@ -42,6 +42,7 @@ D:/video-dev-cleanroom
 └── src/
     ├── App.tsx
     ├── main.tsx
+    ├── stage.css
     ├── agent/
     ├── components/
     ├── config/

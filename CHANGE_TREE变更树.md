@@ -4397,3 +4397,116 @@ untime/node/npm.cmd run check:board-event-clips 通过。
 - 下一步不要混：
   - 继续回到 C 普通文本换行修复。
   - 所有修复都必须先问产品含义：老师讲什么、黑板写什么、学生看见什么。
+
+## 2026-06-06_舞台内样式分家到 stage.css
+
+- 目标：
+  - 按用户边界把画布内元素样式单独成册，先实现“画布是画布，其他是其他”。
+- 已做：
+  - 新增 `src/stage.css`，承接舞台内样式：
+    - `stage-canvas`
+    - `courseware-label`
+    - `courseware-problem-area`
+    - `courseware-board-area`
+    - `golden-finger-canvas-layer`
+    - `board-stage-tool-overlay`
+    - `board-text-sticker`
+    - `c-standalone-canvas`
+    - hybrid prototype 的舞台壳子规则
+  - `src/main.tsx` 接入 `stage.css`。
+  - `src/styles.css` 删除舞台内样式，退回页面壳子与非舞台区域。
+  - `scripts/check-board-boundaries.mjs` 改为同时读取 `styles.css` 与 `stage.css`，新增“舞台样式不得回流到全局样式表”的守门。
+- 边界：
+  - 本刀只做样式边界分家，不宣称标签 / 题目 / 板书的尺寸真相已经统一。
+  - 不改第二步 rows 合同，不改 C 文本换行逻辑，不改业务时间线。
+- 校验：
+  - `npm run check:board-boundaries` -> 通过。
+  - `npm run typecheck` -> 通过。
+- 下一枝：
+  - 继续收标签、题目、板书三条尺寸链，明确与画布的比例真相是否统一到同一来源。
+
+## 2026-06-06_题图入口收成紧凑上传rail
+
+- 目标：
+  - 把第 1 步题图入口从大拖拽面板改成“左缩略 / 右按钮”的紧凑工具位。
+- 已做：
+  - `src/components/ProblemUploadPreview.tsx`
+    - 从 `Upload.Dragger` 改为普通 `Upload`。
+    - 空态与有图态统一成 `problem-upload-rail` 结构。
+    - 保留原 `beforeUpload -> onImportProblemImage` 导入链路。
+  - `src/styles.css`
+    - 新增 `problem-upload-*` 紧凑 rail 样式。
+    - 删除旧大拖拽框样式。
+    - 题图缩略改成 `object-fit: contain`，避免卡片裁图。
+  - `PROJECT_STATE.md`、`DECISIONS.md`、`KNOWN_ISSUES.md`、`ENGINEERING_LOG.md`
+    - 记录本轮 UI 决策、风险和验证结果。
+- 边界：
+  - 不改识别逻辑，不改素材流，不改第二步 rows 合同，不改 C 渲染链路。
+  - 不为样式新增多层无意义包裹；保持组件结构扁平。
+- 校验：
+  - `npm run typecheck` -> 通过。
+  - `npm run check:board-boundaries` -> 通过。
+  - `npm run smoke:pending-new-problem` -> 通过。
+  - Playwright 空态 / 有图态实测 rail 高度均为 `104px`。
+- 下一枝：
+  - 继续回到标签 / 题目 / C 板书与画布比例同源的尺寸来源收口。
+
+## 2026-06-06_标签分片容器按真实内容 bbox 自适应
+
+- 目标：
+  - 把四区标签从静态 chrome 改成“标签句柄 + 内容自适应分片容器”，并守住“标签拖动不撞板书拖拽”的交互边界。
+- 已做：
+  - `src/modules/canvasStage/coursewareZoneLayout.ts`
+    - 新增四区分片布局 helper。
+    - 从运行态 DOM 的 `stage-problem-text` 与 `board-text-sticker--zone-*` bbox 生成分区框和标签位置。
+    - 内容 bbox 默认外扩 `5px`。
+  - `src/components/BoardTextSticker.tsx` / `src/components/CStickerFrame.tsx` / `src/components/AutoHandwritingLayer.tsx`
+    - 给每个 C 板书挂 `zoneKey` 和 `board-text-sticker--zone-*` class。
+  - `src/components/DrawboardStage.tsx`
+    - 渲染动态分区框。
+    - 标签 pill 可拖，本地预览 override 不写回业务真相。
+    - 容器框只显示，不接管指针。
+  - `src/components/CanvasRecordingSurface.tsx` / `src/modules/canvasStage/drawCoursewareStageFrame.ts`
+    - 录制底图同步消费同一份分区框与标签位置。
+  - `src/stage.css`
+    - 新增 `courseware-zone-box`。
+    - 标签提升到高于板书的层级，避免“拖标签命中板书”。
+- 边界：
+  - 不改第二步 rows 合同。
+  - 不写 `boardSlice`。
+  - 不把标签拖动持久化成 manual override 字段。
+  - 不让整个容器可拖，只允许标签 pill 承接拖拽。
+- 校验：
+  - `npm run typecheck` -> 通过。
+  - `npm run check:board-boundaries` -> 通过。
+  - 本地 Playwright `standalone=drawboard-core` 交互回归 -> 通过。
+    - 拖标签期间板书位移 `0,0`
+    - 板书拖动位移 `+40,+13`
+    - 截图：`.tmp-ui-smoke/zone-label-drag-2026-06-06T06-12-59-865Z.png`
+- 下一枝：
+  - 继续把题目区 bbox、录制底图、Konva proof 页面收成同一套尺寸口径。
+
+## 2026-06-06_右栏职责表容器收回 inspector 边界
+
+- 目标：
+  - 修复右侧 `A/B/C 控制层职责表` 展开后横向撑爆、纵向无限拉长的问题。
+- 已做：
+  - `src/styles.css`
+    - 为 `.inspector-stack` 增加单列宽度约束。
+    - 为 `.board-control-responsibilities-collapse` 及其 Ant 展开层补齐 `min-width: 0`、`width: 100%`。
+    - 把展开内容的滚动边界挂到真实的 `.ant-collapse-body`，限制为侧栏内滚。
+    - 收紧职责卡片内边距、间距，并让标题、事实字段和 tag 支持断行。
+- 边界：
+  - 不改 `boardControlResponsibilities` 文案真相。
+  - 不改任何舞台内元素。
+  - 不新增组件套层；继续保持现有扁平结构。
+- 校验：
+  - `npm run typecheck` -> 通过。
+  - `npm run check:board-boundaries` -> 通过。
+  - 本地 Playwright 右栏容器回归 -> 通过。
+    - `workspace-sider--inspector` 无横向溢出：`scrollWidth == clientWidth == 294`
+    - 职责表 `.ant-collapse-body` 高度约 `600px`，内部滚动生效
+    - 下方 `画布变量 / 录屏舞台` 与 `C 默认字体 / 当前工程` 面板重新回到首屏可达
+    - 截图：`.tmp-ui-smoke/inspector-responsibilities-2026-06-06T06-37-32-344Z.png`
+- 下一枝：
+  - 回到主线，继续收题目区 bbox、录制底图和 Konva proof 的同源尺寸口径。
