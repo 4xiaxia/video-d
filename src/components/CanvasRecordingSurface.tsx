@@ -23,6 +23,7 @@ export function CanvasRecordingSurface({
   problemSummary?: string;
   zoneBoxes?: CoursewareZoneBoxRecord;
 }) {
+  // @xiaxia-recording-problem-truth: recording foundation receives the same problemText.summary truth as DrawboardStage chrome.
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -45,6 +46,9 @@ export function CanvasRecordingSurface({
   return (
     <canvas
       aria-hidden="true"
+      data-agent-anchor="recording-foundation"
+      data-agent-truth-field="problemText.summary"
+      data-role="problem-truth-recording-foundation"
       className="canvas-recording-surface"
       data-canvas-recording-surface="foundation"
       ref={canvasRef}

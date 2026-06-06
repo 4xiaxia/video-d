@@ -242,3 +242,29 @@
     - 职责表 `.ant-collapse-body` 高度约 `600px`，`scrollHeight` 约 `4829px`，已进入自身内滚
     - 下方 `画布变量 / 录屏舞台` 与 `C 默认字体 / 当前工程` 面板重新回到首屏可达
     - 截图：`.tmp-ui-smoke/inspector-responsibilities-2026-06-06T06-37-32-344Z.png`
+
+## 2026-06-06_题目区正文只认第1步确认题文，不认opening boardSlice
+
+- 决策：
+  - 画布题目区正文的唯一真相是第 1 步确认后的 `problemText.summary`。
+  - opening / 开场读题只负责 A 口播阶段与“题目区”分区身份，不负责覆盖舞台题目正文。
+  - 即使 opening 行出现候选文案或误填 `boardSlice`，题目区正文与录制底图也必须继续以 `problemText.summary` 为准。
+  - 相关节点要埋稳定 agent 锚点，后续自动化/代理读取时直接抓真相源，不再猜。
+- 背景：
+  - 用户明确纠正：画布题目标签下面放的内容就是真题，真相来自用户最开始输入并确认的第 1 步题文；如果和板书一开始的读题冲撞，以第 1 步内容为标准。
+  - 代码实证也一致：`DrawboardStage` 读 `problemText?.summary.trim()`；`compileScriptAgentTableDraft()` 对 opening 行 `boardSlice` 不做正式投影；`ScriptAgentTableEditor` 明示 opening `boardSlice` 会被 compiler 忽略。
+- 最终选择：
+  - 不改第二步 rows 合同，不把题目区正文改到 `boardSlice` 链上。
+  - 在 `ProblemWorkspace`、`DrawboardStage`、`CanvasRecordingSurface` 上补 `data-agent-anchor` / `data-agent-truth-field` 标记。
+  - 同步回填 `认知图-核心逻辑动态图.md`、`真相路标-当前唯一入口.md`、`ABC字段函数前端映射表.md`。
+- 理由：
+  - 第 1 步题文属于前置输入真相，C 板书属于候选素材真相；两条线如果混掉，会把“题目是什么”和“老师怎么讲/板书写什么”拧成一条假链。
+  - 先把题目区正文和 opening 读题职责切开，后面继续收题目区 bbox / 录制 / Konva 同源尺寸时才不会再次走偏。
+- 风险：
+  - 认知文件如果只写“四区里有题目区”，容易让后来者误以为题目区正文也来自 `section/opening`。
+- 如何规避：
+  - 认知层显式写明 `problemText.summary` 是题目区正文真相。
+  - 节点锚点采用稳定 `data-agent-*` 命名，避免后续 agent 只能从 class 猜。
+- 验证：
+  - `npm run typecheck`
+  - 页面 DOM 验证 `problem-text-step1`、`stage-problem-text`、`recording-foundation` 锚点存在，且题目区继续显示第 1 步题文

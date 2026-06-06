@@ -3,8 +3,8 @@
 ## 基本信息
 
 - 项目名：video-dev-cleanroom / teaching-cut-cleanroom
-- 最后更新：2026-06-06 14:39:11 +08:00
-- 当前阶段：标签分片容器已按真实内容 bbox 自适应；右栏职责表容器已收回侧栏边界；下一刀继续把题目区与录制/未来 Konva 的尺寸真相再收紧
+- 最后更新：2026-06-06 16:07:36 +08:00
+- 当前阶段：题目区正文真相已纠偏回第 1 步确认题文；标签分片容器与右栏职责表边界已收住；下一刀继续把题目区与录制/未来 Konva 的尺寸真相再收紧
 - 负责人：当前 agent
 
 ## 已确认的设计决策
@@ -21,6 +21,7 @@
 - 自动安装引导采用 dry-run 优先：预览目标与风险，用户显式确认后才安装。
 - 第二步文稿/板书生成的唯一候选合同是 `rows`：`voiceText` 是文稿，`boardSlice` 是 C 素材候选；确认应用后才编译到正式 `scriptText` / `boardLayout`。
 - Agent 返回 JSON 时可能把课堂数学表达的反斜杠写成未转义形式；网关只在 rows JSON 入口修复当前 C 板书已支持的数学命令/定界符，并保留合法 JSON 转义如 `\n`，拒绝未知非法转义。
+- 题目区正文的唯一真相是第 1 步确认后的 `problemText.summary`；开场读题只决定 A 口播阶段与“题目区”分区身份，若冲撞时不得用 opening `boardSlice` 覆盖题目区正文。
 
 ## 已验证的边界
 
@@ -37,8 +38,10 @@
 - 题图入口组件：`src/components/ProblemUploadPreview.tsx` - 已从大拖拽面板改成“左缩略 / 右按钮”的紧凑上传 rail，空态和有图态共用同一稳定高度。
 - 题图入口样式：`src/styles.css` - 新增 `problem-upload-*` 紧凑 rail 样式；题图缩略改成 `contain`，避免卡片裁图。
 - 分区布局真相：`src/modules/canvasStage/coursewareZoneLayout.ts` - 以当前 DOM 中的题目正文和各区 C 板书 bbox 为输入，生成四区容器框与标签位置；空区仅保留标签，不硬画空框。
+- 题文真相源头：`src/components/ProblemWorkspace.tsx` - `data-agent-anchor="problem-text-step1"` 系列节点明确标出第 1 步确认题文就是 `problemText.summary` 真相源。
 - 舞台标签壳子：`src/components/DrawboardStage.tsx` - 根据实时测量结果渲染分区框；标签 pill 可拖但不写回业务数据；标签层级高于板书，避免命中抢占。
-- 录制底图：`src/modules/canvasStage/drawCoursewareStageFrame.ts` / `src/components/CanvasRecordingSurface.tsx` - 录制底图同步消费同一份分区框与标签位置，避免 DOM / 录制两套真相。
+- 舞台题目真相：`src/components/DrawboardStage.tsx` - `stage-problem-area` / `stage-problem-text` 已加 `data-agent-anchor`，明确舞台题目区只读 `problemText.summary`，不读 opening `boardSlice`。
+- 录制底图：`src/modules/canvasStage/drawCoursewareStageFrame.ts` / `src/components/CanvasRecordingSurface.tsx` - 录制底图同步消费同一份分区框与标签位置，并通过 `problemSummary` 继续读取同一条 `problemText.summary` 题文真相。
 - C 分区标识：`src/components/BoardTextSticker.tsx` / `src/components/CStickerFrame.tsx` / `src/components/AutoHandwritingLayer.tsx` - 给每个 C 板书挂 `board-text-sticker--zone-*`，供舞台测量分区边界。
 - 舞台边界验证：`scripts/check-board-boundaries.mjs` - 已改成同时读取 `styles.css` 和 `stage.css`，并守门“舞台样式不得回流到全局样式表”。
 - 第二步网关：`scripts/script-agent-rows-contract.mjs` - rows 合同读取、编译，以及 Agent JSON 数学反斜杠限定修复。
@@ -63,6 +66,7 @@
 - 第二步 Agent JSON 里课堂数学表达的单反斜杠可能导致 `Bad escaped character in JSON`；必须在网关 rows 入口按产品数学边界修复，不能让前端或正式资产层各修各的，也不能吞未知脏内容。
 - DOM / Canvas / 未来 Konva 禁止各写一套文本 layout；必须共用同源排版结果。
 - 标签、题目、板书这三个画布内元素的尺寸逻辑仍未完全统一到比例真相；本轮已把标签分片容器改成内容 bbox 驱动，但题目区 max-width 和未来 Konva proof 仍待继续收口。
+- 题目区正文与 opening 读题语义不能混：即便 opening 行存在候选文案或误填 `boardSlice`，舞台题目区与录制底图也必须继续以第 1 步确认的 `problemText.summary` 为准。
 - 右栏职责表属于页面壳子面板，不应再把侧栏当成无限长画布；展开内容必须在自身容器内滚动，不能横向撑爆 inspector。
 - 标签拖动不得写回 `boardSlice`；如需持久化必须走独立 manual override 字段。
 - 只在对话里说发现、决策、坑，没有写入对应文件，等于没有完成工程记录。

@@ -107,3 +107,14 @@
 - 初步定位：`inspector-stack` 和 `board-control-responsibilities-collapse` 缺少单列宽度约束；Ant Collapse 实际展开体在 `.ant-collapse-body`，若滚动边界挂错层，卡片仍会整体变长。
 - 规避方式：右栏长文面板默认遵守“单列宽度 + 自身内滚 + 文案可断行”；命中真实 DOM 层再挂滚动边界，不猜结构。
 - 验证要求：至少确认 `workspace-sider--inspector` 无横向溢出、职责表自身存在本地纵向滚动、下方 inspector 面板首屏仍可达。
+
+## ISSUE-011：题目区正文若被误当成 opening boardSlice，会把前置题文真相和C候选素材真相混掉
+
+- 状态：已纠偏，持续防回归
+- 发现时间：2026-06-06
+- 影响范围：第 1 步题文确认、第 4 步舞台题目区、录制底图、后续 agent 抓取节点。
+- 现象：因为四区里有“题目区”，后续维护者容易误以为题目区正文也来自 opening / `rows[].boardSlice`，从而让“第 1 步确认题文”和“开场读题候选”发生混写。
+- 高危文件：`src/components/ProblemWorkspace.tsx`、`src/components/DrawboardStage.tsx`、`src/components/CanvasRecordingSurface.tsx`、`src/modules/scriptAgentTable/compileScriptAgentTableDraft.ts`
+- 初步定位：分区身份和正文来源是两回事。opening 只给 A 口播阶段和题目区分区身份；题目区正文实际由 `problemText.summary` 驱动，opening `boardSlice` 即使误填也会被 compiler 忽略。
+- 规避方式：继续守住“题目区正文只认第 1 步确认题文”；不要把舞台题文显示改挂到 rows / boardSlice；后续 agent 读取时优先抓 `data-agent-anchor=\"problem-text-step1\"` 和 `stage-problem-text`。
+- 验证要求：`npm run typecheck` 必须通过；页面 DOM 至少确认 `problem-text-step1`、`stage-problem-text`、`recording-foundation` 三个锚点存在，且舞台题目区文本与第 1 步确认题文一致。

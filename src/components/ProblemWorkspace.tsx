@@ -54,6 +54,7 @@ export function ProblemWorkspace({
   scriptTextAsset: TeachingAsset | undefined;
   textAsset: TeachingAsset | undefined;
 }) {
+  // @xiaxia-problem-truth-source: step-1 confirmed problemText.summary is the only upstream truth for the stage problem area.
   const problemText = textAsset?.summary.trim() ?? '';
   const displayedProblemText = textAsset?.summary || '识别结果正文，如果是没有图片的题目，文本直接入这里。';
   const isProblemConfirmed = textAsset?.status === 'ready' && Boolean(problemText);
@@ -86,7 +87,12 @@ export function ProblemWorkspace({
         {recognitionError ? <Alert showIcon title={recognitionError} type="error" /> : null}
       </section>
 
-      <section className="recognized-result-card">
+      <section
+        className="recognized-result-card"
+        data-agent-anchor="problem-text-step1"
+        data-agent-truth-field="problemText.summary"
+        data-role="problem-truth-source"
+      >
         <Flex align="center" justify="space-between">
           <Text className="recognized-result-title" strong>
             题文确认
@@ -108,6 +114,9 @@ export function ProblemWorkspace({
             autoFocus
             autoSize={{ minRows: 5, maxRows: 10 }}
             className="recognized-result-text recognized-result-text--editor math-editor-input"
+            data-agent-anchor="problem-text-step1-editor"
+            data-agent-truth-field="problemText.summary"
+            data-role="problem-truth-source-editor"
             onBlur={(event) => {
               const nextFocused = event.relatedTarget;
               if (
@@ -124,6 +133,9 @@ export function ProblemWorkspace({
         ) : (
           <button
             className="recognized-result-text recognized-result-text--display"
+            data-agent-anchor="problem-text-step1-display"
+            data-agent-truth-field="problemText.summary"
+            data-role="problem-truth-source-display"
             onClick={() => setIsEditingProblemText(true)}
             type="button"
           >

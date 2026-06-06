@@ -838,3 +838,82 @@
 - 下一步目标：回到主线，继续把题目区正文 bbox、录制底图和 Konva proof 收成同一套画布比例真相。
 - 关键文件：`src/modules/canvasStage/coursewareZoneLayout.ts`、`src/components/DrawboardStage.tsx`、`src/modules/canvasStage/drawCoursewareStageFrame.ts`、`src/components/KonvaRecordingSurface.tsx`
 - 已知的坑：职责表若继续加长字段，仍要优先守单列密度和内滚边界；不要把这类右栏容器规则混入 `src/stage.css`。
+
+## 2026-06-06 16:07 题目区正文真相纠偏回第1步确认题文
+
+### 背景（为什么要做这个）
+
+- 用户明确纠正：画布题目标签下面放的内容就是真题，真相来自第 1 步最开始输入并确认的题文；如果和板书一开始的读题冲撞，以第 1 步内容为标准。
+- 这条如果不钉牢，后面很容易把“题目区正文”和 opening 行的候选读题/板书内容混成一条线。
+
+### 思路（怎么想的）
+
+- 先做代码实证，不凭名字猜：
+  - `DrawboardStage` 当前直接读 `problemText?.summary.trim()`。
+  - `compileScriptAgentTableDraft()` 对 opening 行 `boardSlice` 不做正式投影。
+  - `ScriptAgentTableEditor` 已明确提示 opening `boardSlice` 会被 compiler 忽略。
+- 因此这次不改业务合同，只纠正认知文件和源码锚点。
+
+### 执行步骤（具体做了什么）
+
+1. 核实题目区正文来源链：
+   - 第 1 步 `ProblemWorkspace` 编辑/确认 `problemText.summary`
+   - `useTeachingEditorStore.confirmProblemText()`
+   - `DrawboardStage` 读取 `problemText?.summary.trim()`
+   - `CanvasRecordingSurface` / `drawCoursewareStageFrame` 读取同一份 `problemSummary`
+2. 核实 opening 冲突边界：
+   - `compileScriptAgentTableDraft()` 对非板书链 `chainKey` 直接返回 `row.voiceText.trim()`
+   - `ScriptAgentTableEditor` 对 opening 行给出“boardSlice 当前会被 compiler 忽略”的提示
+3. 在源码节点埋 agent 锚点：
+   - `ProblemWorkspace`：`problem-text-step1` 系列
+   - `DrawboardStage`：`stage-problem-area` / `stage-problem-text` / `stage-problem-label`
+   - `CanvasRecordingSurface`：`recording-foundation`
+4. 同步纠偏认知文件：
+   - `认知图-核心逻辑动态图.md`
+   - `真相路标-当前唯一入口.md`
+   - `ABC字段函数前端映射表.md`
+   - `PROJECT_STATE.md`
+   - `DECISIONS.md`
+   - `KNOWN_ISSUES.md`
+
+### 代码变更
+
+- 文件：`src/components/ProblemWorkspace.tsx`
+  - 改了什么：
+    - 增加 `@xiaxia-problem-truth-source` 注释。
+    - 给第 1 步题文确认容器、阅读态、编辑态补 `data-agent-anchor` / `data-agent-truth-field`。
+  - 为什么改：
+    - 让 agent 后续能直接抓到题文真相源，不再猜哪块才是题目正文入口。
+- 文件：`src/components/DrawboardStage.tsx`
+  - 改了什么：
+    - 增加 `@xiaxia-stage-problem-truth` 注释。
+    - 给舞台题目标签、题目区域、题目正文补稳定 `data-agent-*` 锚点。
+  - 为什么改：
+    - 明确舞台题目区只读 `problemText.summary`，不走 opening `boardSlice`。
+- 文件：`src/components/CanvasRecordingSurface.tsx`
+  - 改了什么：
+    - 增加 `@xiaxia-recording-problem-truth` 注释和 `recording-foundation` 锚点。
+  - 为什么改：
+    - 把录制底图也纳入同一条题文真相链，便于后续 DOM / 录制 / Konva 同源验证。
+
+### 发现和确认
+
+- 新确认的设计：
+  - “题目区”是一个分区身份；“题目区正文”是另一条真相线，两者不能混。
+  - 题目区正文归 `problemText.summary`，C 板书候选归 `boardSlice`。
+- 新发现的坑：
+  - 认知图如果只写“开场读题 -> 题目区”，很容易被误读成“题目区正文也来自 opening 行”。
+- 结构树说明：
+  - 本单元只改源码节点标记和认知文件，不新增/删除目录或模块文件，无需更新 `PROJECT_TREE.md` 内容。
+
+### 验证结果
+
+- 测试：`npm run typecheck` -> 待本单元验证。
+- 测试：页面 DOM 锚点检查 -> 待本单元验证。
+
+### 接力棒（下一个单元从这里开始）
+
+- 当前状态：题目区正文真相已明确回到第 1 步确认题文；opening 读题与 C 候选素材职责切开；源码和认知文件都已埋好 agent 锚点。
+- 下一步目标：继续把题目区正文 bbox、录制底图和 Konva proof 收成同一套尺寸口径，并让这些锚点继续沿用。
+- 关键文件：`src/components/ProblemWorkspace.tsx`、`src/components/DrawboardStage.tsx`、`src/components/CanvasRecordingSurface.tsx`、`src/modules/canvasStage/drawCoursewareStageFrame.ts`
+- 已知的坑：不要把题目区正文再挂回 rows / `boardSlice`；opening 行即便误填 `boardSlice` 也不应成为题目区正文来源。

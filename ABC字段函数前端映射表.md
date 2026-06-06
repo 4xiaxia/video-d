@@ -39,7 +39,7 @@
 
 | 字段 | 函数/入口 | ABC职能归属 | 对应前端组件 | 映射规则 | 写入边界 | 读取边界 | 是否唯一 | 当前状态 | 备注/变更 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `problemText.summary` | `updateProblemText` / `confirmProblemText` | 前置输入（非ABC） | `ProblemWorkspace` | 题文确认后才能进入 rows 生成 | `useTeachingEditorStore` | `AssetPanel` / Agent输入 | 是 | 生效 | 2026-05-29 |
+| `problemText.summary` | `updateProblemText` / `confirmProblemText` | 前置输入（非ABC） | `ProblemWorkspace` / `DrawboardStage` / `CanvasRecordingSurface` | 第 1 步确认后才能进入 rows 生成；同时作为舞台题目区正文和录制底图的唯一题文真相 | `useTeachingEditorStore` | `AssetPanel` / Agent输入 / 舞台题目区 / 录制底图 | 是 | 生效 | 2026-06-06 纠偏：题目区正文只认第 1 步确认题文，不认 opening `boardSlice` |
 | `rows[].section` | `normalizeScriptAgentTableRows` | ABC分区锚点 | `ScriptAgentTableEditor` | section 决定 chainKey 模板（open/pre/step/end） | `scriptAgentCandidateDraft` | 编译、预览、TTS拆句 | 是 | 生效 | 2026-05-29 |
 | `rows[].voiceText` | `compileScriptAgentTableDraft` | A候选语音文本 | `ScriptAgentTableEditor` / `ScriptBoardSummaryStep` | 生成 spokenScript，再进入 TTS 单句拆分 | `scriptAgentCandidateDraft` | `VoiceWorkspace` | 是 | 生效 | 2026-05-29 |
 | `rows[].boardSlice` | `compileScriptAgentTableDraft` / `createBoardEventsFromTtsUnits` | C候选内容（先）-> B时间窗口（后） | `ScriptAgentTableEditor` / `VoiceWorkspace` | boardSlice 非空行可进入 C候选与后续 B 生成 | `scriptAgentCandidateDraft` | 预览、boardEvents、timeline | 是 | 生效 | 2026-05-29 |

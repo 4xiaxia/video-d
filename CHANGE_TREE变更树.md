@@ -4510,3 +4510,33 @@ untime/node/npm.cmd run check:board-event-clips 通过。
     - 截图：`.tmp-ui-smoke/inspector-responsibilities-2026-06-06T06-37-32-344Z.png`
 - 下一枝：
   - 回到主线，继续收题目区 bbox、录制底图和 Konva proof 的同源尺寸口径。
+
+## 2026-06-06_题目区正文真相纠偏回第1步确认题文
+
+- 目标：
+  - 把“画布题目区正文的唯一真相来自第 1 步确认题文”写回代码锚点和认知文件，避免再被 opening `boardSlice` 误覆盖。
+- 已做：
+  - `src/components/ProblemWorkspace.tsx`
+    - 给第 1 步题文确认容器、阅读态、编辑态补 `data-agent-anchor="problem-text-step1*"` 与 `data-agent-truth-field="problemText.summary"`。
+    - 加 `@xiaxia-problem-truth-source` 注释，明确这是舞台题文的源头。
+  - `src/components/DrawboardStage.tsx`
+    - 给 `courseware-label--problem`、`courseware-problem-area`、`stage-problem-text` 补稳定 `data-agent-*` 锚点。
+    - 加 `@xiaxia-stage-problem-truth` 注释，明确舞台题目区只读 `problemText.summary`。
+  - `src/components/CanvasRecordingSurface.tsx`
+    - 给录制底图 canvas 补 `data-agent-anchor="recording-foundation"` 与 `problemText.summary` 真相标记。
+    - 加 `@xiaxia-recording-problem-truth` 注释，明确录制底图和舞台题目区同源。
+  - `认知图-核心逻辑动态图.md`
+    - 把“开场读题 -> 题目区”改成“opening 只给分区身份，题目区正文单独来自 `problemText.summary`”。
+  - `真相路标-当前唯一入口.md`
+    - 新增题目区正文真相说明和 agent 埋点入口。
+  - `ABC字段函数前端映射表.md`
+    - 把 `problemText.summary` 的读取边界扩展到舞台题目区与录制底图，并写明不认 opening `boardSlice`。
+- 边界：
+  - 不改第二步 rows 合同。
+  - 不让题目区正文回流到 `boardSlice` 或 clip label。
+  - opening 行即便误填 `boardSlice`，也仍按“compiler 忽略”处理，不把它当题目正文。
+- 校验：
+  - `npm run typecheck` -> 待跑。
+  - 页面 DOM 锚点检查 -> 待跑。
+- 下一枝：
+  - 在这条真相不变的前提下，继续收题目区正文 bbox、录制底图与 Konva proof 的同源尺寸口径。

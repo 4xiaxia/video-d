@@ -57,6 +57,7 @@ export function DrawboardStage({
   strokeColor: string;
   strokeWidth: number;
 }) {
+  // @xiaxia-stage-problem-truth: stage problem chrome reads problemText.summary only; opening boardSlice never overrides this node.
   const problemSummary = problemText?.summary.trim();
   const [baseCanvasEl, setBaseCanvasEl] = useState<HTMLCanvasElement | null>(null);
   const [autoZoneBoxes, setAutoZoneBoxes] = useState<CoursewareZoneBoxRecord>(() => createFallbackCoursewareZoneBoxes());
@@ -243,6 +244,9 @@ export function DrawboardStage({
         )}
         <div
           className="courseware-label courseware-label--problem"
+          data-agent-anchor="stage-problem-label"
+          data-agent-zone="problem"
+          data-role="problem-zone-label"
           data-dragging={draggingZoneKey === 'problem'}
           data-anchor={zoneBoxes.problem.labelAnchor}
           onPointerDown={(event) => startLabelDrag('problem', event)}
@@ -289,9 +293,20 @@ export function DrawboardStage({
         >
           {zoneBoxes.summary.label}
         </div>
-        <div className="courseware-problem-area">
+        <div
+          className="courseware-problem-area"
+          data-agent-anchor="stage-problem-area"
+          data-agent-truth-field="problemText.summary"
+          data-role="problem-truth-render"
+        >
           {problemSummary ? (
-            <MathText as="p" className="stage-problem-text">
+            <MathText
+              as="p"
+              className="stage-problem-text"
+              data-agent-anchor="stage-problem-text"
+              data-agent-truth-field="problemText.summary"
+              data-role="problem-truth-render-text"
+            >
               {problemSummary}
             </MathText>
           ) : null}
