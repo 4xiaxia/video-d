@@ -217,11 +217,7 @@ function compileSpokenSegment(row) {
     return row.voiceText.trim();
   }
 
-  if (voiceText.includes(boardSlice)) {
-    return `${voiceText.replace(boardSlice, `<b>${boardSlice}</b>`)}。`;
-  }
-
-  return `${voiceText}，<b>${boardSlice}</b>。`;
+  return `${voiceText}<b>${boardSlice}</b>`;
 }
 
 function readString(source, fieldNames) {

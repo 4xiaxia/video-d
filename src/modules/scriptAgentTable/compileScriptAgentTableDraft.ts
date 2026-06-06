@@ -38,11 +38,6 @@ function compileSpokenSegment(row: ScriptAgentTableRow): string {
     return row.voiceText.trim();
   }
 
-  // voiceText 和 boardSlice 分离：boardSlice 只在 <b> 标记里，不拼进语音
-  if (voiceText.includes(boardSlice)) {
-    return voiceText.replace(boardSlice, `<b>${boardSlice}</b>`);
-  }
-
   return `${voiceText}<b>${boardSlice}</b>`;
 }
 

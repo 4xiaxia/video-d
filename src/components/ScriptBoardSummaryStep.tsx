@@ -13,12 +13,7 @@
 
 import { EditOutlined, FileTextOutlined } from '@ant-design/icons';
 import { Button, Card, Flex, Space, Tag, Typography } from 'antd';
-import { useMemo } from 'react';
-import type { CLayoutPreviewDraft, StageCanvasConfig, TeachingAsset } from '../domain/teachingProject';
-import { readScriptChainKeysSourceRef } from '../modules/abcChain/abcChainKey';
-import { ScriptSegmentWorkbench } from '../modules/scriptSegments';
-import { BoardPreviewCard } from './BoardPreviewCard';
-import { MathText } from './MathText';
+import type { TeachingAsset } from '../domain/teachingProject';
 
 const { Text, Title } = Typography;
 
@@ -28,18 +23,16 @@ export function ScriptBoardSummaryStep({
   onOpenScriptAgent,
   onGenerateScriptAgent,
   scriptTextAsset,
-  layoutPreviewDraft,
-  stageCanvas,
 }: {
   boardLayoutAsset: TeachingAsset | undefined;
   canOpenAgent: boolean;
   onOpenScriptAgent: () => void;
   onGenerateScriptAgent: () => void;
   scriptTextAsset: TeachingAsset | undefined;
-  layoutPreviewDraft: CLayoutPreviewDraft | null;
-  stageCanvas: StageCanvasConfig;
 }) {
-  const scriptChainKeys = useMemo(() => readScriptChainKeysSourceRef(scriptTextAsset?.sourceRef), [scriptTextAsset?.sourceRef]);
+  const isScriptReady = scriptTextAsset?.status === 'ready' && Boolean(scriptTextAsset.summary.trim());
+  const isBoardReady = boardLayoutAsset?.status === 'ready' && Boolean(boardLayoutAsset.summary.trim());
+  const isReady = isScriptReady && isBoardReady;
 
   return (
     <div className="script-board-summary-step">
@@ -48,8 +41,8 @@ export function ScriptBoardSummaryStep({
           <Space>
             <FileTextOutlined />
             <div>
-              <Title level={5}>文稿与板书</Title>
-              <Text type="secondary">先确认内容，再生成音频和时间轴。</Text>
+              <Title level={5}>文稿与 C 素材</Title>
+              <Text type="secondary">{isReady ? '已确认，下一步生成 A 轨。' : '在 Agent 中生成和确认。'}</Text>
             </div>
           </Space>
           <Space>
@@ -61,38 +54,11 @@ export function ScriptBoardSummaryStep({
             </Button>
           </Space>
         </Flex>
+        <Space className="script-board-status-strip" size={6} wrap>
+          <Tag color={isScriptReady ? 'green' : 'orange'}>文稿{isScriptReady ? '已确认' : '待确认'}</Tag>
+          <Tag color={isBoardReady ? 'green' : 'orange'}>C 素材{isBoardReady ? '已确认' : '待确认'}</Tag>
+        </Space>
       </Card>
-      <Card size="small">
-        <Flex align="center" justify="space-between">
-          <Tag color="blue">讲解稿</Tag>
-          <Tag color={scriptTextAsset?.status === 'ready' ? 'green' : 'orange'}>
-            {scriptTextAsset?.status === 'ready' ? '已确认' : '待校准'}
-          </Tag>
-        </Flex>
-        <MathText as="div" className="script-board-summary-text">
-          {scriptTextAsset?.summary || '等待 Agent 生成讲解文稿。'}
-        </MathText>
-        <ScriptSegmentWorkbench
-          actionLabel="回 Agent 调整"
-          maxVisibleSegments={5}
-          onEditScript={canOpenAgent ? onOpenScriptAgent : undefined}
-          scriptChainKeys={scriptChainKeys}
-          scriptText={scriptTextAsset?.summary ?? ''}
-          title="分段确认"
-        />
-      </Card>
-      <Card size="small">
-        <Flex align="center" justify="space-between">
-          <Tag color="blue">板书候选</Tag>
-          <Tag color={boardLayoutAsset?.status === 'ready' ? 'green' : 'orange'}>
-            {boardLayoutAsset?.status === 'ready' ? '已确认' : '待校准'}
-          </Tag>
-        </Flex>
-        <MathText as="div" className="script-board-summary-text">
-          {boardLayoutAsset?.summary || '等待 Agent 生成板书候选。'}
-        </MathText>
-      </Card>
-      <BoardPreviewCard draft={layoutPreviewDraft} stageCanvas={stageCanvas} />
     </div>
   );
 }

@@ -5,7 +5,9 @@ import { execFileSync } from 'node:child_process';
 const root = process.cwd();
 const outDir = join(root, '.tmp-board-boundaries-check');
 const checkFile = join(outDir, 'check.mjs');
-const stylesText = readFileSync(join(root, 'src', 'styles.css'), 'utf8');
+const shellStylesText = readFileSync(join(root, 'src', 'styles.css'), 'utf8');
+const stageStylesText = readFileSync(join(root, 'src', 'stage.css'), 'utf8');
+const stylesText = `${shellStylesText}\n${stageStylesText}`;
 const appText = readFileSync(join(root, 'src', 'App.tsx'), 'utf8');
 const assetTabsText = readFileSync(join(root, 'src', 'config', 'assetTabs.ts'), 'utf8');
 const formulaTextComponentText = readFileSync(join(root, 'src', 'components', 'FormulaText.tsx'), 'utf8');
@@ -82,6 +84,41 @@ const timelineBcFrontendText = [
   createAssetWorkflowStepsText,
   stylesText,
 ].join('\n');
+
+for (const stageOnlyToken of [
+  '--board-handwriting-font',
+  '.canvas-recording-surface',
+  '.drawboard-stage-shell',
+  '.stage-canvas',
+  '.stage-canvas--courseware',
+  '.courseware-label',
+  '.courseware-problem-area',
+  '.courseware-board-area',
+  '.golden-finger-canvas-layer',
+  '.board-stage-tool-overlay',
+  '.board-text-sticker',
+]) {
+  if (!stageStylesText.includes(stageOnlyToken)) {
+    throw new Error(`Stage CSS must own stage token: ${stageOnlyToken}`);
+  }
+}
+
+for (const leakedStageToken of [
+  '--board-handwriting-font',
+  '.canvas-recording-surface',
+  '.drawboard-stage-shell',
+  '.stage-canvas--courseware',
+  '.courseware-label',
+  '.courseware-problem-area',
+  '.courseware-board-area',
+  '.golden-finger-canvas-layer',
+  '.board-stage-tool-overlay',
+  '.board-text-sticker',
+]) {
+  if (shellStylesText.includes(leakedStageToken)) {
+    throw new Error(`styles.css must not retain stage-only token: ${leakedStageToken}`);
+  }
+}
 
 if (stylesText.includes('grid-template-columns: 64px minmax(0, 1fr);')) {
   throw new Error('B board lane labels must not consume timeline coordinate width.');

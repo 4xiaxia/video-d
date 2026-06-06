@@ -29,6 +29,7 @@ import { ScriptSegmentWorkbench } from '../modules/scriptSegments';
 import { requestBoardLayoutPreview } from '../services/boardLayoutPreviewGatewayClient';
 import { requestCosyVoiceSentences } from '../services/cosyvoiceGatewayClient';
 import { AssetList } from './AssetList';
+import { BoardPreviewCard } from './BoardPreviewCard';
 import { VoiceBatchStatusPanel } from './VoiceBatchStatusPanel';
 
 const { Text } = Typography;
@@ -38,6 +39,7 @@ export function VoiceWorkspace({
   ttsConfig,
   scriptAgentConfig,
   scriptAgentCandidateDraft,
+  layoutPreviewDraft,
   onApplyBoardEventsToTimeline,
   onSyncCAssetPrewarmQueue,
   onApplyTtsSentenceResults,
@@ -48,6 +50,7 @@ export function VoiceWorkspace({
   ttsConfig: AppConfig['tts'];
   scriptAgentConfig: AppConfig['scriptAgent'];
   scriptAgentCandidateDraft: ScriptAgentDraft;
+  layoutPreviewDraft: CLayoutPreviewDraft | null;
   onApplyBoardEventsToTimeline: (boardEvents: BoardEvent[]) => void;
   onSyncCAssetPrewarmQueue: (cAssets: TeachingCAsset[]) => void;
   onApplyTtsSentenceResults: (results: TtsSentenceResult[]) => void;
@@ -222,6 +225,7 @@ export function VoiceWorkspace({
           ) : null}
         </Flex>
       </Card>
+      <BoardPreviewCard draft={layoutPreviewDraft} stageCanvas={stageCanvas} />
       <ScriptSegmentWorkbench
         emptyText="暂无可生成音频的换行分段。"
         maxVisibleSegments={24}

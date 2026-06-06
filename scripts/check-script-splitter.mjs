@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
@@ -8,7 +8,9 @@ const checkFile = join(outDir, 'check.mjs');
 
 mkdirSync(outDir, { recursive: true });
 
-execFileSync(join(root, 'runtime', 'node', 'node.exe'), [join(root, 'node_modules', 'typescript', 'bin', 'tsc'), '--noEmit', 'false', '--outDir', outDir], {
+const nodePath = existsSync(join(root, 'runtime', 'node', 'node.exe')) ? join(root, 'runtime', 'node', 'node.exe') : process.execPath;
+
+execFileSync(nodePath, [join(root, 'node_modules', 'typescript', 'bin', 'tsc'), '--noEmit', 'false', '--outDir', outDir], {
   cwd: root,
   stdio: 'inherit',
 });
@@ -86,15 +88,17 @@ writeFileSync(
     `if (result.units.length !== 3) throw new Error(\`<br> sentence truth mismatch: \${result.units.length}\`);\n` +
     `if (result.units.some((unit) => unit.chainKey || unit.boardMarkerChainKeys?.length)) throw new Error('splitter must not invent chainKey labels when upstream rows did not provide them');\n` +
     `if (chainResult.units[0].chainKey !== 'template-open' || chainResult.units[1].chainKey !== 'step-1' || chainResult.units[1].boardMarkerChainKeys?.[0] !== 'step-1') throw new Error('chainKey must flow into TTS units and board markers');\n` +
-    `for (const expectedText of ['25×4＝100', '1200÷100=12', '\\\\frac{1}{2}', '括号']) {\n` +
+    `for (const expectedText of ['1200÷100=12', '\\\\frac{1}{2}', '括号']) {\n` +
     `  if (!result.units.map((unit) => unit.text).join('\\n').includes(expectedText)) throw new Error(\`display text lost: \${expectedText}\`);\n` +
     `}\n` +
+    `if (!result.units.flatMap((unit) => unit.boardMarkerTexts || []).includes('25×4＝100')) throw new Error('board marker text lost from C material candidates');\n` +
     `for (const forbiddenSpeechText of ['\\\\frac', '\\\\div', '$', '\\\\left', '\\\\right']) {\n` +
     `  if (result.plainTtsText.includes(forbiddenSpeechText)) throw new Error(\`speech text must not send display math syntax to Aliyun: \${forbiddenSpeechText}\`);\n` +
     `}\n` +
-    `for (const expectedSpeechText of ['25乘以4等于100', '1200除以100等于12', '2分之1']) {\n` +
+    `for (const expectedSpeechText of ['1200除以100等于12', '2分之1']) {\n` +
     `  if (!result.plainTtsText.includes(expectedSpeechText)) throw new Error(\`speech text lost natural math reading: \${expectedSpeechText}\`);\n` +
     `}\n` +
+    `if (result.plainTtsText.includes('25乘以4等于100')) throw new Error('C-only board marker leaked into A-track speech text');\n` +
     `const delimitedResult = splitScriptIntoTtsSentenceUnits('已经包好的公式 $x+1=2$ 不要重复包裹。');\n` +
     `if (delimitedResult.units.length !== 1) throw new Error('without <br>, punctuation must not split TTS units');\n` +
     `if (!delimitedResult.plainTtsText.includes('x加1等于2') || delimitedResult.plainTtsText.includes('$x+1=2$')) throw new Error('existing math delimiter must be converted to natural speech text');\n` +
@@ -103,6 +107,10 @@ writeFileSync(
     `if (latexSpeechResult.plainTtsText.includes('\\\\div')) throw new Error('Aliyun TTS math text should normalize \\\\div');\n` +
     `if (latexSpeechResult.plainTtsText.includes('\\\\frac') || latexSpeechResult.plainTtsText.includes('$')) throw new Error('Aliyun TTS math text must not keep LaTeX or formula delimiters in speechText');\n` +
     `if (!latexSpeechResult.plainTtsText.includes('括号4分之1加8分之3括号除以4分之1')) throw new Error('Aliyun TTS math text should convert LaTeX fractions/operators to natural Chinese speech');\n` +
+    `const overlappingResult = normalizeScriptAgentDraft({ rows: [{ boardSlice: 'c=2πr', section: '分析题目', stepLabel: '分析', voiceText: '圆的周长公式是 c=2πr。这里已经告诉我们半径是6。' }] });\n` +
+    `const overlappingUnits = splitScriptIntoTtsSentenceUnits(overlappingResult.spokenScript, { chainKeys: overlappingResult.rows?.map((row) => row.chainKey || '') });\n` +
+    `if (!overlappingUnits.units[0]?.text.includes('圆的周长公式是 c=2πr。这里已经告诉我们半径是6')) throw new Error('overlapping board marker ate formula from script segment preview text');\n` +
+    `if (!overlappingUnits.units[0]?.boardMarkerTexts?.includes('c=2πr')) throw new Error('overlapping board marker lost C material candidate');\n` +
     `const multiBoardResult = splitScriptIntoTtsSentenceUnits('这一段不换气，<b>第一条板书</b>，继续讲生活例子，<b>第二条板书</b>。');\n` +
     `if (multiBoardResult.units.length !== 1) throw new Error('<b> must not split Aliyun TTS units');\n` +
     `if ((multiBoardResult.units[0].boardMarkerTexts || []).length !== 2) throw new Error('multiple board markers in one <br> segment should be preserved for B track');\n` +
@@ -115,7 +123,7 @@ writeFileSync(
     `console.log('[script-splitter] passed', JSON.stringify(result.units, null, 2));\n`,
 );
 
-execFileSync(join(root, 'runtime', 'node', 'node.exe'), [checkFile], {
+execFileSync(nodePath, [checkFile], {
   cwd: outDir,
   stdio: 'inherit',
 });

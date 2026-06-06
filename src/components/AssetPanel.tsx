@@ -107,6 +107,12 @@ export function AssetPanel({
     }
   }, [requestedWorkflowKey, requestedWorkflowRequestId]);
 
+  useEffect(() => {
+    if (activeWorkflowKey === 'scriptBoard' && isScriptReady && isBoardReady) {
+      setActiveWorkflowKey('voiceAudio');
+    }
+  }, [activeWorkflowKey, isBoardReady, isScriptReady]);
+
   const handleWorkflowPrimaryAction = () => {
     if (!isProblemConfirmed) {
       if (problemText?.summary.trim()) {
@@ -237,7 +243,8 @@ export function AssetPanel({
         activeKey={activeWorkflowKey}
         onActiveKeyChange={(key) => {
           if (visibleWorkflowStepIds.has(key)) {
-            setActiveWorkflowKey(key as VisibleWorkflowStepKey);
+            const nextKey = key as VisibleWorkflowStepKey;
+            setActiveWorkflowKey(nextKey === 'scriptBoard' && isScriptReady && isBoardReady ? 'voiceAudio' : nextKey);
           }
         }}
         steps={visibleSteps}

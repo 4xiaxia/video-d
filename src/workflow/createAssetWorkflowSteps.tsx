@@ -108,8 +108,6 @@ export function createAssetWorkflowSteps({
           onOpenScriptAgent={onOpenScriptAgent}
           onGenerateScriptAgent={onGenerateScriptAgent}
           scriptTextAsset={scriptText}
-          layoutPreviewDraft={layoutPreviewDraft}
-          stageCanvas={stageCanvas}
         />
       ),
       routeSlot: 'left-sider/assets/script-board',
@@ -128,6 +126,7 @@ export function createAssetWorkflowSteps({
           ttsConfig={ttsConfig}
           scriptAgentConfig={scriptAgentConfig}
           scriptAgentCandidateDraft={scriptAgentCandidateDraft}
+          layoutPreviewDraft={layoutPreviewDraft}
           stageCanvas={stageCanvas}
           onApplyBoardEventsToTimeline={onApplyBoardEventsToTimeline}
           onSyncCAssetPrewarmQueue={onSyncCAssetPrewarmQueue}

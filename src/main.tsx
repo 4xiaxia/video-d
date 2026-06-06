@@ -10,6 +10,7 @@ import { DrawboardHybridPrototypePage } from './standalone/DrawboardHybridProtot
 import { KonvaProofPage } from './standalone/KonvaProofPage';
 import 'antd/dist/reset.css';
 import './styles.css';
+import './stage.css';
 
 const root = document.getElementById('root');
 

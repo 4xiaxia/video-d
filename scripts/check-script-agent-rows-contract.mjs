@@ -17,6 +17,7 @@ const appText = readFileSync(join(root, 'src', 'App.tsx'), 'utf8');
 const agentReviewText = readFileSync(join(root, 'src', 'components', 'AgentReviewCard.tsx'), 'utf8');
 const problemWorkspaceText = readFileSync(join(root, 'src', 'components', 'ProblemWorkspace.tsx'), 'utf8');
 const scriptAgentWorkspaceText = readFileSync(join(root, 'src', 'components', 'ScriptAgentWorkspace.tsx'), 'utf8');
+const scriptBoardSummaryStepText = readFileSync(join(root, 'src', 'components', 'ScriptBoardSummaryStep.tsx'), 'utf8');
 const scriptAgentDraftStateText = readFileSync(join(root, 'src', 'modules', 'scriptAgentDraft', 'scriptAgentDraftState.ts'), 'utf8');
 const scriptAgentTableEditorText = readFileSync(join(root, 'src', 'modules', 'scriptAgentTable', 'ScriptAgentTableEditor.tsx'), 'utf8');
 const teachingEditorStoreText = readFileSync(join(root, 'src', 'store', 'useTeachingEditorStore.ts'), 'utf8');
@@ -114,6 +115,17 @@ const missingIdentityRows = readScriptAgentRows({
   ],
 });
 const missingIdentityDraft = compileScriptAgentRowsToDraft(missingIdentityRows);
+const overlappingVoiceBoardRows = readScriptAgentRows({
+  rows: [
+    {
+      boardSlice: 'c=2πr',
+      section: '分析题目',
+      stepLabel: '分析',
+      voiceText: '圆的周长公式是 c=2πr。这里已经告诉我们半径是6。',
+    },
+  ],
+});
+const overlappingVoiceBoardDraft = compileScriptAgentRowsToDraft(overlappingVoiceBoardRows);
 const mathLatexJsonRows = readScriptAgentRows(parseJsonWithMathStringEscapes(String.raw`{"rows":[{"id":"row-latex-1","section":"解题环节","stepLabel":"第二步","voiceText":"我们把 \left( \frac{1}{4}+\frac{3}{8} \right) \div \frac{1}{4} 算出来。","boardSlice":"\left( \frac{1}{4}+\frac{3}{8} \right) \div \frac{1}{4}=\frac{5}{2}"}]}`));
 const mathDelimiterJsonRows = readScriptAgentRows(parseJsonWithMathStringEscapes(String.raw`{"rows":[{"id":"row-latex-2","section":"解题环节","stepLabel":"第三步","voiceText":"写成 \(\frac{5}{8}\) 再继续。","boardSlice":"\[\frac{5}{8}\]"}]}`));
 const classroomMathJsonRows = readScriptAgentRows(parseJsonWithMathStringEscapes(String.raw`{"rows":[{"id":"row-latex-3","section":"解题环节","stepLabel":"图形","voiceText":"这里用 \angle A 加上 \pi r^2，还会遇到 \sin x 和 \sqrt{2}。","boardSlice":"\angle A，\pi r^2，\sin x，\sqrt{2}"}]}`));
@@ -136,6 +148,15 @@ if (draft.spokenScript.includes('<b>读题</b>') || !draft.spokenScript.includes
 
 if (!draft.spokenScript.includes('<b>25×4=100</b>') || !draft.spokenScript.includes('<b>1200÷100=12</b>') || !draft.spokenScript.includes('<b>答案：12</b>')) {
   throw new Error('compiled rows must project boardSlice into <b> markers.');
+}
+
+if (
+  draft.spokenScript.includes('算出 <b>25×4=100</b>') ||
+  !draft.spokenScript.includes('算出 25×4=100<b>25×4=100</b>') ||
+  overlappingVoiceBoardDraft.spokenScript.includes('圆的周长公式是 <b>c=2πr</b>') ||
+  !overlappingVoiceBoardDraft.spokenScript.includes('圆的周长公式是 c=2πr。这里已经告诉我们半径是6<b>c=2πr</b>')
+) {
+  throw new Error('compiled rows must keep overlapping voiceText readable and append boardSlice markers without replacing speech content.');
 }
 
 if (
@@ -390,6 +411,31 @@ if (!stylesText.includes('.script-agent-table-workbench') || !stylesText.include
   throw new Error('rows table workbench must keep dedicated styles for the single candidate editing surface.');
 }
 
+for (const forbiddenStep2Projection of [
+  'ScriptSegmentWorkbench',
+  'BoardPreviewCard',
+  'MathText',
+  'script-board-summary-text',
+  '分段确认',
+  '讲解稿',
+  '板书候选',
+  'layoutPreviewDraft',
+]) {
+  if (scriptBoardSummaryStepText.includes(forbiddenStep2Projection)) {
+    throw new Error(`script-board step must not duplicate Agent/step-3 preview projection: ${forbiddenStep2Projection}`);
+  }
+}
+
+for (const requiredStep2StatusCopy of [
+  '文稿与 C 素材',
+  '在 Agent 中生成和确认。',
+  '已确认，下一步生成 A 轨。',
+]) {
+  if (!scriptBoardSummaryStepText.includes(requiredStep2StatusCopy)) {
+    throw new Error(`script-board step must stay as a status/Agent entry only: ${requiredStep2StatusCopy}`);
+  }
+}
+
 mkdirSync(outDir, { recursive: true });
 const typecheckNodePath = existsSync(join(root, 'runtime', 'node', 'node.exe')) ? join(root, 'runtime', 'node', 'node.exe') : process.execPath;
 execFileSync(typecheckNodePath, [join(root, 'node_modules', 'typescript', 'bin', 'tsc'), '--noEmit', 'false', '--outDir', outDir], {
@@ -436,6 +482,16 @@ writeFileSync(
   ),
 );
 
+const compiledSplitterFile = join(outDir, 'modules', 'timeline-factory', 'splitScriptIntoTtsSentenceUnits.js');
+const compiledSplitterText = readFileSync(compiledSplitterFile, 'utf8');
+writeFileSync(
+  compiledSplitterFile,
+  compiledSplitterText.replace(
+    "from '../speechText/aliyunMathSpeechText'",
+    "from '../speechText/aliyunMathSpeechText.js'",
+  ),
+);
+
 const compiledAbcChainKeyFile = join(outDir, 'modules', 'abcChain', 'abcChainKey.js');
 const compiledAbcChainKeyText = readFileSync(compiledAbcChainKeyFile, 'utf8');
 writeFileSync(
@@ -450,12 +506,18 @@ writeFileSync(
   checkFile,
   `import { createAbcChainLabel, createTemplateChainKey } from './modules/abcChain/abcChainKey.js';\n` +
   `import { normalizeScriptAgentDraft } from './modules/scriptAgentDraft/normalizeScriptAgentDraft.js';\n\n` +
+  `import { splitScriptIntoTtsSentenceUnits } from './modules/timeline-factory/splitScriptIntoTtsSentenceUnits.js';\n\n` +
   `const manualEmptyDraft = normalizeScriptAgentDraft({ rows: [{ boardSlice: '', section: '解题环节', stepLabel: '第 1 步', voiceText: '' }] });\n` +
   `const missingIdentityDraft = normalizeScriptAgentDraft({ rows: [{ boardSlice: '缺分区板书', stepLabel: '缺分区', voiceText: '这行没有明确分区。' }] });\n` +
+  `const overlappingVoiceBoardDraft = normalizeScriptAgentDraft({ rows: [{ boardSlice: 'c=2πr', section: '分析题目', stepLabel: '分析', voiceText: '圆的周长公式是 c=2πr。这里已经告诉我们半径是6。' }] });\n` +
   `if (!manualEmptyDraft.rows || manualEmptyDraft.rows.length !== 1) throw new Error('production TS normalizer dropped a manual empty row');\n` +
   `if (manualEmptyDraft.spokenScript !== '' || manualEmptyDraft.boardPlan !== '') throw new Error('manual empty row leaked into formal script or boardPlan');\n` +
   `if (missingIdentityDraft.rows?.[0]?.chainKey !== 'unbound') throw new Error('production TS normalizer inferred identity for a row without section');\n` +
   `if (missingIdentityDraft.boardPlan !== '') throw new Error('production TS compiler must not emit B/C material for missing identity');\n` +
+  `if (overlappingVoiceBoardDraft.spokenScript.includes('圆的周长公式是 <b>c=2πr</b>')) throw new Error('production TS compiler replaced overlapping voiceText with a board marker');\n` +
+  `if (!overlappingVoiceBoardDraft.spokenScript.includes('圆的周长公式是 c=2πr。这里已经告诉我们半径是6<b>c=2πr</b>')) throw new Error('production TS compiler must append overlapping boardSlice marker without eating speech');\n` +
+  `const overlappingSegments = splitScriptIntoTtsSentenceUnits(overlappingVoiceBoardDraft.spokenScript, { chainKeys: overlappingVoiceBoardDraft.rows?.map((row) => row.chainKey || '') });\n` +
+  `if (!overlappingSegments.units[0]?.text.includes('圆的周长公式是 c=2πr。这里已经告诉我们半径是6')) throw new Error('script segment preview lost overlapping formula speech');\n` +
   `const forbiddenTemplateOpenB = ['B', 'template', 'open'].join('-');\n` +
   `if (missingIdentityDraft.boardPlan.includes('B1/') || missingIdentityDraft.boardPlan.includes(forbiddenTemplateOpenB)) throw new Error('production TS compiler fabricated a formal template-open or numeric B/C label for missing identity');\n` +
   `if (createAbcChainLabel(undefined, 'b') !== 'B-unbound') throw new Error('missing chainKey must not be disguised as B1');\n` +
