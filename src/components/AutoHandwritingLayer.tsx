@@ -26,6 +26,7 @@ import {
 } from '../modules/boardSticker';
 import { isBoardClipVisibleAtPlayhead } from '../modules/timeline/timelineWindow';
 import { BoardTextSticker } from './BoardTextSticker';
+import { BoardZoneContainer, type BoardZoneName } from './BoardZoneContainer';
 import type { BoardClipPatch } from './drawboardStageTypes';
 
 /**
@@ -180,97 +181,112 @@ export function AutoHandwritingLayer({
 
   return (
     <div className="courseware-board-area" ref={boardAreaRef}>
-      {visibleBoardClips.length
-        ? visibleBoardClips.map((clip, index) => {
-          const previewPatch = getPreviewPatch(clip.id);
-          const color = clip.color ?? '#111111';
-          const fontSize = getBoardStickerFontSize(previewPatch?.fontSize ?? clip.fontSize, boardFontSize);
-          const widthPercent = previewPatch?.widthPercent ?? clip.widthPercent ?? DEFAULT_BOARD_STICKER_WIDTH_PERCENT;
-          const xPercent = previewPatch?.xPercent ?? clip.xPercent ?? DEFAULT_BOARD_STICKER_X_PERCENT;
-          let yPercent = previewPatch?.yPercent ?? clip.yPercent ?? DEFAULT_BOARD_STICKER_Y_PERCENT;
+      {['problem', 'analysis', 'solution', 'summary'].map((zoneId) => {
+        const zoneName = zoneId as BoardZoneName;
+        const zoneClips = visibleBoardClips.filter(clip => getZoneNameFromChainKey(clip.chainKey) === zoneName);
+        if (zoneClips.length === 0) return null;
 
-          // 问题1 修复：根据 chainKey 约束 C 到对应的四区域
-          const zoneName = getZoneNameFromChainKey(clip.chainKey);
-          const zone = COURSEWARE_ZONE_BOUNDS[zoneName];
-          yPercent = constrainYPercentToZone(yPercent, widthPercent, zone);
+        const firstClip = zoneClips[0];
+        const previewPatch = getPreviewPatch(firstClip.id);
+        const widthPercent = previewPatch?.widthPercent ?? firstClip.widthPercent ?? DEFAULT_BOARD_STICKER_WIDTH_PERCENT;
+        const xPercent = previewPatch?.xPercent ?? firstClip.xPercent ?? DEFAULT_BOARD_STICKER_X_PERCENT;
+        const yPercent = previewPatch?.yPercent ?? firstClip.yPercent ?? DEFAULT_BOARD_STICKER_Y_PERCENT;
 
-          const liveRevealProgress = readBoardClipRevealProgress(clip, playheadMs);
-          const revealProgress =
-            draggingClipId === clip.id && frozenRevealRef.current?.clipId === clip.id
-              ? frozenRevealRef.current.progress
-              : liveRevealProgress;
+        let label = '';
+        if (zoneName === 'problem') label = '题目';
+        else if (zoneName === 'analysis') label = '分析';
+        else if (zoneName === 'solution') label = '解答';
+        else if (zoneName === 'summary') label = '总结';
 
-          return (
-            <BoardTextSticker
-              color={color}
-              isDragging={draggingClipId === clip.id}
-              isSelected={selectedBoardClipId === clip.id}
-              key={clip.id}
-              onPointerDown={(event) => {
-                const areaRect = boardAreaRef.current?.getBoundingClientRect();
-                if (!areaRect) {
-                  return;
-                }
-                event.preventDefault();
-                event.currentTarget.setPointerCapture(event.pointerId);
-                frozenRevealRef.current = {
-                  clipId: clip.id,
-                  progress: liveRevealProgress,
-                };
-                onSelectBoardClip(clip.id);
-                startDrag({
-                  areaRect,
-                  clipId: clip.id,
-                  mode: 'move',
-                  originClientX: event.clientX,
-                  originClientY: event.clientY,
-                  originFontSize: getBoardStickerFontSize(clip.fontSize, boardFontSize),
-                  originXPercent: clip.xPercent ?? DEFAULT_BOARD_STICKER_X_PERCENT,
-                  originYPercent: clip.yPercent ?? DEFAULT_BOARD_STICKER_Y_PERCENT,
-                  originWidthPercent: clip.widthPercent ?? DEFAULT_BOARD_STICKER_WIDTH_PERCENT,
-                });
-              }}
-              onResizePointerDown={(event) => {
-                const areaRect = boardAreaRef.current?.getBoundingClientRect();
-                if (!areaRect) {
-                  return;
-                }
-                event.preventDefault();
-                event.stopPropagation();
-                const resizeHandle = event.currentTarget;
-                if (resizeHandle.parentElement instanceof HTMLButtonElement) {
-                  resizeHandle.parentElement.setPointerCapture(event.pointerId);
-                }
-                frozenRevealRef.current = {
-                  clipId: clip.id,
-                  progress: liveRevealProgress,
-                };
-                onSelectBoardClip(clip.id);
-                startDrag({
-                  areaRect,
-                  clipId: clip.id,
-                  mode: 'resize',
-                  originClientX: event.clientX,
-                  originClientY: event.clientY,
-                  originFontSize: getBoardStickerFontSize(clip.fontSize, boardFontSize),
-                  originXPercent: clip.xPercent ?? DEFAULT_BOARD_STICKER_X_PERCENT,
-                  originYPercent: clip.yPercent ?? DEFAULT_BOARD_STICKER_Y_PERCENT,
-                  originWidthPercent: clip.widthPercent ?? DEFAULT_BOARD_STICKER_WIDTH_PERCENT,
-                });
-              }}
-              stackIndex={index}
-              fontFamily={canvas.boardFontFamily}
-              fontLoadKey={boardFontLoadKey}
-              fontSize={fontSize}
-              revealProgress={revealProgress}
-              text={clip.label.trim()}
-              widthPercent={widthPercent}
-              xPercent={xPercent}
-              yPercent={yPercent}
-            />
-          );
-        })
-        : null}
+        return (
+          <BoardZoneContainer
+            key={zoneName}
+            zoneName={zoneName}
+            label={label}
+            xPercent={xPercent}
+            yPercent={yPercent}
+            widthPercent={widthPercent}
+            onPointerDown={(event) => {
+              const areaRect = boardAreaRef.current?.getBoundingClientRect();
+              if (!areaRect) return;
+              event.preventDefault();
+              event.currentTarget.setPointerCapture(event.pointerId);
+
+              onSelectBoardClip(firstClip.id);
+              startDrag({
+                areaRect,
+                clipId: firstClip.id,
+                mode: 'move',
+                originClientX: event.clientX,
+                originClientY: event.clientY,
+                originFontSize: getBoardStickerFontSize(firstClip.fontSize, boardFontSize),
+                originXPercent: firstClip.xPercent ?? DEFAULT_BOARD_STICKER_X_PERCENT,
+                originYPercent: firstClip.yPercent ?? DEFAULT_BOARD_STICKER_Y_PERCENT,
+                originWidthPercent: firstClip.widthPercent ?? DEFAULT_BOARD_STICKER_WIDTH_PERCENT,
+              });
+            }}
+          >
+            {zoneClips.map((clip, index) => {
+              const clipPreviewPatch = getPreviewPatch(clip.id);
+              const color = clip.color ?? '#111111';
+              const fontSize = getBoardStickerFontSize(clipPreviewPatch?.fontSize ?? clip.fontSize, boardFontSize);
+
+              const liveRevealProgress = readBoardClipRevealProgress(clip, playheadMs);
+              const revealProgress =
+                draggingClipId === clip.id && frozenRevealRef.current?.clipId === clip.id
+                  ? frozenRevealRef.current.progress
+                  : liveRevealProgress;
+
+              return (
+                <BoardTextSticker
+                  color={color}
+                  isDragging={draggingClipId === clip.id}
+                  isSelected={selectedBoardClipId === clip.id}
+                  key={clip.id}
+                  onPointerDown={(event) => {
+                     // Handled by container
+                  }}
+                  onResizePointerDown={(event) => {
+                    const areaRect = boardAreaRef.current?.getBoundingClientRect();
+                    if (!areaRect) return;
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const resizeHandle = event.currentTarget;
+                    if (resizeHandle.parentElement instanceof HTMLButtonElement) {
+                      resizeHandle.parentElement.setPointerCapture(event.pointerId);
+                    }
+                    frozenRevealRef.current = {
+                      clipId: clip.id,
+                      progress: liveRevealProgress,
+                    };
+                    onSelectBoardClip(clip.id);
+                    startDrag({
+                      areaRect,
+                      clipId: clip.id,
+                      mode: 'resize',
+                      originClientX: event.clientX,
+                      originClientY: event.clientY,
+                      originFontSize: getBoardStickerFontSize(clip.fontSize, boardFontSize),
+                      originXPercent: clip.xPercent ?? DEFAULT_BOARD_STICKER_X_PERCENT,
+                      originYPercent: clip.yPercent ?? DEFAULT_BOARD_STICKER_Y_PERCENT,
+                      originWidthPercent: clip.widthPercent ?? DEFAULT_BOARD_STICKER_WIDTH_PERCENT,
+                    });
+                  }}
+                  stackIndex={index}
+                  fontFamily={canvas.boardFontFamily}
+                  fontLoadKey={boardFontLoadKey}
+                  fontSize={fontSize}
+                  revealProgress={revealProgress}
+                  text={clip.label.trim()}
+                  widthPercent={100}
+                  xPercent={50}
+                  yPercent={50}
+                />
+              );
+            })}
+          </BoardZoneContainer>
+        );
+      })}
     </div>
   );
 }

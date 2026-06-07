@@ -1692,6 +1692,14 @@ button {
   }
 }
 
+.board-text-sticker__text-content {
+  color: inherit;
+  display: block;
+  font-family: var(--board-handwriting-font);
+  font-size: var(--board-font-size);
+  max-width: 100%;
+}
+
 .board-text-sticker__fallback {
   color: inherit;
   display: block;
@@ -2938,4 +2946,14 @@ button {
 
 .tldraw-stage-modal .ant-modal-body {
   padding: 12px;
+}
+
+.board-zone-container {
+  pointer-events: auto;
+}
+.board-zone-content > .board-text-sticker {
+  position: relative !important;
+  transform: none !important;
+  left: auto !important;
+  top: auto !important;
 }

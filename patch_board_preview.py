@@ -1,4 +1,7 @@
-// @cleanroom-component: BoardPreviewCard
+with open('src/components/BoardPreviewCard.tsx', 'r', encoding='utf-8') as f:
+    content = f.read()
+
+new_content = """// @cleanroom-component: BoardPreviewCard
 // @domain: teaching-assets
 // @slot: left-sider/board-preview
 // @depends: CLayoutPreviewDraft, StageCanvasConfig
@@ -122,3 +125,7 @@ export function BoardPreviewCard({
     </section>
   );
 }
+"""
+
+with open('src/components/BoardPreviewCard.tsx', 'w', encoding='utf-8') as f:
+    f.write(new_content)
