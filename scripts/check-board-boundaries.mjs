@@ -16,6 +16,7 @@ const assetListText = readFileSync(join(root, 'src', 'components', 'AssetList.ts
 const autoHandwritingLayerText = readFileSync(join(root, 'src', 'components', 'AutoHandwritingLayer.tsx'), 'utf8');
 const boardMathStickerContentText = readFileSync(join(root, 'src', 'components', 'BoardMathStickerContent.tsx'), 'utf8');
 const boardHandwritingStickerContentText = readFileSync(join(root, 'src', 'components', 'BoardHandwritingStickerContent.tsx'), 'utf8');
+const coursewareSegmentChromeText = readFileSync(join(root, 'src', 'components', 'CoursewareSegmentChrome.tsx'), 'utf8');
 const cStickerFrameText = readFileSync(join(root, 'src', 'components', 'CStickerFrame.tsx'), 'utf8');
 const floatingToolDockText = readFileSync(join(root, 'src', 'components', 'FloatingToolDock.tsx'), 'utf8');
 const boardTextStickerText = readFileSync(join(root, 'src', 'components', 'BoardTextSticker.tsx'), 'utf8');
@@ -239,20 +240,57 @@ if (
 
 if (
   !boardHandwritingStickerContentText.includes('@cleanroom-component: BoardHandwritingStickerContent') ||
-  !boardHandwritingStickerContentText.includes('renderBoardTextStickerImage') ||
+  !boardHandwritingStickerContentText.includes('data-render-mode="realtime-text"') ||
+  boardHandwritingStickerContentText.includes('renderBoardTextStickerImage') ||
+  boardHandwritingStickerContentText.includes('BoardTextStickerImage') ||
+  boardHandwritingStickerContentText.includes('<img') ||
   boardHandwritingStickerContentText.includes('FormulaText') ||
   boardHandwritingStickerContentText.includes('widthPercent') ||
   boardHandwritingStickerContentText.includes('revealProgress')
 ) {
-  throw new Error('BoardHandwritingStickerContent must own handwriting image rendering without frame geometry or math rendering.');
+  throw new Error('BoardHandwritingStickerContent must render ordinary C as realtime text without PNG, frame geometry, or math rendering.');
 }
 
 if (
-  !stylesText.includes('.board-text-sticker__image') ||
-  !stylesText.includes('width: auto;') ||
-  stylesText.includes('.board-text-sticker__image {\n  display: block;\n  width: 100%;')
+  !stylesText.includes('.board-text-sticker__live-text') ||
+  !stylesText.includes('white-space: pre-wrap;') ||
+  !stylesText.includes('overflow-wrap: anywhere;')
 ) {
-  throw new Error('Handwriting sticker PNG must not be stretched to the C frame width; widthPercent is a frame/wrap box, not image scale.');
+  throw new Error('Ordinary C handwriting route must use realtime text with preserved line breaks and wrapping.');
+}
+
+if (
+  autoHandwritingLayerText.includes('COURSEWARE_ZONE_BOUNDS') ||
+  autoHandwritingLayerText.includes('constrainYPercentToZone')
+) {
+  throw new Error('AutoHandwritingLayer must not clamp C yPercent into fixed courseware zones; chainKey only marks semantic segment grouping.');
+}
+
+if (
+  !autoHandwritingLayerText.includes('drawRealtimeTextWithRevealClip') ||
+  autoHandwritingLayerText.includes('renderBoardTextStickerImage(')
+) {
+  throw new Error('Recording ordinary C content must draw realtime text; PNG generation is no longer the ordinary C path.');
+}
+
+if (
+  !coursewareSegmentChromeText.includes('@cleanroom-component: CoursewareSegmentChrome') ||
+  !coursewareSegmentChromeText.includes('data-agent-anchor={`courseware-segment-container-${zoneBox.key}`}') ||
+  !coursewareSegmentChromeText.includes('data-agent-anchor={isProblemZone ?') ||
+  !coursewareSegmentChromeText.includes('data-zone-key={zoneBox.key}') ||
+  !coursewareSegmentChromeText.includes('!isProblemZone') ||
+  !coursewareSegmentChromeText.includes('onPointerDown={onLabelPointerDown}') ||
+  coursewareSegmentChromeText.includes('children')
+) {
+  throw new Error('CoursewareSegmentChrome must remain a flat label/container chrome module without owning C/problem content.');
+}
+
+if (
+  !cStickerFrameText.includes('data-agent-zone={zoneKey}') ||
+  !cStickerFrameText.includes('data-agent-content-kind={contentKind}') ||
+  !cStickerFrameText.includes('data-role="courseware-c-sticker"')
+) {
+  throw new Error('CStickerFrame must keep stable agent anchors for C sticker zone and content kind.');
 }
 
 if (!scriptSegmentWorkbenchText.includes("import { FormulaText }") || scriptSegmentWorkbenchText.includes('<p>{segment.text}</p>')) {

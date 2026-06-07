@@ -66,14 +66,14 @@
 
 ## ISSUE-007：标签 / 题目 / 板书的尺寸真相仍未完全同源
 
-- 状态：待继续收口
+- 状态：部分收口，持续防回归
 - 发现时间：2026-06-06
 - 影响范围：第 4 步舞台预览、录制画布、C 板书尺寸入口。
 - 现象：用户明确要求画布上的标签、题目、板书都应与画布保持比例关系，不接受多个初始真相或硬编码口径。
-- 当前进展：本轮已先把舞台内样式从 `src/styles.css` 分离到 `src/stage.css`，让“画布是画布，其他是其他”成为单独边界。
-- 高危文件：`src/modules/canvasStage/coursewareChrome.ts`、`src/components/DrawboardStage.tsx`、`src/components/AutoHandwritingLayer.tsx`、`src/modules/boardSticker/renderBoardTextStickerImage.ts`
-- 规避方式：下一刀先梳理标签、题目、板书三条尺寸链的唯一来源，再决定是否把 `boardFontSize/fontSize` 从像素真相改成比例真相；不要把页面壳子样式重新混回 `src/stage.css`。
-- 验证要求：`npm run check:board-boundaries` 必须继续通过；开始改尺寸来源后补最小比例链验证。
+- 当前进展：已先把舞台内样式从 `src/styles.css` 分离到 `src/stage.css`；题目字号已改为标签字号 `1.5` 倍；普通 C 已从 PNG 改成实时文本；固定四区 y clamp 已退出活链路。
+- 高危文件：`src/modules/canvasStage/coursewareChrome.ts`、`src/components/CoursewareSegmentChrome.tsx`、`src/components/DrawboardStage.tsx`、`src/components/AutoHandwritingLayer.tsx`、`src/components/BoardHandwritingStickerContent.tsx`
+- 规避方式：继续守住 label/problem 字号 resolver、普通 C 实时文本、`CoursewareZoneBox` 动态 bbox；不要把页面壳子样式重新混回 `src/stage.css`。
+- 验证要求：`npm run check:board-boundaries` 必须继续通过；后续抽共享文本 layout 时补 DOM/录制同源验证。
 
 ## ISSUE-008：题图入口一旦用默认大拖拽面板，左侧工作区会被过度挤占
 
@@ -107,6 +107,50 @@
 - 初步定位：`inspector-stack` 和 `board-control-responsibilities-collapse` 缺少单列宽度约束；Ant Collapse 实际展开体在 `.ant-collapse-body`，若滚动边界挂错层，卡片仍会整体变长。
 - 规避方式：右栏长文面板默认遵守“单列宽度 + 自身内滚 + 文案可断行”；命中真实 DOM 层再挂滚动边界，不猜结构。
 - 验证要求：至少确认 `workspace-sider--inspector` 无横向溢出、职责表自身存在本地纵向滚动、下方 inspector 面板首屏仍可达。
+
+## ISSUE-012：旧固定四区站位约束若回潮，会破坏自由画布和分片锚点模型
+
+- 状态：已移除活链路，持续防回归
+- 发现时间：2026-06-07
+- 影响范围：第 4 步舞台预览、C 拖拽、录制内容层、后续 agent 站位理解。
+- 现象：旧 `COURSEWARE_ZONE_BOUNDS` / `constrainYPercentToZone` 会把 C 的 `yPercent` 自动拉回固定四区，导致用户拖到自由位置后被渲染层改写。
+- 高危文件：`src/components/AutoHandwritingLayer.tsx`、`src/modules/canvasStage/coursewareChrome.ts`、`.workbuddy/memory/MEMORY.md`
+- 初步定位：旧认知把 `chainKey` 的“分片身份”误写成“固定空间边界”；这与“标签作为锚点、容器按内容动态撑开”的规则冲突。
+- 规避方式：`chainKey` 只做语义归组；C 的 `xPercent/yPercent` 继续作为整张画布百分比坐标；`check:board-boundaries` 禁止固定区 clamp 回潮。
+- 验证要求：浏览器至少验证一次 C 纵向拖到旧区外不会被拉回；`npm run check:board-boundaries` 必须通过。
+
+## ISSUE-013：普通C若重新走PNG主路，会再次出现中文字体变异与录制/预览不同源
+
+- 状态：已改实时文本，持续防回归
+- 发现时间：2026-06-07
+- 影响范围：普通 C 板书、中文字符、录制内容层、字体可读性。
+- 现象：普通 C 通过 `renderBoardTextStickerImage` 生成 PNG 时，中文和手写字体容易出现截图中的变异；且用户已确认不需要用图片方式。
+- 高危文件：`src/components/BoardHandwritingStickerContent.tsx`、`src/components/AutoHandwritingLayer.tsx`、`scripts/check-board-boundaries.mjs`
+- 初步定位：普通 C 文本路线和复杂公式路线混在同一个“图片贴片”心智里，导致简单中文也被提前 rasterize。
+- 规避方式：普通 C 页面预览保持 DOM 实时文本；录制内容层保持 canvas 实时文字绘制；复杂公式/结构数学仍走公式路线，不删备用 PNG 模块。
+- 验证要求：页面 DOM 中普通 C `.board-text-sticker__live-text` 存在、`.board-text-sticker__image` 为 `0`；`npm run check:board-handwriting-support` 和 `npm run check:board-boundaries` 必须通过。
+
+## ISSUE-014：板书专用字体只写入fontFamily但未验证真实命中
+
+- 状态：待修复
+- 发现时间：2026-06-07
+- 影响范围：普通 C 板书预览、录制内容层、后续 Konva content-layer。
+- 现象：用户截图中普通 C 字体明显不符合板书专用字体；代码实证显示 `BoardHandwritingStickerContent` 只把 `fontFamily` 写入 style，`fontLoadKey` 当前没有实际等待或确认字体命中。
+- 高危文件：`src/components/BoardHandwritingStickerContent.tsx`、`src/components/AutoHandwritingLayer.tsx`、`src/modules/boardFont/boardFontConfig.ts`、`src/styles.css`
+- 初步定位：默认字体依赖远端 stylesheet，失败或 family 名不匹配时会静默回退；录制 canvas 的 `context.font` 同样没有等待 `document.fonts.load()`。
+- 规避方式：下一刀必须先把板书字体加载状态变成可验证事实；不能再用“写了 fontFamily”冒充“命中了字体”。
+- 验证要求：浏览器检查 `document.fonts.check()` / computed style / canvas 录制路径，证明普通 C 预览和录制都命中同一板书字体；失败时明确降级状态。
+
+## ISSUE-015：Konva proof若被误当生产主链，会破坏录制和内容真相
+
+- 状态：已定 gate，待迁移实现
+- 发现时间：2026-06-07
+- 影响范围：第 4 步主舞台、C 内容层、金手指、录制、后续 agent 接手。
+- 现象：仓库已有 `KonvaRecordingSurface` 与 `KonvaProofPage`，但它们仍是 proof / 备用入口；若直接切入主工作台，会把 sample canvas / sample clip / 固定 label anchors 误当真实生产链。
+- 高危文件：`src/components/StagePreview.tsx`、`src/components/LegacyStagePreview.tsx`、`src/components/DrawboardStage.tsx`、`src/components/AutoHandwritingLayer.tsx`、`src/components/KonvaRecordingSurface.tsx`、`src/standalone/KonvaProofPage.tsx`、`src/modules/stageRecorder/useCanvasRecorder.ts`
+- 初步定位：当前生产录制依赖 base/content/overlay 三 canvas 合成；当前 C 交互依赖 `AutoHandwritingLayer` 写回 `onUpdateBoardClip`；Konva proof 尚未覆盖真实多 clip、动态 bbox、C resize、金手指 overlay 与复杂公式路线。
+- 规避方式：Konva 作为主舞台控制方向必须走 gated migration；先做真实数据 pilot，再切公共入口。
+- 验证要求：Konva pilot 必须证明真实 `TimelineClip` 来源、普通 C realtime text、字体命中、C drag/resize writeback、动态 `CoursewareZoneBox`、三层录制和金手指 overlay 都可用。
 
 ## ISSUE-011：题目区正文若被误当成 opening boardSlice，会把前置题文真相和C候选素材真相混掉
 

@@ -1,3 +1,6 @@
+// @@API_CLIENT_RECOGNITION
+// @route: ProblemWorkspace -> /api/recognition/problem-text -> TeachingProject.assets(kind=problemText)
+// @trace-index: src/CORE_TRACE_TAGS.md
 import type { AppConfig } from '../config/defaultConfig';
 
 type RecognitionGatewayResponse = {

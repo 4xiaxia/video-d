@@ -5,7 +5,7 @@
 // @io-input: canvas config, problem text summary
 // @io-output: Konva Stage canvas element (for recording capture)
 // @boundary: Canvas recording surface only; does not own A audio, B timing, C1/C2 actors, or editor state
-// @truth-contract: 标签坐标取自 COURSEWARE_ZONE_BOUNDS，与 DOM .courseware-label 同源。
+// @truth-contract: Konva proof still uses initial label anchors; active DOM/canvas recording consumes CoursewareZoneBox.
 // @migration: 替换 CanvasRecordingSurface（Canvas2D 手绘版），Konva 统一渲染路径。
 
 import React, { useEffect, useRef } from 'react';
@@ -20,6 +20,7 @@ import {
   COURSEWARE_PROBLEM_MAX_WIDTH_RATIO,
   COURSEWARE_PROBLEM_TOP_RATIO,
   COURSEWARE_SYSTEM_FONT_FAMILY,
+  resolveLabelFontSize,
   resolveProblemFontSize,
 } from '../modules/canvasStage/coursewareChrome';
 
@@ -49,7 +50,7 @@ export function KonvaRecordingSurface({
   const labelWidth = canvas.width * COURSEWARE_LABEL_WIDTH_RATIO;
   const labelHeight = canvas.height * COURSEWARE_LABEL_HEIGHT_RATIO;
   const labelRadius = Math.max(4, labelHeight * 0.28);
-  const labelFontSize = Math.max(14, labelHeight * 0.48);
+  const labelFontSize = resolveLabelFontSize(canvas);
 
   const problemFontSize = resolveProblemFontSize(canvas);
   const problemMaxWidth = Math.min(
@@ -121,7 +122,7 @@ export function KonvaRecordingSurface({
               fill={PROBLEM_TEXT}
               fontFamily={COURSEWARE_SYSTEM_FONT_FAMILY}
               fontSize={problemFontSize}
-              fontStyle="600"
+              fontStyle="normal"
               lineHeight={1.46}
               text={problemSummary.trim()}
               width={problemMaxWidth}

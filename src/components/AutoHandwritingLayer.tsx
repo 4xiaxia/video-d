@@ -13,7 +13,6 @@ import { useEffect, useMemo, useRef } from 'react';
 import type { StageCanvasConfig, TimelineClip } from '../domain/teachingProject';
 import { getBoardRevealProgress } from '../modules/boardReveal';
 import { compareBoardClipLayerOrder } from '../modules/boardOrdering';
-import { COURSEWARE_ZONE_BOUNDS } from '../modules/canvasStage/coursewareChrome';
 import { getZoneNameFromChainKey } from '../modules/canvasStage/coursewareZoneLayout';
 import {
   DEFAULT_BOARD_STICKER_WIDTH_PERCENT,
@@ -21,7 +20,6 @@ import {
   DEFAULT_BOARD_STICKER_Y_PERCENT,
   getBoardStickerFontSize,
   renderBoardMathStickerImage,
-  renderBoardTextStickerImage,
   resolveBoardTextDisplayRoute,
   useBoardStickerDragController,
 } from '../modules/boardSticker';
@@ -29,42 +27,9 @@ import { isBoardClipVisibleAtPlayhead } from '../modules/timeline/timelineWindow
 import { BoardTextSticker } from './BoardTextSticker';
 import type { BoardClipPatch } from './drawboardStageTypes';
 
-/**
- * 约束 C 的位置到指定区域内（自动对齐）
- * @param yPercent 原始 y 百分比
- * @param widthPercent C 的宽度百分比（用于计算下边界）
- * @param zone 目标区域配置
- * @returns 约束后的 yPercent
- */
-function constrainYPercentToZone(
-  yPercent: number,
-  widthPercent: number,
-  zone: { topRatio: number; heightRatio: number },
-): number {
-  const zoneTopPercent = zone.topRatio * 100;
-  const zoneBottomPercent = (zone.topRatio + zone.heightRatio) * 100;
-
-  // C 的下边界估算（简单假设高度 ≈ 宽度的 1/2，因为文字框通常 w > h）
-  const estimatedHeightPercent = (widthPercent / 2) * 0.6; // 保守估计
-  const cBottomPercent = yPercent + estimatedHeightPercent;
-
-  // 如果 C 顶部已超出下界，向上移
-  if (yPercent > zoneBottomPercent - estimatedHeightPercent) {
-    return Math.max(zoneTopPercent, zoneBottomPercent - estimatedHeightPercent);
-  }
-
-  // 如果 C 底部已超出下界，顶部向上移
-  if (cBottomPercent > zoneBottomPercent) {
-    return zoneBottomPercent - estimatedHeightPercent;
-  }
-
-  // 如果 C 顶部已超出上界，向下移
-  if (yPercent < zoneTopPercent) {
-    return zoneTopPercent;
-  }
-
-  return yPercent;
-}
+const RECORDING_TEXT_LINE_HEIGHT_RATIO = 1.35;
+const RECORDING_TEXT_PADDING_X = 4;
+const RECORDING_TEXT_PADDING_Y = 2;
 
 export function AutoHandwritingLayer({
   boardClips,
@@ -127,7 +92,6 @@ export function AutoHandwritingLayer({
 
     void drawRecordingBoardContent({
       boardArea: boardAreaRef.current,
-      boardFontSize,
       canvas,
       clips: visibleBoardClips.map((clip) => {
         const previewPatch = getPreviewPatch(clip.id);
@@ -138,12 +102,7 @@ export function AutoHandwritingLayer({
             : liveRevealProgress;
 
         const widthPercent = previewPatch?.widthPercent ?? clip.widthPercent ?? DEFAULT_BOARD_STICKER_WIDTH_PERCENT;
-        let yPercent = previewPatch?.yPercent ?? clip.yPercent ?? DEFAULT_BOARD_STICKER_Y_PERCENT;
-
-        // 问题1 修复：根据 chainKey 约束 C 到对应的四区域
-        const zoneName = getZoneNameFromChainKey(clip.chainKey);
-        const zone = COURSEWARE_ZONE_BOUNDS[zoneName];
-        yPercent = constrainYPercentToZone(yPercent, widthPercent, zone);
+        const yPercent = previewPatch?.yPercent ?? clip.yPercent ?? DEFAULT_BOARD_STICKER_Y_PERCENT;
 
         return {
           color: clip.color ?? '#111111',
@@ -176,12 +135,8 @@ export function AutoHandwritingLayer({
           const fontSize = getBoardStickerFontSize(previewPatch?.fontSize ?? clip.fontSize, boardFontSize);
           const widthPercent = previewPatch?.widthPercent ?? clip.widthPercent ?? DEFAULT_BOARD_STICKER_WIDTH_PERCENT;
           const xPercent = previewPatch?.xPercent ?? clip.xPercent ?? DEFAULT_BOARD_STICKER_X_PERCENT;
-          let yPercent = previewPatch?.yPercent ?? clip.yPercent ?? DEFAULT_BOARD_STICKER_Y_PERCENT;
-
-          // 问题1 修复：根据 chainKey 约束 C 到对应的四区域
+          const yPercent = previewPatch?.yPercent ?? clip.yPercent ?? DEFAULT_BOARD_STICKER_Y_PERCENT;
           const zoneName = getZoneNameFromChainKey(clip.chainKey);
-          const zone = COURSEWARE_ZONE_BOUNDS[zoneName];
-          yPercent = constrainYPercentToZone(yPercent, widthPercent, zone);
 
           const liveRevealProgress = readBoardClipRevealProgress(clip, playheadMs);
           const revealProgress =
@@ -277,14 +232,12 @@ type RecordingBoardClip = {
 
 async function drawRecordingBoardContent({
   boardArea,
-  boardFontSize,
   canvas,
   clips,
   recordingCanvas,
   shouldContinue,
 }: {
   boardArea: HTMLDivElement | null;
-  boardFontSize: number;
   canvas: StageCanvasConfig;
   clips: RecordingBoardClip[];
   recordingCanvas: HTMLCanvasElement | null;
@@ -329,37 +282,45 @@ async function drawRecordingBoardContent({
     }
 
     const route = resolveBoardTextDisplayRoute(clip.label);
-    const image = route.kind === 'formula'
-      ? await renderBoardMathStickerImage(route.text, {
-          color: clip.color,
-          fontFamily: canvas.boardFontFamily,
-          fontSize: clip.fontSize,
-        })
-      : await renderBoardTextStickerImage(route.text, {
-          color: clip.color,
-          fontFamily: canvas.boardFontFamily,
-          fontSize: clip.fontSize,
-        });
-    const stickerImage = await loadRecordingImage(image.dataUrl);
-    if (!shouldContinue()) {
-      return;
+    if (route.kind === 'formula') {
+      const image = await renderBoardMathStickerImage(route.text, {
+        color: clip.color,
+        fontFamily: canvas.boardFontFamily,
+        fontSize: clip.fontSize,
+      });
+      const stickerImage = await loadRecordingImage(image.dataUrl);
+      if (!shouldContinue()) {
+        return;
+      }
+
+      const boxWidth = areaWidth * (clip.widthPercent / 100);
+      const imageScale = Math.min(1, boxWidth / Math.max(1, image.width));
+      const drawWidth = image.width * imageScale;
+      const drawHeight = image.height * imageScale;
+      const centerX = areaLeft + areaWidth * (clip.xPercent / 100);
+      const centerY = areaTop + areaHeight * (clip.yPercent / 100);
+      const drawX = centerX - boxWidth / 2 + 4 * scaleX;
+      const drawY = centerY - drawHeight / 2;
+
+      drawImageWithRevealClip(context, stickerImage, {
+        height: drawHeight,
+        progress: clip.revealProgress,
+        width: drawWidth,
+        x: drawX,
+        y: drawY,
+      });
+      continue;
     }
 
-    const boxWidth = areaWidth * (clip.widthPercent / 100);
-    const imageScale = Math.min(1, boxWidth / Math.max(1, image.width));
-    const drawWidth = image.width * imageScale;
-    const drawHeight = image.height * imageScale;
-    const centerX = areaLeft + areaWidth * (clip.xPercent / 100);
-    const centerY = areaTop + areaHeight * (clip.yPercent / 100);
-    const drawX = centerX - boxWidth / 2 + 4 * scaleX;
-    const drawY = centerY - drawHeight / 2;
-
-    drawImageWithRevealClip(context, stickerImage, {
-      height: drawHeight,
-      progress: clip.revealProgress,
-      width: drawWidth,
-      x: drawX,
-      y: drawY,
+    drawRealtimeTextWithRevealClip(context, {
+      areaHeight,
+      areaLeft,
+      areaTop,
+      areaWidth,
+      clip,
+      fontFamily: canvas.boardFontFamily,
+      scaleY,
+      text: route.text,
     });
   }
 }
@@ -392,6 +353,96 @@ function loadRecordingImage(src: string) {
     image.onerror = () => reject(new Error('C recording image load failed.'));
     image.src = src;
   });
+}
+
+function drawRealtimeTextWithRevealClip(
+  context: CanvasRenderingContext2D,
+  {
+    areaHeight,
+    areaLeft,
+    areaTop,
+    areaWidth,
+    clip,
+    fontFamily,
+    scaleY,
+    text,
+  }: {
+    areaHeight: number;
+    areaLeft: number;
+    areaTop: number;
+    areaWidth: number;
+    clip: RecordingBoardClip;
+    fontFamily: string;
+    scaleY: number;
+    text: string;
+  },
+) {
+  const boxWidth = areaWidth * (clip.widthPercent / 100);
+  const fontSize = clip.fontSize * scaleY;
+  const lineHeight = fontSize * RECORDING_TEXT_LINE_HEIGHT_RATIO;
+  const paddingX = RECORDING_TEXT_PADDING_X * scaleY;
+  const paddingY = RECORDING_TEXT_PADDING_Y * scaleY;
+  const centerX = areaLeft + areaWidth * (clip.xPercent / 100);
+  const centerY = areaTop + areaHeight * (clip.yPercent / 100);
+
+  context.save();
+  context.font = `${fontSize}px ${fontFamily}`;
+  context.textBaseline = 'top';
+  const lines = wrapRecordingText(context, text, Math.max(1, boxWidth - paddingX * 2));
+  const textHeight = Math.max(lineHeight, lines.length * lineHeight + paddingY * 2);
+  const boxLeft = centerX - boxWidth / 2;
+  const boxTop = centerY - textHeight / 2;
+  const progress = Math.min(1, Math.max(0, Number.isFinite(clip.revealProgress) ? clip.revealProgress : 1));
+  const topEdge = Math.min(1, Math.max(0, progress + (progress > 0 && progress < 1 ? 0.018 : 0)));
+  const bottomEdge = Math.min(1, Math.max(0, progress - (progress > 0 && progress < 1 ? 0.012 : 0)));
+
+  context.beginPath();
+  context.moveTo(boxLeft, boxTop);
+  context.lineTo(boxLeft + boxWidth * topEdge, boxTop);
+  context.lineTo(boxLeft + boxWidth * bottomEdge, boxTop + textHeight);
+  context.lineTo(boxLeft, boxTop + textHeight);
+  context.closePath();
+  context.clip();
+
+  context.fillStyle = clip.color;
+  for (let index = 0; index < lines.length; index += 1) {
+    context.fillText(lines[index], boxLeft + paddingX, boxTop + paddingY + index * lineHeight);
+  }
+  context.restore();
+}
+
+function wrapRecordingText(context: CanvasRenderingContext2D, text: string, maxWidth: number) {
+  return text
+    .split('\n')
+    .flatMap((line) => wrapRecordingLine(context, line, maxWidth));
+}
+
+function wrapRecordingLine(context: CanvasRenderingContext2D, line: string, maxWidth: number) {
+  if (!line) {
+    return [''];
+  }
+
+  if (context.measureText(line).width <= maxWidth) {
+    return [line];
+  }
+
+  const wrappedLines: string[] = [];
+  let currentLine = '';
+  for (const char of line) {
+    const candidate = `${currentLine}${char}`;
+    if (currentLine && context.measureText(candidate).width > maxWidth) {
+      wrappedLines.push(currentLine);
+      currentLine = char;
+    } else {
+      currentLine = candidate;
+    }
+  }
+
+  if (currentLine) {
+    wrappedLines.push(currentLine);
+  }
+
+  return wrappedLines;
 }
 
 function readBoardClipRevealProgress(

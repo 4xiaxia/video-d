@@ -1,14 +1,16 @@
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
 const root = process.cwd();
 const outDir = join(root, '.tmp-board-handwriting-support-check');
 const checkFile = join(outDir, 'check.mjs');
+const localNodePath = join(root, 'runtime', 'node', 'node.exe');
+const nodePath = existsSync(localNodePath) ? localNodePath : process.execPath;
 
 mkdirSync(outDir, { recursive: true });
 
-execFileSync(join(root, 'runtime', 'node', 'node.exe'), [join(root, 'node_modules', 'typescript', 'bin', 'tsc'), '--noEmit', 'false', '--outDir', outDir], {
+execFileSync(nodePath, [join(root, 'node_modules', 'typescript', 'bin', 'tsc'), '--noEmit', 'false', '--outDir', outDir], {
   cwd: root,
   stdio: 'inherit',
 });
@@ -74,7 +76,7 @@ writeFileSync(
     `console.log('[board-handwriting-support] passed');\n`,
 );
 
-execFileSync(join(root, 'runtime', 'node', 'node.exe'), [checkFile], {
+execFileSync(nodePath, [checkFile], {
   cwd: outDir,
   stdio: 'inherit',
 });

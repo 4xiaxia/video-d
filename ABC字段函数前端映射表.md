@@ -9,7 +9,7 @@
 | 必须先做 | 只读定位页面/舞台渲染层哪里丢 `\n` |
 | 后续字段原则 | 文本 layout 只能承接既有 C 参数：`boardSlice/fontSize/lineHeight/widthPercent` 等；若新增标签拖动持久化，必须独立字段，不得污染 `boardSlice` |
 | 同源要求 | DOM 预览、Canvas 录制、未来 Konva 必须消费同一文本 layout 结果，禁止第二套排版 |
-| 标签原则 | 先 bbox + 3px 自适应；再单独做 manual override。override 示例：`labelPlacement: { source: "auto" | "manual", ... }`，正式字段名前必须再设计确认 |
+| 标签原则 | 先 bbox + 5px 自适应；再单独做 manual override。override 示例：`labelPlacement: { source: "auto" | "manual", ... }`，正式字段名前必须再设计确认 |
 
 ## 2026-05-30 批注
 
@@ -43,12 +43,12 @@
 | `rows[].section` | `normalizeScriptAgentTableRows` | ABC分区锚点 | `ScriptAgentTableEditor` | section 决定 chainKey 模板（open/pre/step/end） | `scriptAgentCandidateDraft` | 编译、预览、TTS拆句 | 是 | 生效 | 2026-05-29 |
 | `rows[].voiceText` | `compileScriptAgentTableDraft` | A候选语音文本 | `ScriptAgentTableEditor` / `ScriptBoardSummaryStep` | 生成 spokenScript，再进入 TTS 单句拆分 | `scriptAgentCandidateDraft` | `VoiceWorkspace` | 是 | 生效 | 2026-05-29 |
 | `rows[].boardSlice` | `compileScriptAgentTableDraft` / `createBoardEventsFromTtsUnits` | C候选内容（先）-> B时间窗口（后） | `ScriptAgentTableEditor` / `VoiceWorkspace` | boardSlice 非空行可进入 C候选与后续 B 生成 | `scriptAgentCandidateDraft` | 预览、boardEvents、timeline | 是 | 生效 | 2026-05-29 |
-| `chainKey` | `createRowChainKey` / `createAbcChainLabels` | A/B/C身份映射 | `ScriptAgentTableEditor`（映射提示） | 开场/分析/解题/总结 -> template/step 规则 | 归一化函数自动生成 | 编译、timeline、显示标签 | 是 | 生效 | 2026-05-29 |
+| `chainKey` | `createRowChainKey` / `createAbcChainLabels` | A/B/C身份映射 | `ScriptAgentTableEditor`（映射提示） | 开场/分析/解题/总结 -> template/step 规则；当前只决定分片身份和标签归组，不限制 C 空间位置 | 归一化函数自动生成 | 编译、timeline、显示标签、分片测量归组 | 是 | 生效 | 2026-06-07 纠偏：固定四区 y clamp 已退出活链路 |
 | `TtsSentenceResult.durationMs` | `applyTtsSentenceResults` / `createSentenceTimingMap` | A主时钟 | `VoiceWorkspace` / `TeachingTimeline` | 句级时长累积为播放时间轴 | TTS网关返回 | BoardEvent生成 | 是 | 生效 | 2026-05-29 |
 | `BoardEvent.startMs/endMs` | `createBoardEventsFromTtsUnits` | B寿命窗口来源 | `VoiceWorkspace`（生成） | 由句序+时长累积，非UI随意写 | timeline-factory | mapBoardEventsToTimelineClips | 是 | 生效 | 2026-05-29 |
 | `TimelineClip.startMs/endMs` | `mapBoardEventsToTimelineClips` / `updateBoardTiming` | B寿命窗口 / 站场控制 | `VoiceTrack` / `TimelineClipBlock` | B控制显示窗口与可控站场边界；默认 lock 时，C 自然播放完后继续留场，不等于到 endMs 自动消失 | 生成器 + 时间轴编辑 | 播放过滤/显示 | 是 | 生效 | 2026-06-04 纠偏：从“何时出现/消失”改为“默认留场 + 解锁后可控站场” |
-| `TimelineClip.label` | `mapBoardEventsToTimelineClips` | C演员文本 | `AutoHandwritingLayer` | label -> 可见文本（随reveal） | timeline-factory/编辑器 | 舞台渲染层 | 是 | 生效 | 2026-05-29 |
-| `xPercent/yPercent/widthPercent` | `updateBoardClip` / C视觉 patch | C站位 | `BoardClipInspector` / `AutoHandwritingLayer` | 百分比坐标，舞台尺寸自适配 | C编辑入口 | 舞台映射 | 是 | 生效 | 2026-05-29 |
+| `TimelineClip.label` | `mapBoardEventsToTimelineClips` | C演员文本 | `AutoHandwritingLayer` / `BoardHandwritingStickerContent` | label -> 可见文本（随reveal）；普通 C 走 DOM/Canvas 实时文本，复杂公式走公式路线 | timeline-factory/编辑器 | 舞台渲染层 / 录制内容层 | 是 | 生效 | 2026-06-07 纠偏：普通 C 不再 PNG 主路 |
+| `xPercent/yPercent/widthPercent` | `updateBoardClip` / C视觉 patch | C站位 | `BoardClipInspector` / `AutoHandwritingLayer` | 整张画布百分比坐标，舞台尺寸自适配；不再按固定四区钳制 yPercent | C编辑入口 | 舞台映射 / 录制内容层 | 是 | 生效 | 2026-06-07 纠偏：自由画布坐标 |
 | `drawSpeed` | `updateBoardClip` / `getBoardRevealProgress` | C演绎参数 | `BoardClipInspector` | 仅影响 reveal 速度，不改 A/B | C编辑入口 | reveal计算 | 是 | 生效 | 2026-05-29 |
 | `layoutPreviewDraft.items[].groupKey` | `/api/agent/board-layout-preview` | C-Agent视觉分区 | `BoardPreviewCard` | 强制四区标签：题目/分析/解答/总结 | 预览网关（临时态） | 只读预览 | 是 | 生效 | 2026-05-29（四区硬约束） |
 | `layoutPreviewDraft` | `syncLayoutPreviewDraft` / `clearLayoutPreviewDraft` | 临时视觉预览（非正式ABC真相） | `VoiceWorkspace` / `ScriptBoardSummaryStep` | 仅用于评审，不落正式timeline | store 临时态 | 侧边预览 | 是 | 生效 | 2026-05-29 |

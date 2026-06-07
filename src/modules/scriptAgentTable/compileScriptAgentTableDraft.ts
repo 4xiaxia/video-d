@@ -1,3 +1,6 @@
+// @@ABC_ROWS_COMPILE
+// @route: ScriptAgentTable rows -> ScriptAgentDraft.spokenScript/boardPlan
+// @trace-index: src/CORE_TRACE_TAGS.md
 import type { ScriptAgentDraft } from '../../domain/teachingProject';
 import { createAbcChainLabels, isBoardMaterialChainKey } from '../abcChain/abcChainKey';
 import { normalizeScriptAgentTableRows } from './normalizeScriptAgentTableDraft';

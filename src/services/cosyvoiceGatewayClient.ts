@@ -1,3 +1,6 @@
+// @@API_CLIENT_COSYVOICE
+// @route: VoiceWorkspace -> /api/tts/cosyvoice/sentences -> voice assets + A timing
+// @trace-index: src/CORE_TRACE_TAGS.md
 import type { TtsSentenceResult, TtsSentenceUnit } from '../domain/teachingProject';
 import type { AppConfig } from '../config/defaultConfig';
 

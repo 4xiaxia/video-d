@@ -23,7 +23,7 @@
 
 - **B 只管时间**：每个语音切片对应的 C 在画布上呆多久。`startMs/endMs/hideAtMs` 全在 B 域。
 - **C 内容在第二步就已决定**：`ScriptAgentTableEditor` 的 `boardSlice` 列就是用户内容编辑入口（金手指）。Agent 生成 → 用户可改 boardSlice → compiler 投影到 C。
-- **站位由 chainKey 标签决定**：`template-open`→problem(题目区) / `template-pre`→analysis(分析区) / `step-N`→solution(解答区，右半) / `template-end`→summary(总结区)。四区边界在 `COURSEWARE_ZONE_BOUNDS`。C 不发明内容、不决定站位。
+- **分片身份由 chainKey 标签决定**：`template-open`→problem(题目分片) / `template-pre`→analysis(分析分片) / `step-N`→solution(解答分片) / `template-end`→summary(总结分片)。`chainKey` 只做语义归组和标签归组，不再限制 C 空间位置；C 的 `xPercent/yPercent` 是整张画布百分比坐标。
 - **C 五可调**：速度(`drawSpeed`) / 位置(`xPercent/yPercent`) / 大小(`widthPercent/fontSize`) / 字体(当前仅项目级) / 内容(`boardSlice`在第二步编辑)。
 
 ## 页面预览 / 录制底板同源（2026-06-05）
@@ -59,7 +59,7 @@ toolMode = 'off'
 - C 贴片可拖拽移动 → 写 xPercent/yPercent
 - C 贴片可拖拽右下角 resize → 写 widthPercent + fontSize 联动缩放
 - 拖拽时 reveal 进度冻结在按下那一刻的进度（不随 playhead 变化）
-- yPercent 受 `constrainYPercentToZone` 约束，不能漂移到其他区域
+- yPercent 是整张画布自由百分比坐标；旧 `constrainYPercentToZone` 固定区约束已废止，不能恢复
 
 ### 模式二：pen / eraser / highlight / circle / cross — C 冻结，金手指接管
 
@@ -111,25 +111,25 @@ useCanvasRecorder.startRecording(base, content, overlay)
 ### 坐标与站位
 
 ```
-chainKey                       → zone         → 区域边界
-template-open                  → problem      → top: 2.4% ~ 22.4%
-template-pre                   → analysis     → top: 24% ~ 46%
-step-N                         → solution     → top: 2.4% ~ 72.4%（最大）
-template-end                   → summary      → top: 74% ~ 98%
+chainKey                       → segment      → 标签/容器归组
+template-open                  → problem      → 题目分片，正文仍读 problemText.summary
+template-pre                   → analysis     → 分析分片
+step-N                         → solution     → 解答分片
+template-end                   → summary      → 总结分片
 
 C 贴片 xPercent/yPercent 是画布百分比坐标。
-constrainYPercentToZone 保证拖拽不越区。
-DOM 标签和 Canvas 录制标签共用 COURSEWARE_ZONE_BOUNDS（同源坐标）。
+旧 constrainYPercentToZone 固定区约束已退出活链路。
+DOM 标签和 Canvas 录制标签/容器共用 CoursewareZoneBox（运行态内容 bbox + 5px padding）。
 ```
 
 ## 甲方降配后的板书方案（2026-06-05）
 
 - 原“SVG/逐笔轨迹”方案不删除，作为甲方反悔时的备用路线冻结保存。
-- 当前主线降配为：**手写字体 + 普通文本输入 + 逐字 reveal**。
-- 除“不再依赖 SVG/逐笔 path”外，其他既有逻辑不变：速度、时间、留场、B/C 职责、站位、拖拽缩放、录制合成都沿用原方案。
+- 当前主线降配为：**手写字体 + 普通文本输入 + 实时文本 reveal**。
+- 除“不再依赖 SVG/逐笔 path”外，其他既有逻辑守边界调整：速度、时间、留场、B/C 职责、拖拽缩放、录制合成都沿用；站位不再按固定四区 clamp。
 - `boardSlice` 仍是唯一内容真相；用户输入正常文本，渲染层用手写字体显示。
 - reveal 单位从笔画/路径切换为字符；仍继承既有 `drawSpeed` / `startMs` / `endMs` / `hideAtMs`。
-- 当前优先级：冻结旧 SVG 路线 → 新建/切换文本 reveal 渲染路线 → 保持外部行为不变。
+- 当前优先级：冻结旧 SVG 路线 → 普通 C 实时文本渲染路线 → 后续抽 DOM/录制共享文本 layout。
 - 文本输入必须走“最土的普通多行文本”路线：第三步板书内容怎么换行，C 就怎么换行显示；`\n` 是排版真相，不能在渲染层压成一行。
 - 排版只做基础参数：`fontSize`、`lineHeight`、文本行数组、手写字体；不要做复杂智能排版。优先人工换行，必要时只做越界兜底。
 - 截图确认：左侧第三步板书内容与右侧 C 控制处排版是对的；错误发生在“写入页面/舞台渲染”环节，说明页面渲染层压扁了换行或没有按多行文本绘制。

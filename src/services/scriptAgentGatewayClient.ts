@@ -1,3 +1,6 @@
+// @@API_CLIENT_SCRIPT_AGENT
+// @route: AgentReviewCard/ProblemWorkspace -> /api/agent/script-board -> scriptAgentCandidateDraft
+// @trace-index: src/CORE_TRACE_TAGS.md
 import type { AppConfig } from '../config/defaultConfig';
 import type { ScriptAgentDraft } from '../domain/teachingProject';
 import { normalizeScriptAgentDraft } from '../modules/scriptAgentDraft';

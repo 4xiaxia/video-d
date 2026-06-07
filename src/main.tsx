@@ -1,5 +1,6 @@
-// @@ROUTE_MAIN @@ROUTE_C_STICKER @@ROUTE_DRAWBOARD_CORE @@ROUTE_HYBRID
+// @@ROUTE_ENTRY @@ROUTE_MAIN @@ROUTE_STANDALONE_C_STICKER @@ROUTE_STANDALONE_DRAWBOARD_CORE @@ROUTE_STANDALONE_DRAWBOARD_HYBRID @@ROUTE_STANDALONE_KONVA_PROOF
 // 路由分发点：standalone 参数解析集中于此处，不再靠多段 includes 条件链
+// 追踪索引：src/CORE_TRACE_TAGS.md
 // 施工目录唯一端口：npm run dev => 127.0.0.1:5196（非 5210/5197/5198 等临时端口）
 import React from 'react';
 import { createRoot } from 'react-dom/client';

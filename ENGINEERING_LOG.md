@@ -917,3 +917,168 @@
 - 下一步目标：继续把题目区正文 bbox、录制底图和 Konva proof 收成同一套尺寸口径，并让这些锚点继续沿用。
 - 关键文件：`src/components/ProblemWorkspace.tsx`、`src/components/DrawboardStage.tsx`、`src/components/CanvasRecordingSurface.tsx`、`src/modules/canvasStage/drawCoursewareStageFrame.ts`
 - 已知的坑：不要把题目区正文再挂回 rows / `boardSlice`；opening 行即便误填 `boardSlice` 也不应成为题目区正文来源。
+
+## 2026-06-07 01:42 分片chrome扁平模块 + C自由画布实时文本
+
+### 背景（为什么要做这个）
+
+- 用户纠正：不能再按固定四区版式理解；“标签 + 容器 + 分片内容”应该作为一组可复用展示模块，旧固定限制区域应解除。
+- 用户同时指出截图里题目字体加粗、有蓝色边缘、普通 C 字体变异；并确认甲方允许普通实时打字，不需要普通 C 走图片方式。
+- 用户要求改前拉 sub 审视；已让 Raman 做 read-only 二次审视，结论是解除 `AutoHandwritingLayer` y clamp、保持公式路线、模块要薄且扁平。
+
+### 思路（怎么想的）
+
+- 先确认现状：
+  - `coursewareZoneLayout.ts` 已有运行态内容 bbox + padding 计算，但不是完整展示模块。
+  - `DrawboardStage.tsx` 仍分散渲染标签、容器框、题目正文和 children。
+  - `AutoHandwritingLayer.tsx` 旧 `constrainYPercentToZone` 把 C 拉回固定四区，和自由画布冲突。
+- 方案选择：
+  - 收一个扁平 `CoursewareSegmentChrome`，只画标签和容器框，不包 C 内容，不新增 DOM 套娃。
+  - `chainKey` 只保留分片身份和测量归组；C 的 `xPercent/yPercent` 是整张画布百分比坐标。
+  - 普通 C 改实时文本；复杂公式路线继续保留。
+
+### 执行步骤（具体做了什么）
+
+1. 新增 `src/components/CoursewareSegmentChrome.tsx`：
+   - 渲染 label pill 与可选 `.courseware-zone-box`。
+   - 题目区不渲染蓝色虚线框。
+   - 分片容器 `pointer-events: none`，标签承接 `onPointerDown`。
+   - 给 label/container 补稳定 `data-agent-anchor`。
+2. 改 `DrawboardStage.tsx`：
+   - 移除四个手写 label 分支和分散 box map。
+   - 统一通过 `COURSEWARE_ZONE_KEYS.map()` 渲染 `CoursewareSegmentChrome`。
+3. 改 `AutoHandwritingLayer.tsx`：
+   - 移除 `COURSEWARE_ZONE_BOUNDS` 和 `constrainYPercentToZone`。
+   - DOM 和录制都直接使用 clip/preview 的 `xPercent/yPercent`。
+   - 普通 C 录制走 `drawRealtimeTextWithRevealClip()`；公式仍走 `renderBoardMathStickerImage()`。
+4. 改 `BoardHandwritingStickerContent.tsx` / `stage.css`：
+   - 普通 C 改成 `.board-text-sticker__live-text` 实时文本，不再生成 PNG `<img>`。
+   - 保留 `white-space: pre-wrap`、中文字符和 wrapping。
+5. 改 `coursewareChrome.ts` / `drawCoursewareStageFrame.ts` / `KonvaRecordingSurface.tsx`：
+   - 新增 `resolveLabelFontSize()`。
+   - `resolveProblemFontSize()` = label font size * `1.5`。
+   - 题目正文改 `400`，录制底图同步。
+   - 录制底图不再画题目区虚线框。
+6. 改守门脚本：
+   - `check-board-boundaries` 防止普通 C 回到 PNG 主路、防止固定四区 y clamp 回潮、要求 `CoursewareSegmentChrome` 扁平。
+   - `check-board-handwriting-support` 不再硬写 `runtime/node/node.exe`，本地 runtime 不存在时回退当前 Node。
+
+### 代码变更
+
+- 文件：`src/components/CoursewareSegmentChrome.tsx`
+  - 新增扁平分片 chrome 模块。
+- 文件：`src/components/DrawboardStage.tsx`
+  - 标签/容器渲染收口到新模块。
+- 文件：`src/components/AutoHandwritingLayer.tsx`
+  - 移除固定区 y clamp；普通 C 录制改实时文本。
+- 文件：`src/components/BoardHandwritingStickerContent.tsx`
+  - 普通 C 页面预览改 DOM 实时文本。
+- 文件：`src/modules/canvasStage/coursewareChrome.ts` / `drawCoursewareStageFrame.ts`
+  - 题目字号/字重和题目容器框规则与 DOM 对齐。
+- 文件：`src/stage.css`
+  - label 字号变量化，题目非加粗，新增 `.board-text-sticker__live-text`。
+- 文件：`scripts/check-board-boundaries.mjs` / `scripts/check-board-handwriting-support.mjs`
+  - 更新新主线守门和本机 Node 兜底。
+
+### 发现和确认
+
+- 新确认的设计：
+  - `chainKey` 是分片身份，不是固定空间边界。
+  - C 坐标是整张画布百分比坐标，不能被旧四区 clamp 改写。
+  - `标签 + 容器 + 内容` 这组目前以 zone key / `data-agent-zone` 逻辑归组，DOM 保持扁平，避免套娃和抢 C 拖拽。
+- 新发现的坑：
+  - `.workbuddy/memory/MEMORY.md` 旧写法仍把 `constrainYPercentToZone` 当真相，已经同步纠偏。
+  - 录制内容 canvas 是离屏 canvas，浏览器 DOM 不会直接列出；录制路径需要靠脚本守门和录制按钮实测补充。
+- 结构树说明：
+  - 新增关键组件 `src/components/CoursewareSegmentChrome.tsx`，已更新 `PROJECT_TREE.md`。
+
+### 验证结果
+
+- 测试：`npm run typecheck` -> 通过。
+- 测试：`npm run check:board-boundaries` -> 通过。
+- 测试：`npm run check:board-handwriting-support` -> 通过。
+- 测试：`npm run check:script-agent-rows` -> 通过。
+- 浏览器 DOM 验证 -> 通过：
+  - 题目字号 `21px`，标签字号 `14px`，比例 `1.5`。
+  - 题目字重 `400`。
+  - 题目区蓝色虚线框 `0`。
+  - 普通 C 实时文本 `4`，普通 C PNG `0`。
+  - 复杂公式仍走公式组件。
+- 浏览器拖拽验证 -> 通过：
+  - 拖 analysis 标签时 C 位移 `0,0`。
+  - 拖 C 时标签位移 `0,0`。
+  - C 纵向拖动 `-92px` 后未被固定区拉回。
+- 未完成验证：
+  - 录制按钮点击冒烟被浏览器安全策略拦下，未绕过；后续如需验证交付文件，用户手点录制按钮即可。
+
+### 接力棒（下一个单元从这里开始）
+
+- 当前状态：分片 chrome 已扁平模块化，旧固定四区 y clamp 已退出活链路，普通 C 已改实时文本，题目样式按标签比例收紧。
+- 下一步目标：抽普通 C DOM/录制共享文本 layout helper，继续收“实时文本同源”，再考虑持久化 label override。
+- 关键文件：`src/components/CoursewareSegmentChrome.tsx`、`src/components/AutoHandwritingLayer.tsx`、`src/components/BoardHandwritingStickerContent.tsx`、`src/modules/canvasStage/coursewareZoneLayout.ts`、`src/modules/canvasStage/drawCoursewareStageFrame.ts`
+- 已知的坑：不要恢复 `COURSEWARE_ZONE_BOUNDS` / `constrainYPercentToZone`；不要把普通 C 改回 PNG；标签持久化必须另设字段，不写 `boardSlice` 或 clip label。
+
+## 2026-06-07 04:27 Konva主舞台方向接手审计
+
+### 背景（为什么要做这个）
+
+- 用户明确要求后续主舞台控制按标准 Konva 方向处理，同时要求必须验证、必须按项目真相，不允许继续把普通 C 说成图片主路。
+- 当前最大风险不是单点代码，而是把 proof、当前生产链、内容来源、字体命中混成一团，导致下一任 agent 继续误切。
+
+### 思路（怎么想的）
+
+- 先确认真实框架和主链，再判断是否能切 Konva。
+- 区分三件事：
+  - Konva 依赖和 proof 已存在。
+  - 当前生产主链还不是 Konva。
+  - Konva 只有通过真实数据、真实录制、真实交互和字体 gate 后，才可以切公共入口。
+
+### 执行步骤（具体做了什么）
+
+1. 复核 `package.json`，确认项目为 React 19 + Vite + TypeScript + antd + zustand + `konva` / `react-konva`。
+2. 复核 `src/main.tsx`，确认 `standalone=konva-proof` 只是独立 proof 入口。
+3. 复核 `src/components/StagePreview.tsx`、`LegacyStagePreview.tsx`、`DrawboardStage.tsx`、`AutoHandwritingLayer.tsx`，确认当前生产主链。
+4. 复核 `KonvaRecordingSurface.tsx`、`KonvaProofPage.tsx`，确认它们不是生产主舞台。
+5. 复核 `useCanvasRecorder.ts`，确认录制仍按 base/content/overlay 三 canvas 合成。
+6. 拉只读 sub agent `Godel` 做事前审视；结论是今天不应盲切主舞台，应先记录 gated migration。
+7. 更新决策、状态、坑表、结构树和变更树。
+
+### 代码变更
+
+- 文件：`DECISIONS.md`
+  - 新增 Konva 作为主舞台控制方向但禁止盲切的决策与 gate。
+- 文件：`PROJECT_STATE.md`
+  - 更新当前阶段、主链事实、Konva proof 状态、字体未命中的接力棒。
+- 文件：`KNOWN_ISSUES.md`
+  - 新增字体真实命中问题与 Konva proof 误当生产主链问题。
+- 文件：`PROJECT_TREE.md`
+  - 补当前舞台公共入口、生产链与 Konva proof 入口。
+- 文件：`CHANGE_TREE变更树.md`
+  - 追加本枝目标、边界、验证和下一枝。
+
+### 发现和确认
+
+- 新确认的设计：
+  - Konva 是下一阶段主舞台控制标准方向，但当前不能从 proof 直接切生产。
+  - 普通 C 仍必须是 realtime text，来源是上一步生成并进入 timeline 的 board clip。
+  - 板书字体必须被真实验证，不能靠 style 字段假设命中。
+- 新发现的坑：
+  - `BoardHandwritingStickerContent` 当前没有真正用 `fontLoadKey` 等待或确认字体命中。
+  - `KonvaProofPage` 使用 sample canvas / sample clip / sample problem；直接接入会重造内容来源。
+- 结构树说明：
+  - 本单元没有新增源码模块，但补充了当前主链和 Konva proof 入口到 `PROJECT_TREE.md`。
+
+### 验证结果
+
+- 测试：`npm run typecheck` -> 通过。
+- 测试：`npm run check:board-boundaries` -> 通过。
+- 测试：`npm run check:board-handwriting-support` -> 通过。
+- 测试：`npm run check:continuity-docs` -> 通过。
+- 测试：`node scripts/audit-local-order.mjs` -> `NEEDS ORDERING`；项目连续性文档齐，`imptokens` 可用，但 `graphify`、`codesight`、`ccwf`、`ccwf-mcp` 不在 PATH。
+
+### 接力棒（下一个单元从这里开始）
+
+- 当前状态：Konva 主控方向已写入决策，但生产主链仍是 `StagePreview -> LegacyStagePreview -> DrawboardStage -> AutoHandwritingLayer`。
+- 下一步目标：先修普通 C 字体真实命中与 DOM/录制共享文本 layout；之后做 Konva content-layer pilot，消费真实 `TimelineClip` / `problemText.summary` / `CoursewareZoneBox`，暴露录制 content canvas。
+- 关键文件：`src/components/BoardHandwritingStickerContent.tsx`、`src/components/AutoHandwritingLayer.tsx`、`src/modules/boardFont/boardFontConfig.ts`、`src/components/KonvaRecordingSurface.tsx`、`src/standalone/KonvaProofPage.tsx`。
+- 已知的坑：不能把 `KonvaProofPage` sample 数据接进主工作台；不能恢复固定四区 clamp；不能让普通 C 回 PNG；不能把字体命中继续当作未验证假设。

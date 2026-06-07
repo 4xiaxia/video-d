@@ -1,3 +1,6 @@
+// @@API_CLIENT_BOARD_LAYOUT_PREVIEW
+// @route: VoiceWorkspace -> /api/agent/board-layout-preview -> layoutPreviewDraft
+// @trace-index: src/CORE_TRACE_TAGS.md
 import type { AppConfig } from '../config/defaultConfig';
 import type { CLayoutPreviewDraft, ScriptAgentDraftRow, StageCanvasConfig } from '../domain/teachingProject';
 

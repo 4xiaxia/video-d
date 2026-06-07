@@ -4,7 +4,7 @@
 // @io-input: CanvasRenderingContext2D, StageCanvasConfig, problem text summary
 // @io-output: painted canvas recording foundation frame
 // @boundary: render-only canvas foundation; does not read or mutate A audio, B timeline, C clips, or store
-// @truth-contract: 标签坐标和题文坐标来自 COURSEWARE_ZONE_BOUNDS，与 DOM .courseware-label / .courseware-problem-area 同源。
+// @truth-contract: 标签坐标和容器 bbox 来自 CoursewareZoneBox，与 DOM .courseware-label / .courseware-zone-box 同源。
 
 import type { StageCanvasConfig } from '../../domain/teachingProject';
 import {
@@ -16,6 +16,7 @@ import {
   COURSEWARE_PROBLEM_MAX_WIDTH_RATIO,
   COURSEWARE_PROBLEM_TOP_RATIO,
   COURSEWARE_SYSTEM_FONT_FAMILY,
+  resolveLabelFontSize,
   resolveProblemFontSize,
   wrapCoursewareSummaryText,
 } from './coursewareChrome';
@@ -56,7 +57,7 @@ function drawCoursewareFrameChrome(
 
   for (const zoneKey of COURSEWARE_ZONE_KEYS) {
     const zoneBox = zoneBoxes[zoneKey];
-    if (zoneBox.hasContent) {
+    if (zoneBox.hasContent && zoneKey !== 'problem') {
       drawZoneBox(context, canvas, zoneBox);
     }
     drawLabel(context, canvas, zoneBox.label, zoneBox.labelLeftRatio, zoneBox.labelTopRatio, zoneBox.labelAnchor);
@@ -79,7 +80,7 @@ function drawLabel(
   const w = resolvedLabelWidth;
   const h = canvas.height * COURSEWARE_LABEL_HEIGHT_RATIO;
   const borderRadius = Math.max(4, h * 0.28);
-  const fontSize = Math.max(14, h * 0.48);
+  const fontSize = resolveLabelFontSize(canvas);
 
   // 背景圆角块
   context.fillStyle = LABEL_BG;
@@ -126,7 +127,7 @@ function drawProblemSummary(context: CanvasRenderingContext2D, canvas: StageCanv
   const maxWidth = Math.min(canvas.width * COURSEWARE_PROBLEM_MAX_WIDTH_RATIO, 520 * (canvas.width / 1120));
 
   context.fillStyle = PROBLEM_TEXT;
-  context.font = `600 ${fontSize}px ${COURSEWARE_SYSTEM_FONT_FAMILY}`;
+  context.font = `400 ${fontSize}px ${COURSEWARE_SYSTEM_FONT_FAMILY}`;
   context.textAlign = 'left';
   context.textBaseline = 'top';
 

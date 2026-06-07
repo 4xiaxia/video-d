@@ -57,7 +57,7 @@
   cursor: grab;
   display: flex;
   font-family: var(--courseware-system-font, Inter, "Microsoft YaHei", "PingFang SC", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
-  font-size: 0.75rem;
+  font-size: var(--courseware-label-font-size, 0.75rem);
   font-weight: 600;
   height: 1.375rem;
   justify-content: center;
@@ -101,7 +101,7 @@
   color: #243247;
   font-family: var(--courseware-system-font, Inter, "Microsoft YaHei", "PingFang SC", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
   font-size: var(--stage-problem-font-size);
-  font-weight: 600;
+  font-weight: 400;
   line-height: var(--stage-problem-line-height);
   margin: 0;
   max-width: 100%;
@@ -377,6 +377,17 @@
   max-width: 100%;
   pointer-events: none;
   width: auto;
+}
+
+.board-text-sticker__live-text {
+  color: inherit;
+  display: block;
+  font-family: var(--board-handwriting-font);
+  font-size: var(--board-font-size);
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .board-text-sticker__write-ink {

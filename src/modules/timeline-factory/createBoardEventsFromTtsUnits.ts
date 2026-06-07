@@ -1,3 +1,5 @@
+// @@ABC_TTS_TO_BOARD_EVENT
+// @trace-index: src/CORE_TRACE_TAGS.md
 // @cleanroom-module: timeline-factory
 // @domain: board-audio-alignment
 // @slot: timeline-factory/board-event-generator

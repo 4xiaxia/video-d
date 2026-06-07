@@ -1,20 +1,18 @@
 // @cleanroom-component: BoardHandwritingStickerContent
 // @domain: board-sticker-rendering/handwriting
 // @slot: center-stage/c-canvas-sticker/handwriting
-// @depends: renderBoardTextStickerImage
+// @depends: native DOM text layout
 // @io-input: text, fontFamily, fontSize, fontLoadKey
-// @io-output: transparent handwriting image or fallback text
-// @boundary: handwriting content renderer only; does not own C frame geometry, math rendering, A timing, or B display
+// @io-output: realtime handwriting text
+// @boundary: handwriting content renderer only; does not own C frame geometry, math rendering, A timing, B display, or PNG generation
 // @font-contract: uses the board handwriting font family only; never render system chrome text such as stage labels or problem-area copy here.
 
-import { useEffect, useState } from 'react';
 import { normalizeBoardFontSize } from '../modules/boardFont/boardFontConfig';
-import { renderBoardTextStickerImage, type BoardTextStickerImage } from '../modules/boardSticker';
 
 export function BoardHandwritingStickerContent({
   color,
   fontFamily,
-  fontLoadKey,
+  fontLoadKey: _fontLoadKey,
   fontSize,
   text,
 }: {
@@ -24,35 +22,19 @@ export function BoardHandwritingStickerContent({
   fontSize: number;
   text: string;
 }) {
-  const [stickerImage, setStickerImage] = useState<BoardTextStickerImage | null>(null);
   const resolvedFontSize = normalizeBoardFontSize(fontSize);
 
-  useEffect(() => {
-    let isCancelled = false;
-
-    void renderBoardTextStickerImage(text, {
-      color,
-      fontFamily,
-      fontSize: resolvedFontSize,
-    }).then((nextImage) => {
-      if (!isCancelled) {
-        setStickerImage(nextImage);
-      }
-    });
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [color, fontFamily, fontLoadKey, resolvedFontSize, text]);
-
-  return stickerImage ? (
-    <img
-      alt=""
-      className="board-text-sticker__image"
-      draggable={false}
-      src={stickerImage.dataUrl}
-    />
-  ) : (
-    <span className="board-text-sticker__fallback">{text}</span>
+  return (
+    <span
+      className="board-text-sticker__live-text"
+      data-render-mode="realtime-text"
+      style={{
+        color,
+        fontFamily,
+        fontSize: `${resolvedFontSize}px`,
+      }}
+    >
+      {text}
+    </span>
   );
 }

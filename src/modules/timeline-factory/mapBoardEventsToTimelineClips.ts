@@ -1,3 +1,5 @@
+// @@ABC_BOARD_EVENT_TO_CLIP
+// @trace-index: src/CORE_TRACE_TAGS.md
 // @cleanroom-module: timeline-factory
 // @domain: board-audio-alignment
 // @slot: timeline-factory/board-event-to-clip-mapper

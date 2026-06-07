@@ -20,6 +20,7 @@ import {
 import type { BoardStageToolMode, StageRecordingCanvases } from './drawboardStageTypes';
 import { BoardStageToolOverlay } from './BoardStageToolOverlay';
 import { CanvasRecordingSurface } from './CanvasRecordingSurface';
+import { CoursewareSegmentChrome } from './CoursewareSegmentChrome';
 import { GoldenFingerCanvasLayer, type GoldenFingerCanvasLayerHandle } from './GoldenFingerCanvasLayer';
 import { MathText } from './MathText';
 
@@ -227,72 +228,14 @@ export function DrawboardStage({
           problemSummary={problemSummary}
           zoneBoxes={zoneBoxes}
         />
-        {Object.values(zoneBoxes).map((zoneBox) =>
-          zoneBox.hasContent ? (
-            <div
-              key={zoneBox.key}
-              aria-hidden="true"
-              className="courseware-zone-box"
-              style={{
-                left: `${zoneBox.leftRatio * 100}%`,
-                top: `${zoneBox.topRatio * 100}%`,
-                width: `${zoneBox.widthRatio * 100}%`,
-                height: `${zoneBox.heightRatio * 100}%`,
-              }}
-            />
-          ) : null,
-        )}
-        <div
-          className="courseware-label courseware-label--problem"
-          data-agent-anchor="stage-problem-label"
-          data-agent-zone="problem"
-          data-role="problem-zone-label"
-          data-dragging={draggingZoneKey === 'problem'}
-          data-anchor={zoneBoxes.problem.labelAnchor}
-          onPointerDown={(event) => startLabelDrag('problem', event)}
-          style={{
-            left: `${zoneBoxes.problem.labelLeftRatio * 100}%`,
-            top: `${zoneBoxes.problem.labelTopRatio * 100}%`,
-          }}
-        >
-          {zoneBoxes.problem.label}
-        </div>
-        <div
-          className="courseware-label courseware-label--analysis"
-          data-dragging={draggingZoneKey === 'analysis'}
-          data-anchor={zoneBoxes.analysis.labelAnchor}
-          onPointerDown={(event) => startLabelDrag('analysis', event)}
-          style={{
-            left: `${zoneBoxes.analysis.labelLeftRatio * 100}%`,
-            top: `${zoneBoxes.analysis.labelTopRatio * 100}%`,
-          }}
-        >
-          {zoneBoxes.analysis.label}
-        </div>
-        <div
-          className="courseware-label courseware-label--solution"
-          data-dragging={draggingZoneKey === 'solution'}
-          data-anchor={zoneBoxes.solution.labelAnchor}
-          onPointerDown={(event) => startLabelDrag('solution', event)}
-          style={{
-            left: `${zoneBoxes.solution.labelLeftRatio * 100}%`,
-            top: `${zoneBoxes.solution.labelTopRatio * 100}%`,
-          }}
-        >
-          {zoneBoxes.solution.label}
-        </div>
-        <div
-          className="courseware-label courseware-label--summary"
-          data-dragging={draggingZoneKey === 'summary'}
-          data-anchor={zoneBoxes.summary.labelAnchor}
-          onPointerDown={(event) => startLabelDrag('summary', event)}
-          style={{
-            left: `${zoneBoxes.summary.labelLeftRatio * 100}%`,
-            top: `${zoneBoxes.summary.labelTopRatio * 100}%`,
-          }}
-        >
-          {zoneBoxes.summary.label}
-        </div>
+        {COURSEWARE_ZONE_KEYS.map((zoneKey) => (
+          <CoursewareSegmentChrome
+            key={zoneKey}
+            isDragging={draggingZoneKey === zoneKey}
+            onLabelPointerDown={(event) => startLabelDrag(zoneKey, event)}
+            zoneBox={zoneBoxes[zoneKey]}
+          />
+        ))}
         <div
           className="courseware-problem-area"
           data-agent-anchor="stage-problem-area"

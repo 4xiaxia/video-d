@@ -23,14 +23,6 @@ export const COURSEWARE_LABEL_LEFT_RATIOS = {
   summary: COURSEWARE_LABEL_LEFT_RATIO,
 } as const;
 
-/** 四区域的完整边界定义（用于 C 位置约束）*/
-export const COURSEWARE_ZONE_BOUNDS = {
-  problem: { topRatio: 0.024, heightRatio: 0.2 },     // 题目区：顶部 2.4% ~ 22.4%
-  analysis: { topRatio: 0.24, heightRatio: 0.22 },    // 分析区：顶部 24% ~ 46%
-  solution: { topRatio: 0.024, heightRatio: 0.7 },    // 解答区：顶部 2.4% ~ 72.4%（最大区）
-  summary: { topRatio: 0.74, heightRatio: 0.24 },     // 总结区：顶部 74% ~ 98%
-} as const;
-
 export type CoursewareProblemSummaryLayout = {
   fontSize: number;
   height: number;
@@ -54,13 +46,18 @@ export function createCoursewareChromeStyleVars(canvas: StageCanvasConfig): CSSP
     '--courseware-problem-left': toPercent(COURSEWARE_PROBLEM_LEFT_RATIO),
     '--courseware-problem-top': toPercent(COURSEWARE_PROBLEM_TOP_RATIO),
     '--courseware-problem-width': toPercent(COURSEWARE_PROBLEM_MAX_WIDTH_RATIO),
+    '--courseware-label-font-size': `${resolveLabelFontSize(canvas)}px`,
     '--courseware-system-font': COURSEWARE_SYSTEM_FONT_FAMILY,
     '--stage-problem-font-size': `${resolveProblemFontSize(canvas)}px`,
   } as CSSProperties;
 }
 
+export function resolveLabelFontSize(canvas: StageCanvasConfig) {
+  return Math.max(14, canvas.height * COURSEWARE_LABEL_HEIGHT_RATIO * 0.48);
+}
+
 export function resolveProblemFontSize(canvas: StageCanvasConfig) {
-  return Math.max(18, canvas.height * 0.014);
+  return resolveLabelFontSize(canvas) * 1.5;
 }
 
 export function resolveProblemSummaryLayout(
@@ -85,7 +82,7 @@ export function resolveProblemSummaryLayout(
   const fontSize = resolveProblemFontSize(canvas);
   const lineHeight = fontSize * 1.46;
   const maxWidth = Math.min(canvas.width * COURSEWARE_PROBLEM_MAX_WIDTH_RATIO, 520 * (canvas.width / 1120));
-  measureContext.font = `600 ${fontSize}px ${COURSEWARE_SYSTEM_FONT_FAMILY}`;
+  measureContext.font = `400 ${fontSize}px ${COURSEWARE_SYSTEM_FONT_FAMILY}`;
   const lines = wrapCoursewareSummaryText(measureContext, text, maxWidth, 4);
   const width = lines.length
     ? Math.min(maxWidth, Math.max(...lines.map((line) => measureContext.measureText(line).width)))

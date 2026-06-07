@@ -54,6 +54,9 @@ export function CStickerFrame({
         isDragging ? 'is-dragging' : '',
         isSelected ? 'is-selected' : '',
       ].filter(Boolean).join(' ')}
+      data-agent-content-kind={contentKind}
+      data-agent-zone={zoneKey}
+      data-role="courseware-c-sticker"
       onPointerDown={onPointerDown}
       style={{
         color,

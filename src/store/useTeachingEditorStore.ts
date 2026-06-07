@@ -1,6 +1,7 @@
-﻿// @@STORE_ROOT
+// @@STORE_ROOT @@STORE_ENTRY @@STORE_ACTION_APPLY_SCRIPT_AGENT_DRAFT @@STORE_ACTION_APPLY_TTS_SENTENCE_RESULTS @@STORE_ACTION_APPLY_BOARD_EVENTS_TO_TIMELINE
 // 唯一状态管理入口：TeachingProject + AppConfig + ScriptAgentDraft + 播放状态
 // 关键 action：applyScriptAgentDraft / applyTtsSentenceResults / applyBoardEventsToTimeline / syncCAssetPrewarmQueue
+// 追踪索引：src/CORE_TRACE_TAGS.md
 import { create } from 'zustand';
 import { defaultConfig, type AppConfig } from '../config/defaultConfig';
 import {
