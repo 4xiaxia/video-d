@@ -62,15 +62,9 @@ export function BoardPreviewCard({
             // Map the items by checking if their groupKey roughly matches the zoneName
             // Note: CLayoutPreviewDraft items use groupKey to map to sections
             const zoneItems = sortedItems.filter(item => {
-               if (zoneName === 'problem' && item.groupKey === 'problem') return true;
-               if (zoneName === 'analysis' && item.groupKey === 'analysis') return true;
-               if (zoneName === 'solution' && item.groupKey === 'solution') return true;
-               if (zoneName === 'summary' && item.groupKey === 'summary') return true;
-
-               // Fallback mappings if exact match fails
                if (item.groupKey === '开场读题' && zoneName === 'problem') return true;
                if (item.groupKey === '分析题目' && zoneName === 'analysis') return true;
-               if (item.groupKey.startsWith('解题步骤') && zoneName === 'solution') return true;
+               if (item.groupKey === '解题环节' && zoneName === 'solution') return true;
                if (item.groupKey === '梳理总结' && zoneName === 'summary') return true;
 
                return false;

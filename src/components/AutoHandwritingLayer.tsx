@@ -33,12 +33,34 @@ import type { BoardClipPatch } from './drawboardStageTypes';
  * 根据 chainKey 获取 C 应该落在的四区域
  * template-open / template-pre / step-N / template-end → 对应的区域
  */
-function getZoneNameFromChainKey(chainKey: string | undefined): keyof typeof COURSEWARE_ZONE_BOUNDS {
-  if (chainKey === 'template-open') return 'problem';
-  if (chainKey === 'template-pre') return 'analysis';
-  if (chainKey === 'template-end') return 'summary';
-  if (chainKey?.startsWith('step-')) return 'solution';
-  return 'solution'; // 默认解答区
+function getZoneNameFromChainKey(chainKey: string | undefined): keyof typeof COURSEWARE_ZONE_BOUNDS | 'unbound' {
+  if (!chainKey) return 'unbound';
+
+  if (
+    chainKey === 'template-open' ||
+    chainKey === 'A-template-open' ||
+    chainKey === 'B-template-open' ||
+    chainKey === 'C-template-open'
+  ) return 'problem';
+
+  if (
+    chainKey === 'template-pre' ||
+    chainKey === 'A-template-pre' ||
+    chainKey === 'B-template-pre' ||
+    chainKey === 'C-template-pre'
+  ) return 'analysis';
+
+  if (
+    chainKey === 'template-end' ||
+    chainKey === 'A-template-end' ||
+    chainKey === 'B-template-end' ||
+    chainKey === 'C-template-end'
+  ) return 'summary';
+
+  if (chainKey.startsWith('step-')) return 'solution';
+
+  // Strict matching rule: identity must not fallback to a formal identity if unrecognized
+  return 'unbound';
 }
 
 /**

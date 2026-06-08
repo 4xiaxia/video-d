@@ -37,10 +37,11 @@ export function BoardZoneContainer({
         boxSizing: 'border-box',
         touchAction: 'none',
       } as CSSProperties}
-      onPointerDown={onPointerDown}
+
     >
       <div
         className={`courseware-label courseware-label--${zoneName}`}
+        onPointerDown={onPointerDown}
         style={{
           position: 'relative',
           left: 'auto',
