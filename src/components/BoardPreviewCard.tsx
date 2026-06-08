@@ -1,22 +1,16 @@
-﻿// @cleanroom-component: BoardPreviewCard
+// @cleanroom-component: BoardPreviewCard
 // @domain: teaching-assets
 // @slot: left-sider/board-preview
-// @depends: CLayoutPreviewDraft, StageCanvasConfig, tldraw
+// @depends: CLayoutPreviewDraft, StageCanvasConfig
 // @route-impact: App shell only
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Tag, Typography } from 'antd';
-import { createShapeId, Editor, Tldraw, toRichText } from 'tldraw';
-import 'tldraw/tldraw.css';
 import type { CLayoutPreviewDraft, StageCanvasConfig } from '../domain/teachingProject';
-import { resolveTldrawStageSize } from '../modules/tldrawStage/abcToTldrawShapes';
+import { BoardZoneContainer, type BoardZoneName } from './BoardZoneContainer';
+import { COURSEWARE_ZONE_BOUNDS } from '../modules/canvasStage/coursewareChrome';
 
 const { Text } = Typography;
-
-const PREVIEW_SHAPE_IDS = {
-  frame: createShapeId('layout-preview-frame'),
-  title: createShapeId('layout-preview-title'),
-};
 
 export function BoardPreviewCard({
   draft,
@@ -25,85 +19,10 @@ export function BoardPreviewCard({
   draft: CLayoutPreviewDraft | null;
   stageCanvas: StageCanvasConfig;
 }) {
-  const [editor, setEditor] = useState<Editor | null>(null);
-  const stageSize = useMemo(() => resolveTldrawStageSize(stageCanvas), [stageCanvas]);
-  const draftKey = useMemo(
-    () =>
-      draft?.items
-        .map((item) => `${item.id}:${item.xPercent}:${item.yPercent}:${item.widthPercent}:${item.fontSize}:${item.stackIndex}`)
-        .join('|') ?? '',
-    [draft],
-  );
-
-  useEffect(() => {
-    if (!editor) return;
-
-    const stalePreviewShapeIds = editor
-      .getCurrentPageShapes()
-      .map((shape) => shape.id)
-      .filter((shapeId) => String(shapeId).startsWith('shape:layout-preview-item-'));
-
-    editor.run(() => {
-      editor.deleteShapes([
-        PREVIEW_SHAPE_IDS.frame,
-        PREVIEW_SHAPE_IDS.title,
-        ...stalePreviewShapeIds,
-      ].filter((id) => editor.getShape(id)));
-
-      if (!draft?.items.length) {
-        return;
-      }
-
-      const sortedItems = [...draft.items].sort((a, b) => a.stackIndex - b.stackIndex || a.id.localeCompare(b.id));
-
-      editor.createShapes([
-        {
-          id: PREVIEW_SHAPE_IDS.frame,
-          type: 'geo',
-          x: 0,
-          y: 0,
-          props: {
-            geo: 'rectangle',
-            w: stageSize.width,
-            h: stageSize.height,
-            color: 'light-blue',
-            fill: 'none',
-            dash: 'draw',
-            size: 'xl',
-          },
-        },
-        {
-          id: PREVIEW_SHAPE_IDS.title,
-          type: 'text',
-          x: stageSize.width * 0.04,
-          y: stageSize.height * 0.04,
-          props: {
-            richText: toRichText('板书排版预览（临时）'),
-            size: 'm',
-            font: 'draw',
-            color: 'light-blue',
-            autoSize: true,
-          },
-        },
-        ...sortedItems.map((item) => ({
-          id: createShapeId(`layout-preview-item-${item.id}`),
-          type: 'text' as const,
-          x: stageSize.width * (item.xPercent / 100),
-          y: stageSize.height * (item.yPercent / 100),
-          props: {
-            richText: toRichText(item.text),
-            size: resolvePreviewTextSize(item.fontSize),
-            font: 'draw' as const,
-            color: 'black' as const,
-            w: stageSize.width * (item.widthPercent / 100),
-            autoSize: false,
-          },
-        })),
-      ]);
-
-      editor.zoomToBounds({ x: 0, y: 0, w: stageSize.width, h: stageSize.height }, { animation: { duration: 0 }, inset: 20 });
-    }, { history: 'ignore' });
-  }, [draft?.items.length, draftKey, editor, draft, stageSize.height, stageSize.width]);
+  const sortedItems = useMemo(() => {
+    if (!draft?.items) return [];
+    return [...draft.items].sort((a, b) => a.stackIndex - b.stackIndex || a.id.localeCompare(b.id));
+  }, [draft?.items]);
 
   return (
     <section className="board-preview-card" aria-label="板书预览">
@@ -112,12 +31,83 @@ export function BoardPreviewCard({
         {draft?.items.length ? `临时预览 ${draft.items.length} 项` : '暂无预览'}
       </Tag>
       {draft?.items.length ? (
-        <div className="board-preview-canvas-wrap" aria-label="板书排版预览画布">
-          <Tldraw
-            hideUi
-            onMount={setEditor}
-            persistenceKey="board-layout-preview-sidecard"
-          />
+        <div
+          className="board-preview-canvas-wrap"
+          aria-label="板书排版预览画布"
+          style={{
+             position: 'relative',
+             width: '100%',
+             aspectRatio: `${stageCanvas.width} / ${stageCanvas.height}`,
+             background: stageCanvas.background || '#ffffff',
+             border: '2px dashed #59cee5',
+             overflow: 'hidden',
+             transform: 'scale(1)',
+             transformOrigin: 'top left'
+          }}
+        >
+          <div style={{
+            position: 'absolute',
+            left: '4%',
+            top: '4%',
+            color: '#59cee5',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            fontFamily: 'sans-serif'
+          }}>
+             板书排版预览（临时）
+          </div>
+          {['problem', 'analysis', 'solution', 'summary'].map((zoneId) => {
+            const zoneName = zoneId as BoardZoneName;
+
+            // Map the items by checking if their groupKey roughly matches the zoneName
+            // Note: CLayoutPreviewDraft items use groupKey to map to sections
+            const zoneItems = sortedItems.filter(item => {
+               if (item.groupKey === '开场读题' && zoneName === 'problem') return true;
+               if (item.groupKey === '分析题目' && zoneName === 'analysis') return true;
+               if (item.groupKey === '解题环节' && zoneName === 'solution') return true;
+               if (item.groupKey === '梳理总结' && zoneName === 'summary') return true;
+
+               return false;
+            });
+
+            if (zoneItems.length === 0) return null;
+
+            const firstItem = zoneItems[0];
+            let label = '';
+            if (zoneName === 'problem') label = '题目';
+            else if (zoneName === 'analysis') label = '分析';
+            else if (zoneName === 'solution') label = '解答';
+            else if (zoneName === 'summary') label = '总结';
+
+            const zoneBound = COURSEWARE_ZONE_BOUNDS[zoneName];
+
+            return (
+              <BoardZoneContainer
+                key={zoneName}
+                zoneName={zoneName}
+                label={label}
+                xPercent={firstItem.xPercent}
+                yPercent={Math.max(zoneBound.topRatio * 100, firstItem.yPercent)}
+                widthPercent={firstItem.widthPercent}
+              >
+                 {zoneItems.map(item => (
+                    <div
+                      key={item.id}
+                      style={{
+                         fontFamily: stageCanvas.boardFontFamily,
+                         fontSize: `${Math.max(12, item.fontSize * 0.4)}px`, // scale down for preview
+                         color: '#111111',
+                         marginBottom: '4px',
+                         whiteSpace: 'pre-wrap',
+                         wordBreak: 'break-word'
+                      }}
+                    >
+                       {item.text}
+                    </div>
+                 ))}
+              </BoardZoneContainer>
+            );
+          })}
         </div>
       ) : (
         <div className="board-preview-placeholder">暂无板书预览</div>
@@ -125,11 +115,4 @@ export function BoardPreviewCard({
       <Text type="secondary">用于视觉评审（临时态），不写正式 C 真相。</Text>
     </section>
   );
-}
-
-function resolvePreviewTextSize(fontSize: number): 's' | 'm' | 'l' | 'xl' {
-  if (fontSize >= 46) return 'xl';
-  if (fontSize >= 34) return 'l';
-  if (fontSize >= 24) return 'm';
-  return 's';
 }

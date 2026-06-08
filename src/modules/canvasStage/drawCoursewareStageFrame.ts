@@ -45,39 +45,6 @@ function drawCoursewareFrameChrome(context: CanvasRenderingContext2D, canvas: St
   context.strokeStyle = FRAME_STROKE;
   context.lineWidth = lineWidth;
   context.strokeRect(lineWidth / 2, lineWidth / 2, canvas.width - lineWidth, canvas.height - lineWidth);
-
-  // 四区标签 — 与 DOM .courseware-label 坐标同源
-  drawLabel(context, canvas, '题目', COURSEWARE_LABEL_LEFT_RATIOS.problem, COURSEWARE_LABEL_TOP_RATIOS.problem);
-  drawLabel(context, canvas, '分析', COURSEWARE_LABEL_LEFT_RATIOS.analysis, COURSEWARE_LABEL_TOP_RATIOS.analysis);
-  drawLabel(context, canvas, '解答', COURSEWARE_LABEL_LEFT_RATIOS.solution, COURSEWARE_LABEL_TOP_RATIOS.solution);
-  drawLabel(context, canvas, '总结', COURSEWARE_LABEL_LEFT_RATIOS.summary, COURSEWARE_LABEL_TOP_RATIOS.summary);
-}
-
-function drawLabel(
-  context: CanvasRenderingContext2D,
-  canvas: StageCanvasConfig,
-  text: string,
-  leftRatio: number,
-  topRatio: number,
-) {
-  const x = canvas.width * leftRatio;
-  const y = canvas.height * topRatio;
-  const w = canvas.width * COURSEWARE_LABEL_WIDTH_RATIO;
-  const h = canvas.height * COURSEWARE_LABEL_HEIGHT_RATIO;
-  const borderRadius = Math.max(4, h * 0.28);
-  const fontSize = Math.max(14, h * 0.48);
-
-  // 背景圆角块
-  context.fillStyle = LABEL_BG;
-  roundedRect(context, x, y, w, h, borderRadius);
-  context.fill();
-
-  // 文字
-  context.fillStyle = LABEL_TEXT;
-  context.font = `700 ${fontSize}px sans-serif`;
-  context.textAlign = 'center';
-  context.textBaseline = 'middle';
-  context.fillText(text, x + w / 2, y + h / 2);
 }
 
 function drawProblemSummary(context: CanvasRenderingContext2D, canvas: StageCanvasConfig, problemSummary: string) {

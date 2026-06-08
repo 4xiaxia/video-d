@@ -101,10 +101,6 @@ export function DrawboardStage({
         } as CSSProperties}
       >
         <CanvasRecordingSurface canvas={canvas} onCanvasReady={setBaseCanvasEl} problemSummary={problemSummary} />
-        <div className="courseware-label courseware-label--problem">题目</div>
-        <div className="courseware-label courseware-label--analysis">分析</div>
-        <div className="courseware-label courseware-label--solution">解答</div>
-        <div className="courseware-label courseware-label--summary">总结</div>
         <div className="courseware-problem-area">
           {problemSummary ? (
             <MathText as="p" className="stage-problem-text">
