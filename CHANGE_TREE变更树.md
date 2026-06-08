@@ -1,8 +1,58 @@
 # Change Tree
-# md文档怎么命名：（类型）-名称-时间（到秒）.md  
+# md文档怎么命名：（类型）-名称-时间（到秒）.md
 
 
 cleanroom 的枝桠变动树。每次 side/枝桠动文件后，都在这里登记目标、文件变动、校验和下一枝入口。
+
+## 2026-06-07_代码噪音筛查review
+
+- 目标：
+  - 先 review 过期代码是否清理干净，找出旧链路残留和 CSS 可合并点。
+  - 本轮只做筛查与记录，不删除、不迁移、不改业务行为。
+- 已做：
+  - 复核当前底层逻辑：生产主链仍是 `StagePreview -> LegacyStagePreview -> DrawboardStage -> AutoHandwritingLayer`；普通 C 是 DOM realtime text + Konva content canvas 录制。
+  - 用 PowerShell 与内置搜索扫描 `tldraw`、`Tldraw`、`renderBoardTextStickerImage`、`fillText`、`constrainYPercentToZone`、`Legacy` 等关键词。
+  - 确认活链路尾巴：`src/components/BoardPreviewCard.tsx` 仍 import/render `tldraw`，且由 `src/components/VoiceWorkspace.tsx` 第三步入口使用。
+  - 确认混杂旧模块：`src/modules/tldrawStage/abcToTldrawShapes.ts` 中 `resolveTldrawStageSize` 仍被活入口使用，但 `syncAbcStageToTldraw` 等旧舞台同步逻辑不应复活。
+  - 确认全局 CSS 残留：`src/styles.css` 末尾 `.tldraw-proof-*` / `.tldraw-stage-*` 只对应 `src/_deprecated` 旧组件，活组件未引用。
+  - 新增 `代码噪音筛查-review-2026-06-07.md` 作为本轮发现清单、风险等级和建议清理顺序。
+  - 更新 `PROJECT_STATE.md`、`ENGINEERING_LOG.md`、`KNOWN_ISSUES.md`、`PROJECT_TREE.md`、`.workbuddy/memory/2026-06-07.md`。
+- 边界：
+  - `LegacyStagePreview` 名字旧但仍是现任生产链，不能按名字清理。
+  - `isLegacyPreviewMessage`、`stripLegacyTags`、`legacyBoardMarkerPattern`、`data-legacy-anchor` 是兼容/清洁逻辑，不是死代码。
+  - `renderBoardTextStickerImage` / `renderBoardMathStickerImage` 仍是备用/旧路模块；普通 C 不许回主路，但本轮不盲删。
+- 校验：
+  - `rg` 当前不在 PATH，`rg --files ...` 返回 `'rg' is not recognized`；已改用 PowerShell。
+  - PowerShell 关键词扫描完成，输出 artifact `cmd-1780841720292.txt`。
+  - CSS 未引用类与重复 block 扫描完成，确认 tldraw 样式残留与 standalone/prototype 重复块。
+  - `npm run check:continuity-docs` -> 通过。
+- 下一枝：
+  - 第一刀清 `src/styles.css` 末尾 tldraw proof/stage 全局样式。
+  - 第二刀把 `BoardPreviewCard` 去 tldraw 化。
+  - 第三刀清 `src/modules/tldrawStage/abcToTldrawShapes.ts` 与 `package.json` 的 `tldraw` 依赖。
+
+## 2026-06-07_C内容录制层Konva最小接入
+
+- 目标：
+  - 不全切主舞台，只把 C content 录制层接入标准 Konva Text canvas。
+  - 保持普通 C 页面预览为 DOM realtime text，保持 C 拖拽/缩放写回链路不动。
+- 已做：
+  - 复核 `src/components/BoardHandwritingStickerContent.tsx`：普通 C 页面预览是 `data-render-mode="realtime-text"`，不回 PNG。
+  - 复核 `src/components/AutoHandwritingLayer.tsx`：C content 录制层为 `KonvaBoardContentRecordingSurface`，使用 `react-konva` 的 `Stage` / `Layer` / `Group` / `Text` 产出隐藏 canvas。
+  - 确认 `onRecordingCanvasReady` 继续暴露 `HTMLCanvasElement` 给 `src/modules/stageRecorder/useCanvasRecorder.ts` 三层合成链。
+  - 复核 `scripts/check-board-boundaries.mjs`：普通 C 录制守门要求 Konva content canvas，禁止 Canvas2D `fillText`、`drawRealtimeTextWithRevealClip`、`renderBoardTextStickerImage(`、`renderBoardMathStickerImage(` 回潮。
+  - 更新 `PROJECT_STATE.md`、`.workbuddy/memory/2026-06-07.md`、`ENGINEERING_LOG.md`、`PROJECT_TREE.md`。
+- 边界：
+  - 本刀不切 `StagePreview` 公共入口；生产主链仍是 `StagePreview -> LegacyStagePreview -> DrawboardStage -> AutoHandwritingLayer`。
+  - 不把 `KonvaProofPage` sample 数据接入主链。
+  - 复杂公式/结构数学页面渲染仍由 `BoardMathStickerContent` / `FormulaText` 负责；后续复杂公式 Konva 化必须单独过 gate。
+- 校验：
+  - `node scripts/audit-local-order.mjs` -> `ORDERED`。
+  - `npm run typecheck` -> 通过。
+  - `npm run check:board-boundaries` -> 通过。
+  - `npm run check:continuity-docs` -> 通过。
+- 下一枝：
+  - 抽 DOM/Konva 共享文本 layout helper，减少换行/高度估算漂移；之后再做真实主舞台 Konva pilot。
 
 ## 2026-06-06_秩序专武落地到项目桌面工具目录
 
@@ -4618,3 +4668,139 @@ untime/node/npm.cmd run check:board-event-clips 通过。
 - 下一枝：
   - 先修普通 C 字体真实命中与 DOM/录制共享文本 layout；这是 Konva content-layer pilot 的前置 gate。
   - Konva pilot 必须消费真实 `TimelineClip`、真实 `problemText.summary`、真实 `CoursewareZoneBox`，并暴露录制 content canvas；通过后才能改 `StagePreview` 公共入口。
+
+## 2026-06-07_C内容录制层Konva Text最小接入
+
+- 目标：
+  - 不搞坏当前二开底子；按用户最新口径把 C 内容录制层从手写 Canvas2D 改成标准 Konva。
+  - 保持普通 C 不走图片，继续手写字体实时打字。
+  - 保持 DOM 预览和录制内容来源一一对应。
+- 已做：
+  - `src/components/AutoHandwritingLayer.tsx`
+    - 新增 `KonvaBoardContentRecordingSurface`，用 `react-konva` Stage/Layer/Text 暴露隐藏 content canvas。
+    - 继续从 `TimelineClip.label` 经 `resolveBoardTextDisplayRoute` 取显示文本。
+    - 保留 DOM preview、C select/drag/resize、`onUpdateBoardClip` 写回链路。
+  - `scripts/check-board-boundaries.mjs`
+    - 新增守门：C content 录制必须存在 Konva content canvas。
+    - 禁止普通 C 录制出现 `context.fillText`、`renderBoardTextStickerImage(`、`renderBoardMathStickerImage(`。
+  - `ARCHITECTURE.md` / `DECISIONS.md` / `KNOWN_ISSUES.md` / `PROJECT_STATE.md` / `ENGINEERING_LOG.md` / `PROJECT_TREE.md`
+    - 写入本轮接力事实、边界、验证结果和下一枝。
+- 边界：
+  - 不切 `StagePreview` 公共入口。
+  - 不接 `KonvaProofPage` sample 数据。
+  - 不改第二步 rows 合同，不改题目正文真相，不改 A/B/C 字段来源。
+- 校验：
+  - `node scripts/audit-local-order.mjs` -> `ORDERED`。
+  - `npm run typecheck` -> 通过。
+  - `npm run check:board-boundaries` -> 通过。
+  - `npm run check:continuity-docs` -> 通过。
+- 下一枝：
+  - 抽 DOM/Konva 共享文本 layout helper，统一换行、高度、padding 和 reveal 口径。
+  - 再做真实主舞台 Konva pilot，必须消费真实 timeline clip、真实题文、真实 zone boxes 和三层录制。
+
+## 2026-06-08_板书字体真相修复（大局：根因=字体没接本地链）
+
+- 病灶（夏夏报"符号栏/字体引用/容器布局乱"，逐行+字体文件实测）：
+  - 真根因不是护栏被删，是"路由白名单≠字体字形覆盖"两套支持被当成一套。
+  - 生产默认走远程 zeoseven 切片字体(`PING FANG SHAGN SHANG QIAN`)，本地两个 .ttf 只在 standalone 测试页用，没接生产主链。
+  - fallback `"平方上尚签"` 是死名(无 @font-face)，直接掉 KaiTi。
+  - 字体实测：平方乔木体 0 个数学字形；ChenYuluoyan 落雁体 11/15(× ÷ √ ∠ △ ± ≠ ° · ∵ ∴ 有，≤ ≥ ≈ π 缺)。
+  - 同事(GPT)删 `×→x` ASCII 退化护栏，理由"白名单有×"=误把路由当字形 → × 进无字形乔木体 → 静默回退 KaiTi → 屏幕花。
+- 夏夏决策：文字走平方乔木体(她喜欢的调性)，乔木缺的数学符号回退落雁体，落雁也缺的(≤≥≈π)留给"最后做特殊符号映射"，先保大局。
+- 已做（唯一性：升级逻辑只收在配置中心一处）：
+  - `src/modules/boardFont/boardFontConfig.ts`
+    - 默认 `DEFAULT_BOARD_FONT_URL=''`(不再远程)、`DEFAULT_BOARD_FONT_NAME='Xiaxia Qiaomu Board'`、fallback `'"ChenYuluoyan Board", "KaiTi", "STKaiti", serif'`。
+    - `createBoardTypographyConfig` 内置旧存档升级：识别废弃远程字体名/zeoseven URL，自动升级到本地默认。三条路径(mergeConfig/createStageCanvasFromConfig/normalizeStageCanvas)统一走这一处。
+  - `src/stage.css`
+    - `:root --board-handwriting-font` 同步为乔木→落雁→KaiTi 本地链(录制底图兜底)。
+  - `scripts/check-board-font-glyph-coverage.mjs`（新增守门）
+    - 实测乔木+落雁 cmap，验证 11 个必需符号真有字形；≤≥≈π 列为 KNOWN_GAP 留给特殊符号映射。
+    - 堵上"路由白名单全绿但字体无字形"的认知陷阱(同事踩坑、smoke 只验路由不验字形)。
+  - `package.json` 注册 `check:board-font-glyph-coverage`。
+- 边界：
+  - 本轮只修字体链(大局)；同事改对的 padding 10px、弹性容器、标签联动 zoneOffsets、$ 混排护栏、去 PNG 全部保留。
+  - 不动第二步 rows 合同、题目正文真相、A/B/C 字段来源。
+  - 容器布局漂移(分析文本飘出容器框)、解答区双字体不一致、特殊符号映射(≤≥≈π)= 后续单独的刀。
+- 校验：
+  - `npm run typecheck` -> 通过。
+  - `npm run check:board-boundaries` -> 通过。
+  - `npm run check:board-handwriting-support` -> 通过。
+  - `npm run check:board-font-glyph-coverage` -> 通过(11 字形齐备，4 缺口已登记)。
+- 下一枝：
+  - 最后做特殊符号映射：≤→? ≥→? ≈→? π→? 或给这 4 个补字体/路由公式。
+  - 修容器布局漂移：分析/解答 C 文本 xPercent/yPercent 与 zone 容器框 bbox 对齐。
+  - 查解答区双字体：为何 `342+430=772` 走 KaTeX 公式路而 `772-48=724` 走手写路，同源裂点。
+  - 清 tldraw 活尾巴(BoardPreviewCard)。
+
+## 2026-06-08_标签↔板书映射唯一性修复（命根子）
+
+- 病灶（夏夏："标签和板书映射错了，这个千万不能错的东西怎么错了"）：
+  - 根因=同一个 chainKey 被两套规则解读，违反映射表"chainKey 是否唯一=是"。
+  - `abcChainKey.ts:4-12` 上游会产出带 purpose 后缀的 chainKey：`template-open-xxx` / `template-pre-analysis` / `template-end-summary`。
+  - 标签端 `createAbcChainLabels`(57行正则)、`isBoardMaterialChainKey`(89行正则)、`scriptSegmentDisplayLabels` 都认后缀。
+  - 但分区归组端 `getZoneNameFromChainKey` 只做精确等于 → 带后缀的分析/总结/开场板书全掉进默认 `solution` → 标签认得、容器归错组。
+  - 层级排序端 `boardClipLayerOrder.readChainStepIndex` 同病 → 带后缀板书层级锚点掉进 INFINITY，排到 step 之后。
+- 已做（两端规则与 createAbcChainLabels 统一为前缀判定）：
+  - `src/modules/canvasStage/coursewareZoneLayout.ts` `getZoneNameFromChainKey`
+    - `template-open`/`template-pre`/`template-end` 各加 `|| startsWith('xxx-')` 前缀兼容。
+  - `src/modules/boardOrdering/boardClipLayerOrder.ts` `readChainStepIndex`
+    - 同样三处加前缀兼容，开场 -300 / 分析 -200 / 总结 1_000_000 锚点对带后缀也生效。
+- 核对（全仓扫 `=== 'template-*'` 精确等于）：
+  - `abcChainKey.ts:34-54/88` 精确等于下方均有正则兜底，逻辑完整不漏。
+  - `scriptSegmentDisplayLabels.ts` 本就带 startsWith，对。
+  - `ScriptAgentTableEditor.tsx:254` 是第二步表格映射文案显示分支，开场不带 C 板书，行为合理非 bug。
+- 对齐真相：`ABC字段函数前端映射表.md:46` chainKey "只决定分片身份和标签归组、是否唯一=是"——本修复恢复该唯一性。
+- 校验：
+  - `npm run typecheck` -> 通过。
+  - `npm run check:board-boundaries` -> 通过。
+- 下一枝（接续字体那一刀的遗留）：
+  - 特殊符号映射 ≤≥≈π；容器布局漂移；解答区双字体同源裂点；tldraw 活尾巴。
+
+## 2026-06-08_板书上画布修复 + 第二步分区列显示名对齐画布标签
+
+- 夏夏诉求：
+  - "明明给了板书内容，为什么写不到画布去？" → 编辑态板书全部不可见。
+  - 第二步表格"分区"列显示 开场读题/分析题目/解题环节/梳理总结，画布标签却是 题目/分析/解答/总结，两套中文名增加理解成本。
+- 🔴 不可动的根（夏夏铁律）：
+  - A-template-open / template-open / 开场读题 这一整套底层身份定义是根，一动全盘散沙。
+  - 本轮所有改动均未碰：section value、chainKey、CHAIN_KEY_RULES、A/B/C 身份。
+- 已做（板书上画布根因）：
+  - 病灶：`AutoHandwritingLayer` 用 `isBoardClipVisibleAtPlayhead(playheadMs>=startMs)` + `getBoardRevealProgress` 双重按播放头过滤。编辑态 playheadMs=0，所有 startMs>0 的板书 clip 全不可见且 reveal=0 → 画布全白。内容/标签/分片都对，只是被时间过滤挡掉。
+  - 修：引入 `isPlaying` 沿 App→StagePreview(LegacyStagePreview)→AutoHandwritingLayer prop 链传递。编辑态(非播放)板书全显示且 reveal=1（"写完留场"语义）；播放态才按播放头逐字 reveal。standalone 两个测试页传 isPlaying 保留拖播放头测 reveal 行为。
+- 已做（分区列显示名对齐画布，稳妥版·根未动）：
+  - 只改 `globalRules.ts` SCRIPT_SECTION_OPTIONS 的 label 为 题目/分析/解答/总结；value 仍是 section 业务根值(开场读题…)。
+  - antd Select 按 value 命中 option 显示其 label → 表格显示画布标签名，用户不再脑内换算。底层 section 值、chainKey、agent 规则文案、旧数据零影响。
+  - 边界：agent A/B/C 占位规则提示文案(233/271-282)仍用 section 语义名(读题/分析动词)，解释 agent 行为维度，与画布标签(内容归属维度)不同，不强改。
+- 诊断未改（留给夏夏拍板的下一刀）：
+  - 坐标三套真相打架：`mapBoardEventsToTimelineClips:53` 用 `28+index%3*18` 散布公式生成 clip 初始坐标，不认标签锚点 → 内容飘出对应容器框。
+  - 夏夏定义的唯一真相模型：标签=起点锚点；初始时 标签+板书+10px=分片盒子，以标签位置为起点；长按标签拖整盒、盒内单内容可独立拖。
+  - 标签锚点现成稳定真相在 `coursewareChrome.ts:13-24`(四区固定起点比例)。
+- 校验：
+  - `npm run typecheck` -> 通过。
+  - `npm run check:board-boundaries` / `check:timeline-window-contract` -> 通过。
+- 下一枝：
+  - 按夏夏"标签为起点锚点"模型重写 clip 初始坐标：删 index 散布公式，改成读标签锚点+10px、同分区内按步骤顺序堆叠。
+  - 特殊符号映射 ≤≥≈π；解答区双字体同源裂点。
+
+## 2026-06-08_板书初始站位以标签为起点 + 左上角定位 + 换行修复
+
+- 夏夏最初定义(一开始就讲清，是上一个agent没照做)：标签=提手/起点，标签+板书+10px=盒子，以标签位置为起点定下初始站位；长按标签拖整盒、盒内单内容可独立拖。默认值由锚点算、被拖动则新值覆盖（见 memory default-from-anchor-override-wins）。
+- 已做（初始站位默认算法，最小刀只动 default 不碰拖动 override 链）：
+  - `mapBoardEventsToTimelineClips.ts`：删脏的 `28+index%3*18` 散布公式（只认序号不认分区）。
+  - 改为读 `getZoneNameFromChainKey(event.chainKey)` → 取 `coursewareChrome` 标签锚点(COURSEWARE_LABEL_LEFT/TOP_RATIOS) → xPercent=标签左上角，yPercent=标签下方+同分区按顺序(rowInZone)纵向堆叠。
+- 已做（定位锚点：中心→左上角，三处同步保唯一）：
+  - 根因：贴纸 `translate(-50%,-50%)` 是中心定位，但夏夏模型是"以标签左上角为起点"，矛盾导致内容宽度一变就左右飘(分析溢出)。
+  - `stage.css:358` 删 `transform: translate(-50%,-50%)` → 左上角。
+  - `AutoHandwritingLayer.createKonvaTextLayout` 删 `-width/2 / -height/2` → 录制层同左上角。
+  - 初始算法去掉 +17% 半宽偏移 → xPercent 直接=标签左缘。
+  - 拖动 `createBoardStickerMovePatch` 是纯增量(delta)，与锚点无关，不受影响、不改。
+- 已做（换行丢失修复）：
+  - 根因：`mathBoardText.ts:125` `normalizeElementaryBoardHandwritingText` 收尾 `.replace(/\s+/g,' ')`，`\s` 含 `\n`，把多行板书压成一行。
+  - 改为 `.replace(/[\t ]+/g,' ').replace(/ *\n */g,'\n')`：只压行内空白，保留用户换行（boardSlice \n 是内容真相）。
+- ⚠️ 一次性代价：去 translate 后，旧项目"已拖动过"的中心坐标会按左上角解读偏半身位；新生成项目无影响（初始算法已配套左上角）。
+- 校验：
+  - `npm run typecheck` -> 通过。
+  - `npm run check:board-boundaries` -> 通过。
+- 下一枝：
+  - 容器虚线框仍按 DOM bbox 测量(coursewareZoneLayout)，现内容已对齐标签，需复看框是否仍贴合；间距常量(GAP 4% / ROW_STEP 13%)按实际效果微调。
+  - 特殊符号映射 ≤≥≈π；解答区双字体同源裂点。

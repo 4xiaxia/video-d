@@ -19,17 +19,20 @@ function readBoardLayerEndAnchorMs(clip: TimelineClip): number {
 }
 
 function readChainStepIndex(chainKey: string | undefined): number {
-  if (chainKey === 'template-open') {
+  // @xiaxia-2026-06-08 与 getZoneNameFromChainKey / createAbcChainLabels 同一套前缀判定：
+  // chainKey 可能带 purpose 后缀(template-open-xxx / template-pre-analysis / template-end-summary)，
+  // 只做精确等于会让带后缀的开场/分析/总结板书层级锚点全掉进 INFINITY，排到 step 之后。
+  if (chainKey === 'template-open' || chainKey?.startsWith('template-open-')) {
     return -300;
   }
-  if (chainKey === 'template-pre') {
+  if (chainKey === 'template-pre' || chainKey?.startsWith('template-pre-')) {
     return -200;
   }
   const stepMatch = chainKey?.match(/^step-(\d+)$/);
   if (stepMatch) {
     return Number.parseInt(stepMatch[1], 10);
   }
-  if (chainKey === 'template-end') {
+  if (chainKey === 'template-end' || chainKey?.startsWith('template-end-')) {
     return 1_000_000;
   }
   return Number.POSITIVE_INFINITY;

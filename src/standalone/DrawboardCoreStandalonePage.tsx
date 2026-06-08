@@ -159,6 +159,7 @@ export function DrawboardCoreStandalonePage() {
           boardFontLoadKey={boardFontLoadKey}
           boardFontSize={STANDALONE_CANVAS.boardFontSize}
           canvas={STANDALONE_CANVAS}
+          isPlaying
           playheadMs={playheadMs}
           selectedBoardClipId={selectedBoardClipId}
           onSelectBoardClip={setSelectedBoardClipId}

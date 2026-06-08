@@ -425,6 +425,7 @@ function PlaybackWorkspace({
       <StagePreview
         boardClips={boardClips}
         canvas={canvas}
+        isPlaying={isPlaying}
         playheadMs={visiblePlayheadMs}
         problemText={problemText}
         selectedBoardClipId={selectedBoardClipId}

@@ -46,7 +46,7 @@ const LABEL_TEXT: Record<CoursewareZoneKey, string> = {
 
 const LABEL_HEIGHT_PX = 22;
 const LABEL_GAP_PX = 6;
-const ZONE_PADDING_PX = 5;
+const ZONE_PADDING_PX = 10;
 
 export function buildCoursewareZoneBoxesFromDom({
   problemRect,
@@ -80,9 +80,13 @@ export function createFallbackCoursewareZoneBoxes(): CoursewareZoneBoxRecord {
 }
 
 export function getZoneNameFromChainKey(chainKey: string | undefined): CoursewareZoneKey {
-  if (chainKey === 'template-open') return 'problem';
-  if (chainKey === 'template-pre') return 'analysis';
-  if (chainKey === 'template-end') return 'summary';
+  // @xiaxia-2026-06-08 映射唯一性修复：chainKey 上游会产出带 purpose 后缀的
+  // template-open-xxx / template-pre-analysis / template-end-summary（见 abcChainKey.ts）。
+  // 原本只做精确等于，带后缀的分析/总结板书全掉进默认 solution，导致标签↔板书归错组。
+  // 这里与 createAbcChainLabels / isBoardMaterialChainKey 用同一套前缀判定，保持唯一真相。
+  if (chainKey === 'template-open' || chainKey?.startsWith('template-open-')) return 'problem';
+  if (chainKey === 'template-pre' || chainKey?.startsWith('template-pre-')) return 'analysis';
+  if (chainKey === 'template-end' || chainKey?.startsWith('template-end-')) return 'summary';
   if (chainKey?.startsWith('step-')) return 'solution';
   return 'solution';
 }

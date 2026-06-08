@@ -20,16 +20,27 @@
 
 import type { BoardEvent, TimelineClip } from '../../domain/teachingProject';
 import { DEFAULT_BOARD_DRAW_SPEED } from '../boardReveal/boardRevealConfig';
+import { COURSEWARE_LABEL_LEFT_RATIOS, COURSEWARE_LABEL_TOP_RATIOS } from '../canvasStage/coursewareChrome';
+import { getZoneNameFromChainKey } from '../canvasStage/coursewareZoneLayout';
 import type { MapBoardEventsToTimelineClipsOptions } from './types';
 
 const defaultBoardTrackId = 'track-board';
 const defaultClipIdPrefix = 'clip-board';
+
+// @xiaxia-2026-06-08 初始站位默认值：以该内容所属标签锚点为起点（标签+板书+边距=分片盒子）。
+// 仅决定"用户未拖动时"的默认坐标；一旦被拖动，updateBoardClip 写入的新坐标覆盖此默认，本逻辑不参与。
+// 贴纸已改为左上角定位(stage.css 去掉 translate、Konva 去掉 -width/2)，故 xPercent/yPercent
+// 直接 = 标签左上角锚点，内容左缘对齐标签；同分区内按出现顺序纵向堆叠。
+const INITIAL_LABEL_TO_CONTENT_GAP_PCT = 4; // 标签下方到首个内容的间距（标签高 + 约 10px 边距观感）
+const INITIAL_ZONE_ROW_STEP_PCT = 13; // 同分区内每多一个内容向下堆叠的步进
+
 export function mapBoardEventsToTimelineClips(
   boardEvents: BoardEvent[],
   options: MapBoardEventsToTimelineClipsOptions = {},
 ): TimelineClip[] {
   const trackId = options.trackId ?? defaultBoardTrackId;
   const clipIdPrefix = options.clipIdPrefix ?? defaultClipIdPrefix;
+  const zoneRowCounters: Partial<Record<ReturnType<typeof getZoneNameFromChainKey>, number>> = {};
 
   return boardEvents.map((event, index) => {
     // B轨时间控制属性（对应TTS句子）
@@ -48,10 +59,16 @@ export function mapBoardEventsToTimelineClips(
       trackId,
     };
 
-    // C轨视觉属性（对应板书内容）
+    // C轨视觉属性（对应板书内容）：初始默认站位 = 标签锚点为起点，同分区按顺序纵向堆叠
+    const zoneName = getZoneNameFromChainKey(event.chainKey);
+    const rowInZone = zoneRowCounters[zoneName] ?? 0;
+    zoneRowCounters[zoneName] = rowInZone + 1;
     const cVisualProperties = {
-      xPercent: 28 + (index % 3) * 18,
-      yPercent: 48 + (index % 2) * 12,
+      xPercent: COURSEWARE_LABEL_LEFT_RATIOS[zoneName] * 100,
+      yPercent:
+        COURSEWARE_LABEL_TOP_RATIOS[zoneName] * 100 +
+        INITIAL_LABEL_TO_CONTENT_GAP_PCT +
+        rowInZone * INITIAL_ZONE_ROW_STEP_PCT,
       drawSpeed: readBoardDrawSpeed(),
     };
 

@@ -1,5 +1,13 @@
 # Decisions
 
+## 2026-06-07_C内容录制层先接Konva Text，不全切主舞台
+
+- 决策：当前只把 C content 录制层接入 `react-konva`，不全量切换主舞台公共入口。
+- 原因：用户要求使用标准 Konva，但项目是二开且上线压力高；全切会同时触碰 C 内容、拖拽缩放、录制三层、金手指、字体和公式路线。
+- 保留：DOM 页面预览继续实时手写字体打字；C 拖拽/缩放继续写 `onUpdateBoardClip`；录制仍由 `useCanvasRecorder` 合成 base/content/overlay。
+- 禁止：普通 C 录制不得再使用 Canvas2D `fillText`，不得再走 `renderBoardTextStickerImage` 或数学图片生成主路。
+- 后续 gate：共享文本 layout、字体真实命中、复杂公式 Konva 表达、真实 `CoursewareZoneBox` 与交互回归通过后，才能考虑切公共入口。
+
 项目边界决策索引。只记录会影响后续施工顺序、真相源层级、禁止项的决策；普通工作日志仍写入 `CHANGE_TREE变更树.md` 和 `.workbuddy/memory/YYYY-MM-DD.md`。
 
 ## 2026-06-05_文档噪音边界与真相源层级

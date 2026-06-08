@@ -4,10 +4,13 @@
 // @io-output: sanitized C board font url/family
 // @boundary: C board font only; never applies customer font to the whole app body
 
-export const DEFAULT_BOARD_FONT_URL = 'https://fontsapi.zeoseven.com/511/main/result.css';
-export const DEFAULT_BOARD_FONT_NAME = 'PING FANG SHAGN SHANG QIAN';
+// @xiaxia-2026-06-08 字体真相修复：生产板书走本地 @font-face（styles.css 已声明），不再依赖远程切片字体。
+// 字形分层兜底：文字走乔木体 → 乔木缺的数学符号(× ÷ √ 等)回退落雁体 → 落雁也缺的(≤ ≥ ≈ π)回退 KaiTi。
+// 实测：平方乔木体 0 个数学字形；ChenYuluoyan 落雁体 11/15 数学字形。详见 board-font-glyph-vs-route-truth。
+export const DEFAULT_BOARD_FONT_URL = '';
+export const DEFAULT_BOARD_FONT_NAME = 'Xiaxia Qiaomu Board';
 export const DEFAULT_BOARD_FONT_SIZE = 38;
-export const LOCAL_BOARD_FONT_FALLBACK = '"平方上尚签", "KaiTi", "STKaiti", serif';
+export const LOCAL_BOARD_FONT_FALLBACK = '"ChenYuluoyan Board", "KaiTi", "STKaiti", serif';
 
 export type BoardTypographyConfig = {
   boardFontFamily: string;
@@ -22,14 +25,28 @@ export type BoardTypographyInput = Partial<{
   boardFontUrl: string;
 }>;
 
+// @xiaxia-2026-06-08 旧存档升级：localStorage / 已存项目里可能存着废弃的远程切片字体
+// （name="PING FANG SHAGN SHANG QIAN" 或 url 指向 zeoseven）。在配置中心唯一入口处识别并升级
+// 到本地默认，避免旧存档绕过新默认值继续走远程死链。
+const DEPRECATED_REMOTE_BOARD_FONT_NAMES = ['PING FANG SHAGN SHANG QIAN', '平方上尚签'];
+const DEPRECATED_REMOTE_BOARD_FONT_URL_HINT = 'fontsapi.zeoseven.com';
+
+function isDeprecatedRemoteBoardFont(name: string | undefined, url: string | undefined): boolean {
+  const nameHit = typeof name === 'string' && DEPRECATED_REMOTE_BOARD_FONT_NAMES.includes(name.trim());
+  const urlHit = typeof url === 'string' && url.includes(DEPRECATED_REMOTE_BOARD_FONT_URL_HINT);
+  return nameHit || urlHit;
+}
+
 export function createBoardTypographyConfig(input: BoardTypographyInput = {}): BoardTypographyConfig {
-  const boardFontName = normalizeBoardFontName(String(input.boardFontName ?? DEFAULT_BOARD_FONT_NAME));
+  const rawFontName = input.boardFontName === undefined ? undefined : String(input.boardFontName);
+  const upgrade = isDeprecatedRemoteBoardFont(rawFontName, input.boardFontUrl);
+  const boardFontName = normalizeBoardFontName(upgrade ? DEFAULT_BOARD_FONT_NAME : (rawFontName ?? DEFAULT_BOARD_FONT_NAME));
 
   return {
     boardFontFamily: createBoardFontFamily(boardFontName),
     boardFontName,
     boardFontSize: normalizeBoardFontSize(input.boardFontSize ?? DEFAULT_BOARD_FONT_SIZE),
-    boardFontUrl: normalizeBoardFontUrl(input.boardFontUrl),
+    boardFontUrl: normalizeBoardFontUrl(upgrade ? '' : input.boardFontUrl),
   };
 }
 

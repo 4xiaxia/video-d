@@ -141,9 +141,20 @@
 - 规避方式：下一刀必须先把板书字体加载状态变成可验证事实；不能再用“写了 fontFamily”冒充“命中了字体”。
 - 验证要求：浏览器检查 `document.fonts.check()` / computed style / canvas 录制路径，证明普通 C 预览和录制都命中同一板书字体；失败时明确降级状态。
 
+## ISSUE-017：tldraw 旧链路未完全清干净，活预览卡仍保留尾巴
+
+- 状态：已筛查，待分步清理
+- 发现时间：2026-06-07
+- 影响范围：第三步板书排版预览、依赖体积、后续 Konva 主舞台迁移认知。
+- 现象：虽然 `TldrawStagePreview` / `TldrawProofPage` 已挪入 `src/_deprecated`，但活链路 `src/components/BoardPreviewCard.tsx` 仍 import/render `tldraw`，`src/modules/tldrawStage/abcToTldrawShapes.ts` 仍因 `resolveTldrawStageSize` 被保留，`src/styles.css` 末尾仍有 `.tldraw-proof-*` / `.tldraw-stage-*` 全局样式，`package.json` 仍保留 `tldraw` 依赖。
+- 高危文件：`src/components/BoardPreviewCard.tsx`、`src/modules/tldrawStage/abcToTldrawShapes.ts`、`src/styles.css`、`src/_deprecated/TldrawProofPage.tsx`、`src/_deprecated/TldrawStagePreview.tsx`、`package.json`。
+- 初步定位：主舞台已退 tldraw，但第三步临时预览卡仍使用 tldraw 承载，导致依赖和模块尾巴不能清。
+- 规避方式：先按 `代码噪音筛查-review-2026-06-07.md` 清理顺序施工；不要误删 `LegacyStagePreview`，不要误删 legacy 兼容清洗逻辑。
+- 验证要求：清 CSS 残留后跑 `npm run check:board-boundaries` / `npm run check:continuity-docs`；预览卡去 tldraw 后跑 `npm run typecheck`、第三步预览 smoke，并确认 `package.json` 可移除 `tldraw`。
+
 ## ISSUE-015：Konva proof若被误当生产主链，会破坏录制和内容真相
 
-- 状态：已定 gate，待迁移实现
+- 状态：部分缓解；C content recording pilot 已落地，主舞台全 Konva 仍待 gate
 - 发现时间：2026-06-07
 - 影响范围：第 4 步主舞台、C 内容层、金手指、录制、后续 agent 接手。
 - 现象：仓库已有 `KonvaRecordingSurface` 与 `KonvaProofPage`，但它们仍是 proof / 备用入口；若直接切入主工作台，会把 sample canvas / sample clip / 固定 label anchors 误当真实生产链。
@@ -151,6 +162,16 @@
 - 初步定位：当前生产录制依赖 base/content/overlay 三 canvas 合成；当前 C 交互依赖 `AutoHandwritingLayer` 写回 `onUpdateBoardClip`；Konva proof 尚未覆盖真实多 clip、动态 bbox、C resize、金手指 overlay 与复杂公式路线。
 - 规避方式：Konva 作为主舞台控制方向必须走 gated migration；先做真实数据 pilot，再切公共入口。
 - 验证要求：Konva pilot 必须证明真实 `TimelineClip` 来源、普通 C realtime text、字体命中、C drag/resize writeback、动态 `CoursewareZoneBox`、三层录制和金手指 overlay 都可用。
+
+## ISSUE-016：DOM预览与Konva录制文本layout仍需共享helper
+
+- 状态：已识别，待收口
+- 发现时间：2026-06-07
+- 影响范围：普通 C realtime text、录制 content canvas、未来 Konva 主舞台。
+- 现象：本轮已把 C content 录制层从 Canvas2D `fillText` 改为 Konva Text，但 DOM 预览和 Konva 录制仍分别依赖浏览器 DOM wrap 与 Konva Text wrap，虽然内容来源同源，像素级换行/高度仍可能漂移。
+- 高危文件：`src/components/AutoHandwritingLayer.tsx`、`src/components/BoardHandwritingStickerContent.tsx`、`src/stage.css`、`src/modules/boardSticker/boardTextDisplayRoute.ts`。
+- 规避方式：后续抽共享文本 layout helper，统一 width、fontSize、lineHeight、padding、换行策略，再分别喂给 DOM 与 Konva。
+- 验证要求：DOM 预览和录制 canvas 对同一 `TimelineClip.label`、同一 C 宽度、同一字体配置输出同内容、同换行策略。
 
 ## ISSUE-011：题目区正文若被误当成 opening boardSlice，会把前置题文真相和C候选素材真相混掉
 

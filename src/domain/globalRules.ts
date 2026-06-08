@@ -98,12 +98,15 @@ export const SCRIPT_SECTION = {
 
 /**
  * Section分区的选项列表（用于UI下拉选择）
+ * @xiaxia-2026-06-08 表格分区列显示名 = 画布板书标签名（题目/分析/解答/总结），
+ * 与画布唯一对齐，用户不再脑内换算"开场读题↔题目"。value 仍是 section 业务值，
+ * 保护 agent 语义指令协议与旧项目落库数据，不动底层。
  */
 export const SCRIPT_SECTION_OPTIONS = [
-  { label: SCRIPT_SECTION.OPENING, value: SCRIPT_SECTION.OPENING },
-  { label: SCRIPT_SECTION.ANALYSIS, value: SCRIPT_SECTION.ANALYSIS },
-  { label: SCRIPT_SECTION.SOLVING, value: SCRIPT_SECTION.SOLVING },
-  { label: SCRIPT_SECTION.SUMMARY, value: SCRIPT_SECTION.SUMMARY },
+  { label: '题目', value: SCRIPT_SECTION.OPENING },
+  { label: '分析', value: SCRIPT_SECTION.ANALYSIS },
+  { label: '解答', value: SCRIPT_SECTION.SOLVING },
+  { label: '总结', value: SCRIPT_SECTION.SUMMARY },
 ];
 
 /**

@@ -1,6 +1,5 @@
-export { renderBoardTextStickerImage } from './renderBoardTextStickerImage';
-export type { BoardTextStickerImage, BoardTextStickerImageOptions } from './renderBoardTextStickerImage';
-export { renderBoardMathStickerImage } from './renderBoardMathStickerImage';
+// @deprecated 2026-06-07: renderBoardTextStickerImage / renderBoardMathStickerImage 已退场 (PNG→手写字体)
+// 文件保留在 boardSticker/ 目录作为历史参考，barrel 不再导出
 export {
   BOARD_STICKER_PLUGIN_ID,
   resolveBoardStickerPluginState,

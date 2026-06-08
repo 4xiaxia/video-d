@@ -1,5 +1,5 @@
 :root {
-  --board-handwriting-font: "PING FANG SHAGN SHANG QIAN", "平方上尚签", "KaiTi", "STKaiti", serif;
+  --board-handwriting-font: "Xiaxia Qiaomu Board", "ChenYuluoyan Board", "KaiTi", "STKaiti", serif;
   --board-font-size: 2rem;
 }
 
@@ -76,12 +76,18 @@
   transform: translateX(-50%);
 }
 
+/* --- courseware zone box (分片容器 · 弹性流动盒子) ---
+   概念：标签+弹性容器=板书分片，容器大小=文本块+10px边距
+   四个标签代表四个容器，画布上流动布局
+   点击标签可拖动整个文本容器块+块内板书内容
+   注意：C 板书内容不在 DOM 上嵌套进此容器，而是通过 zoneOffsets 同步偏移 */
 .courseware-zone-box {
   border: 1px dashed rgba(72, 208, 235, 0.58);
   border-radius: 8px;
   pointer-events: none;
   position: absolute;
   z-index: 6;
+  overflow: visible;
 }
 
 .courseware-problem-area {
@@ -349,7 +355,6 @@
   position: absolute;
   text-align: left;
   touch-action: none;
-  transform: translate(-50%, -50%);
   user-select: none;
   white-space: pre-wrap;
 }

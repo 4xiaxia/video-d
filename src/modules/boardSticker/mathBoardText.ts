@@ -122,7 +122,10 @@ export function normalizeElementaryBoardHandwritingText(text: string): string {
     .replace(/\\dprime\b/g, '″')
     .replace(/\\sum\b/g, '∑')
     .replace(/\\prod\b/g, '∏')
-    .replace(/\s+/g, ' ')
+    // @xiaxia-2026-06-08 只压行内多余空白，保留用户换行 \n（boardSlice 的 \n 是内容真相）。
+    // 原 /\s+/g 含 \n 会把多行板书压成一行，导致画布换行丢失。
+    .replace(/[\t ]+/g, ' ')
+    .replace(/ *\n */g, '\n')
     .trim();
 
   if (!normalizedText || normalizedText === text) {
@@ -239,13 +242,17 @@ function isHandwritingSupportedChar(char: string) {
 }
 
 /**
- * 字体自适应显示降级：手写字体可能缺少 × ÷ 等 Unicode 数学符号，渲染前降级为 ASCII
- * ×(乘号U+00D7)→小写x  ÷(除号U+00F7)→中点·
+ * @cleanroom-fix 2026-06-07: 移除无条件 ASCII fallback。
+ * ×(U+00D7) 和 ÷(U+00F7) 已在 HANDWRITING_EXTRA_SYMBOLS 白名单中，
+ * 手写字体支持这些符号（且 normalizeElementaryBoardHandwritingText 已将
+ * \\times→×, \\div→÷ 等的 LaTeX→Unicode 转换写入该表）。
+ * 无条件退化会与 LaTeX→Unicode 转换互斥：归一化刚把符号转回 Unicode，
+ * 又被这里打回 ASCII，形成自相矛盾的"来回转"。
+ * 如果某手写字体真的缺少这些 glyph，浏览器会按 font-family 栈自然
+ * fallback 到后续字体（KaiTi / STKaiti / serif），不需要硬编码替换。
  */
 export function normalizeHandwritingDisplayText(text: string): string {
-  return text
-    .replace(/×/g, 'x')
-    .replace(/÷/g, '·');
+  return text;
 }
 
 function stripOuterMathDelimiters(text: string) {

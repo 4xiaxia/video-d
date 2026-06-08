@@ -8,7 +8,7 @@
 // @content-contract: courseware labels and problem text are non-handwriting chrome, rendered with the system font stack; handwriting board content lives in child C layers only.
 
 import type { CSSProperties, ReactNode, RefObject } from 'react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Children, cloneElement, isValidElement, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { StageCanvasConfig, TeachingAsset } from '../domain/teachingProject';
 import { createCoursewareChromeStyleVars } from '../modules/canvasStage/coursewareChrome';
 import type { CoursewareZoneBoxRecord, CoursewareZoneKey } from '../modules/canvasStage/coursewareZoneLayout';
@@ -63,13 +63,21 @@ export function DrawboardStage({
   const [baseCanvasEl, setBaseCanvasEl] = useState<HTMLCanvasElement | null>(null);
   const [autoZoneBoxes, setAutoZoneBoxes] = useState<CoursewareZoneBoxRecord>(() => createFallbackCoursewareZoneBoxes());
   const [draggingZoneKey, setDraggingZoneKey] = useState<CoursewareZoneKey | null>(null);
-  const [labelOverrides, setLabelOverrides] = useState<Partial<Record<CoursewareZoneKey, { leftRatio: number; topRatio: number }>>>({});
+  const [labelOverrides, setLabelOverrides] = useState<Partial<Record<CoursewareZoneKey, {
+    leftRatio: number;
+    topRatio: number;
+    /** @cleanroom-fix 2026-06-07: 标签拖动联动容器全家挪 */
+    containerLeftRatio: number;
+    containerTopRatio: number;
+  }>>>({});
   const dragStateRef = useRef<{
     key: CoursewareZoneKey;
     originClientX: number;
     originClientY: number;
     originLeftRatio: number;
     originTopRatio: number;
+    originContainerLeftRatio: number;
+    originContainerTopRatio: number;
   } | null>(null);
   const overlayContainerRef = useRef<HTMLDivElement | null>(null);
   /** 画笔层是否需要拦截事件：pen/eraser/highlight/circle/cross 时拦截，off 时穿透给 C 层 */
@@ -136,11 +144,40 @@ export function DrawboardStage({
             labelAnchor: 'left',
             labelLeftRatio: override.leftRatio,
             labelTopRatio: override.topRatio,
+            // @cleanroom-fix 2026-06-07: 容器坐标跟随标签拖动一起挪
+            leftRatio: override.containerLeftRatio,
+            topRatio: override.containerTopRatio,
           }
         : box;
     }
     return nextBoxes;
   }, [autoZoneBoxes, labelOverrides]);
+
+  // @cleanroom-fix 2026-06-07: 计算标签拖动产生的分片偏移量(百分比)，
+  // 传递给 C 贴纸层(AutoHandwritingLayer)，使贴纸跟随容器一起挪
+  const zoneOffsets = useMemo(() => {
+    const offsets: Partial<Record<CoursewareZoneKey, { xPct: number; yPct: number }>> = {};
+    for (const zoneKey of COURSEWARE_ZONE_KEYS) {
+      const override = labelOverrides[zoneKey];
+      if (override) {
+        const originBox = autoZoneBoxes[zoneKey];
+        offsets[zoneKey] = {
+          xPct: (override.containerLeftRatio - originBox.leftRatio) * 100,
+          yPct: (override.containerTopRatio - originBox.topRatio) * 100,
+        };
+      }
+    }
+    return offsets;
+  }, [autoZoneBoxes, labelOverrides]);
+
+  const enhancedChildren = useMemo(() => {
+    return Children.map(children, (child) => {
+      if (isValidElement(child) && child.type && typeof child.type !== 'string') {
+        return cloneElement(child as React.ReactElement<any>, { zoneOffsets });
+      }
+      return child;
+    });
+  }, [children, zoneOffsets]);
 
   useEffect(() => {
     if (!draggingZoneKey) {
@@ -155,15 +192,16 @@ export function DrawboardStage({
       }
 
       const stageRect = stageElement.getBoundingClientRect();
+      const deltaLeftRatio = (event.clientX - dragState.originClientX) / Math.max(1, stageRect.width);
+      const deltaTopRatio = (event.clientY - dragState.originClientY) / Math.max(1, stageRect.height);
       setLabelOverrides((current) => ({
         ...current,
         [dragState.key]: {
-          leftRatio: clampRatio(
-            dragState.originLeftRatio + ((event.clientX - dragState.originClientX) / Math.max(1, stageRect.width)),
-          ),
-          topRatio: clampRatio(
-            dragState.originTopRatio + ((event.clientY - dragState.originClientY) / Math.max(1, stageRect.height)),
-          ),
+          leftRatio: clampRatio(dragState.originLeftRatio + deltaLeftRatio),
+          topRatio: clampRatio(dragState.originTopRatio + deltaTopRatio),
+          // @cleanroom-fix 2026-06-07: 容器坐标跟随标签拖动一起挪
+          containerLeftRatio: clampRatio(dragState.originContainerLeftRatio + deltaLeftRatio),
+          containerTopRatio: clampRatio(dragState.originContainerTopRatio + deltaTopRatio),
         },
       }));
     };
@@ -190,6 +228,9 @@ export function DrawboardStage({
         originClientY: event.clientY,
         originLeftRatio: zoneBox.labelLeftRatio,
         originTopRatio: zoneBox.labelTopRatio,
+        // @cleanroom-fix 2026-06-07: 记录容器初始位置，拖动时联动
+        originContainerLeftRatio: zoneBox.leftRatio,
+        originContainerTopRatio: zoneBox.topRatio,
       };
       event.preventDefault();
       event.stopPropagation();
@@ -254,7 +295,7 @@ export function DrawboardStage({
             </MathText>
           ) : null}
         </div>
-        {children}
+        {enhancedChildren}
         <div ref={overlayContainerRef} style={{ position: 'absolute', inset: 0, zIndex: 2, pointerEvents: canDrawOverlay ? 'auto' : 'none' }}>
           <GoldenFingerCanvasLayer
             ref={goldenFingerCallbackRef}

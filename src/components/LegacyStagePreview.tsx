@@ -24,6 +24,7 @@ import { StagePreviewToolbar } from './StagePreviewToolbar';
 export function StagePreview({
   boardClips,
   canvas,
+  isPlaying,
   playheadMs,
   problemText,
   selectedBoardClipId,
@@ -33,6 +34,7 @@ export function StagePreview({
 }: {
   boardClips: TimelineClip[];
   canvas: StageCanvasConfig;
+  isPlaying: boolean;
   playheadMs: number;
   problemText: TeachingAsset | undefined;
   selectedBoardClipId: string | null;
@@ -126,6 +128,7 @@ export function StagePreview({
           boardFontLoadKey={boardFontLoadKey}
           boardFontSize={boardFontSize}
           canvas={canvas}
+          isPlaying={isPlaying}
           playheadMs={playheadMs}
           selectedBoardClipId={selectedBoardClipId}
           onRecordingCanvasReady={setContentRecordingCanvas}

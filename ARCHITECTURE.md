@@ -29,10 +29,18 @@ boardSlice 普通多行原文
   -> 保留用户换行 \n
   -> 手写字体文本渲染
   -> 按字符 reveal
-  -> DOM 预览 / Canvas 录制 / 未来 Konva 同源消费
+  -> DOM 预览 / Konva Text content canvas 录制 / 未来主舞台 Konva 同源消费
 ```
 
 旧 SVG/path/逐笔轨迹路线冻结备用，不作为当前主验收。
+
+## 当前 Konva 接入边界（2026-06-07）
+
+- 已接入：`src/components/AutoHandwritingLayer.tsx` 的 C content 录制层使用 `react-konva` 隐藏 Stage/Text 产出 canvas。
+- 未全切：`StagePreview` 公共入口仍走 `LegacyStagePreview -> DrawboardStage -> AutoHandwritingLayer`。
+- 内容同源：DOM 预览和 Konva 录制都从 `TimelineClip(kind=board).label` 经 `resolveBoardTextDisplayRoute` 得到显示文本。
+- 录制同源：`useCanvasRecorder` 继续合成 base/content/overlay 三 canvas，content 现在来自 Konva。
+- 后续架构债：DOM 与 Konva 文本换行/高度估算还需抽共享 layout helper，不能长期各写各的。
 
 ## 舞台样式边界
 

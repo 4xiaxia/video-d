@@ -1082,3 +1082,132 @@
 - 下一步目标：先修普通 C 字体真实命中与 DOM/录制共享文本 layout；之后做 Konva content-layer pilot，消费真实 `TimelineClip` / `problemText.summary` / `CoursewareZoneBox`，暴露录制 content canvas。
 - 关键文件：`src/components/BoardHandwritingStickerContent.tsx`、`src/components/AutoHandwritingLayer.tsx`、`src/modules/boardFont/boardFontConfig.ts`、`src/components/KonvaRecordingSurface.tsx`、`src/standalone/KonvaProofPage.tsx`。
 - 已知的坑：不能把 `KonvaProofPage` sample 数据接进主工作台；不能恢复固定四区 clamp；不能让普通 C 回 PNG；不能把字体命中继续当作未验证假设。
+
+## 2026-06-07 20:24 C内容录制层Konva最小接入
+
+### 基本信息
+
+- 时间：2026-06-07 20:24 +08:00 - 2026-06-07 21:14 +08:00
+- 目标：在不全切主舞台的前提下，把 C content 录制层从手写 Canvas2D 文本收口到标准 Konva Text content canvas。
+- 状态：完成，当前单元补齐记录与接力闭环
+
+### 背景（为什么要做这个）
+
+- 用户明确指出这是二开项目，文档和旧代码有噪音，必须按当前接力和活链路谨慎判断。
+- 用户要求后期由 agent 操作画布，画布方向必须使用标准 Konva，不要继续自己手写 Canvas2D。
+- 甲方不需要板书图片，允许直接用手写字体实时打字；同时要求全局内容一一对应。
+
+### 思路（怎么想的）
+
+- 不全切主舞台，避免破坏 `StagePreview -> LegacyStagePreview -> DrawboardStage -> AutoHandwritingLayer` 当前底子。
+- 最小可信切点是 C content 录制层：保留 DOM 预览和 C 拖拽写回，把隐藏录制 canvas 改为 Konva Text 产出。
+- 内容来源继续从同一条 `TimelineClip(kind=board).label -> resolveBoardTextDisplayRoute` 走，避免 DOM 和录制各造文本。
+
+### 执行步骤（具体做了什么）
+
+1. 复核 `BoardHandwritingStickerContent`：普通 C 页面预览已是 `data-render-mode="realtime-text"`。
+2. 复核 `AutoHandwritingLayer`：当前 C content 录制层已实现 `KonvaBoardContentRecordingSurface`。
+3. 确认 `AutoHandwritingLayer` 引入 `react-konva` 的 `Stage` / `Layer` / `Text` / `Group` 生成隐藏 C content canvas。
+4. 确认 `onRecordingCanvasReady` 继续暴露 `HTMLCanvasElement` 给原 `useCanvasRecorder` 三层合成链。
+5. 确认 `BoardTextSticker` / `CStickerFrame` / C drag/resize 逻辑不动，避免影响当前工作台交互。
+6. 复核 `scripts/check-board-boundaries.mjs`：守门已要求 Konva content canvas，并禁止普通 C 录制出现 Canvas2D `fillText` 与 PNG 生成路线。
+7. 更新 `PROJECT_STATE.md`、`.workbuddy/memory/2026-06-07.md`、`ENGINEERING_LOG.md`、`PROJECT_TREE.md`、`CHANGE_TREE变更树.md`，补齐接力闭环。
+
+### 代码变更
+
+- 文件：`src/components/AutoHandwritingLayer.tsx`
+  - 改了什么：C content 录制层为 `KonvaBoardContentRecordingSurface`，用 `react-konva` 隐藏 Stage/Text 产出 canvas。
+  - 为什么改：满足标准 Konva 方向，同时不破坏当前主舞台和 C 交互底子。
+  - 验证方式：`npm run typecheck`、`npm run check:board-boundaries`。
+- 文件：`scripts/check-board-boundaries.mjs`
+  - 改了什么：普通 C 录制守门要求 Konva content canvas，禁止 `context.fillText`、`drawRealtimeTextWithRevealClip`、`renderBoardTextStickerImage(`、`renderBoardMathStickerImage(` 回到普通 C 录制主路。
+  - 为什么改：把“不要恢复 Canvas2D fillText / PNG 录制”变成可运行边界。
+  - 验证方式：`npm run check:board-boundaries`。
+- 文件：`PROJECT_STATE.md`、`.workbuddy/memory/2026-06-07.md`、`ENGINEERING_LOG.md`、`PROJECT_TREE.md`、`CHANGE_TREE变更树.md`
+  - 改了什么：记录本轮 C content Konva 最小接入、边界、验证和下一枝。
+  - 为什么改：遵守“工程信息都有家”，避免下一轮继续按旧 Canvas2D 记录接手。
+  - 验证方式：`npm run check:continuity-docs`。
+
+### 发现和确认
+
+- 新确认的设计：当前 `boardSlice -> rows -> timeline clip.label -> DOM/Konva` 的内容来源保持同源。
+- 新确认的边界：普通 C 页面预览仍通过 DOM realtime text，不回 PNG；C content 录制 canvas 已由 Konva Text 产出；base/overlay 录制仍按原三层合成。
+- 新确认的边界：当前公式/结构数学的页面渲染仍由 `BoardMathStickerContent` / `FormulaText` 负责；录制 content canvas 先以同一 display route 文本交给 Konva Text，后续如需复杂公式 Konva 化必须单独过 gate。
+- 新确认的边界：`KonvaProofPage` 仍只是 proof，不是生产主链，不能把 sample 数据接进主链。
+- 结构树说明：本轮未新增文件，只更新 `PROJECT_TREE.md` 时间和关键入口说明。
+
+### 验证结果
+
+- 测试：`node scripts/audit-local-order.mjs` -> `ORDERED`。
+- 测试：`npm run typecheck` -> 通过。
+- 测试：`npm run check:board-boundaries` -> 通过。
+- 测试：`npm run check:continuity-docs` -> 通过。
+
+### 接力棒（下一个单元从这里开始）
+
+- 当前状态：普通 C 预览是 DOM realtime text；C content 录制 canvas 已改 Konva Text；base/overlay 录制仍按原三层合成。
+- 下一步目标：抽 DOM/Konva 共享文本 layout helper，减少换行/高度估算漂移；再做真实主舞台 Konva pilot。
+- 关键文件：`src/components/AutoHandwritingLayer.tsx`、`src/components/BoardHandwritingStickerContent.tsx`、`src/components/BoardTextSticker.tsx`、`src/modules/boardSticker/boardTextDisplayRoute.ts`、`src/modules/stageRecorder/useCanvasRecorder.ts`。
+- 已知的坑：不要把普通 C 改回 PNG；不要恢复 Canvas2D `fillText` 录制；不要把 `KonvaProofPage` sample 数据接进主链。
+
+## 2026-06-07 22:24 代码噪音筛查 review
+
+### 基本信息
+
+- 时间：2026-06-07 22:13 +08:00 - 2026-06-07 22:24 +08:00
+- 目标：按用户要求先 review 旧代码是否清理干净，并找 CSS 与可合并类的候选。
+- 状态：完成筛查与记录；未删除业务代码。
+
+### 背景（为什么要做这个）
+
+- 用户明确要求先熟读底层逻辑、绝对不变边界、架构、当前完成度，再找旧代码未清干净的位置和 CSS 可合并点。
+- 当前仓库有历史文档、`src/_deprecated`、proof 页面、standalone 原型和新旧框架迁移痕迹；直接按文件名删会误伤活链路。
+
+### 思路（怎么想的）
+
+- 先以当前真相源确认生产主链：`StagePreview -> LegacyStagePreview -> DrawboardStage -> AutoHandwritingLayer`。
+- 再用关键词扫描和引用实证区分三类：活链路旧依赖、已隔离旧代码、名字 legacy 但仍有兼容价值。
+- CSS 不只看重复属性，还要看语义边界；优先标出 tldraw 全局样式残留和 standalone/prototype 重复块。
+
+### 执行步骤（具体做了什么）
+
+1. 读取 `PROJECT_STATE.md`、`ARCHITECTURE.md`、`DECISIONS.md`、`PROJECT_TREE.md`、`ENGINEERING_LOG.md`、`CHANGE_TREE变更树.md`。
+2. 扫描 `tldraw`、`Tldraw`、`renderBoardTextStickerImage`、`fillText`、`constrainYPercentToZone`、`Legacy` 等关键词。
+3. 复核 `BoardPreviewCard`、`VoiceWorkspace`、`abcToTldrawShapes`、`StagePreview`、`AutoHandwritingLayer`、`AgentReviewCard` 等关键引用。
+4. 扫描 CSS 未引用类与重复 block，人工排除 Ant 组合选择器误判。
+5. 新增 `代码噪音筛查-review-2026-06-07.md`，把发现按风险等级和清理顺序落地。
+
+### 代码变更
+
+- 文件：`代码噪音筛查-review-2026-06-07.md`
+  - 改了什么：新增代码噪音筛查报告，列出旧代码残留、不能误删项、CSS 可合并点和建议清理顺序。
+  - 为什么改：用户要求先找出过期代码和 CSS 合并候选；工程信息不能只留在对话。
+  - 验证方式：人工交叉引用扫描。
+- 文件：`PROJECT_STATE.md`、`ENGINEERING_LOG.md`、`KNOWN_ISSUES.md`、`PROJECT_TREE.md`、`CHANGE_TREE变更树.md`、`.workbuddy/memory/2026-06-07.md`
+  - 改了什么：同步本轮 review 状态、发现、下一枝和验证。
+  - 为什么改：完成工作单元必须有接力闭环。
+  - 验证方式：`npm run check:continuity-docs`。
+
+### 发现和确认
+
+- 旧代码没有完全清干净。活链路里最大尾巴是 `src/components/BoardPreviewCard.tsx` 仍 import / render `tldraw`，且被 `src/components/VoiceWorkspace.tsx` 第三步入口使用。
+- `src/modules/tldrawStage/abcToTldrawShapes.ts` 是混杂模块：`resolveTldrawStageSize` 仍被活入口引用，`syncAbcStageToTldraw` 等旧舞台同步逻辑已不应复活。
+- `src/styles.css` 2461-2596 行的 `.tldraw-proof-*` / `.tldraw-stage-*` 是明确全局 CSS 残留，活组件未引用。
+- `src/_deprecated/TldrawProofPage.tsx` 与 `src/_deprecated/TldrawStagePreview.tsx` 已隔离，不影响当前运行，但仍是旧代码库存。
+- `LegacyStagePreview` 虽然名字旧，但仍是当前生产主链，不能清。
+- `isLegacyPreviewMessage`、`stripLegacyTags`、`legacyBoardMarkerPattern`、`data-legacy-anchor` 是兼容/清洁边界，不能按名字误删。
+- CSS 可合并重点：standalone/prototype header、grid label、float body label；settings 与 inspector header 虽重复但语义不同，优先级低。
+
+### 验证结果
+
+- 工具事实：当前终端没有 `rg`，`rg --files ...` 返回 `'rg' is not recognized`；本轮改用 PowerShell 与内置搜索。
+- 扫描：PowerShell 关键词扫描 `src` / `scripts` 完成，输出证明 `BoardPreviewCard`、`abcToTldrawShapes`、`src/_deprecated`、`src/styles.css` 均有 tldraw 命中。
+- 扫描：CSS 类未引用/重复 block 扫描完成，确认 `.tldraw-*` 样式主要对应 deprecated 文件，standalone/prototype 存在可合并重复块。
+- 本轮未删除或改业务代码，未跑 typecheck；实际清理时必须补跑 `npm run typecheck`、`npm run check:board-boundaries`、`npm run check:continuity-docs`。
+
+### 接力棒（下一个单元从这里开始）
+
+- 当前状态：review 已落在 `代码噪音筛查-review-2026-06-07.md`。
+- 下一步目标：先删或迁移 `src/styles.css` 末尾 tldraw proof/stage 全局样式；再把 `BoardPreviewCard` 从 tldraw 迁出；之后处理 `src/modules/tldrawStage/abcToTldrawShapes.ts` 和 `package.json` 的 `tldraw` 依赖。
+- 关键文件：`src/components/BoardPreviewCard.tsx`、`src/modules/tldrawStage/abcToTldrawShapes.ts`、`src/styles.css`、`src/_deprecated/TldrawProofPage.tsx`、`src/_deprecated/TldrawStagePreview.tsx`、`package.json`。
+- 已知的坑：不要误删 `LegacyStagePreview`；不要误删 legacy 兼容清洗逻辑；不要把 review 当作已清理完成。

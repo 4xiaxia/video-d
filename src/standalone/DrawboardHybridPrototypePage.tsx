@@ -152,6 +152,7 @@ export function DrawboardHybridPrototypePage() {
             boardFontLoadKey={boardFontLoadKey}
             boardFontSize={PROTOTYPE_CANVAS.boardFontSize}
             canvas={PROTOTYPE_CANVAS}
+            isPlaying
             playheadMs={playheadMs}
             selectedBoardClipId={selectedBoardClipId}
             onSelectBoardClip={setSelectedBoardClipId}
