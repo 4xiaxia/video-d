@@ -1,14 +1,14 @@
-// @@COMP_HANDWRITING ⚠️ BREAKPOINT: C 自动手写 reveal 核心层；拖拽冻结/曲线偏置/源时间 vs 显示时间判定
+// @@COMP_HANDWRITING
 // @cleanroom-component: AutoHandwritingLayer
 // @domain: drawboard-stage/c1-auto-handwriting
 // @slot: drawboard-stage/c1-actor-layer
 // @depends: TimelineClip(kind=board), StageCanvasConfig.boardFontFamily, BoardTextSticker, react-konva
 // @io-input: boardClips, playheadMs, selectedBoardClipId, boardFontLoadKey
-// @io-output: onSelectBoardClip, onUpdateBoardClip(C visual x/y/width/fontSize)
+// @io-output: onSelectBoardClip, onUpdateBoardClip(C visual fontSize)
 // @boundary: C1 automatic board actor only; B timing and A audio stay outside this component
 // @recording-contract: C content recording uses Konva Text canvas; ordinary C is realtime text, not PNG or hand-written Canvas2D fillText.
-// @interaction-contract: C click/drag/resize remains here even when golden-finger mode is off; this layer receives input because top overlay is pointer-transparent in off mode
-// @c-stage-copy: 整张画布都是 C 素材演绎区
+// @xiaxia-2026-06-08 返璞归真：板书内容按分区容器+文档流<p>排列，就是PPT排版。
+//   容器可整体拖动（PPT移动文本框），内容在容器内按顺序排，一行写完换行再一行。
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Group, Layer, Stage, Text } from 'react-konva';
@@ -16,14 +16,10 @@ import type { StageCanvasConfig, TimelineClip } from '../domain/teachingProject'
 import { getBoardRevealProgress } from '../modules/boardReveal';
 import { compareBoardClipLayerOrder } from '../modules/boardOrdering';
 import type { CoursewareZoneKey } from '../modules/canvasStage/coursewareZoneLayout';
-import { getZoneNameFromChainKey } from '../modules/canvasStage/coursewareZoneLayout';
+import { COURSEWARE_ZONE_KEYS, getZoneNameFromChainKey } from '../modules/canvasStage/coursewareZoneLayout';
 import {
-  DEFAULT_BOARD_STICKER_WIDTH_PERCENT,
-  DEFAULT_BOARD_STICKER_X_PERCENT,
-  DEFAULT_BOARD_STICKER_Y_PERCENT,
   getBoardStickerFontSize,
   resolveBoardTextDisplayRoute,
-  useBoardStickerDragController,
 } from '../modules/boardSticker';
 import { isBoardClipVisibleAtPlayhead } from '../modules/timeline/timelineWindow';
 import { BoardTextSticker } from './BoardTextSticker';
@@ -54,58 +50,58 @@ export function AutoHandwritingLayer({
   isPlaying: boolean;
   playheadMs: number;
   selectedBoardClipId: string | null;
-  /** @cleanroom-fix 2026-06-07: 分片标签拖动偏移(百分比)，贴纸跟随容器一起挪 */
+  /** 分片标签拖动偏移(百分比)，容器跟随一起挪 */
   zoneOffsets?: Partial<Record<CoursewareZoneKey, { xPct: number; yPct: number }>>;
   onRecordingCanvasReady?: (canvas: HTMLCanvasElement | null) => void;
   onSelectBoardClip: (clipId: string) => void;
   onUpdateBoardClip: (clipId: string, patch: BoardClipPatch) => void;
 }) {
   const boardAreaRef = useRef<HTMLDivElement | null>(null);
-  const frozenRevealRef = useRef<{ clipId: string; progress: number } | null>(null);
   const [recordingAreaMetrics, setRecordingAreaMetrics] = useState<RecordingBoardAreaMetrics | null>(null);
-  const { draggingClipId, getPreviewPatch, startDrag } = useBoardStickerDragController({
-    fallbackFontSize: boardFontSize,
-    onCommitPatch: onUpdateBoardClip,
-  });
-  // z-index follows the original A/C writing anchor, not the draggable B lifetime.
+
+  // 编辑态显示全部；播放态按播放头过滤
   const visibleBoardClips = useMemo(() => {
     return boardClips
-      // 编辑态显示全部分片；播放态才按播放头时间窗口过滤
       .filter((clip) => !isPlaying || isBoardClipVisibleAtPlayhead(playheadMs, clip.startMs, clip.hideAtMs))
       .sort(compareBoardClipLayerOrder);
-  }, [boardClips, isPlaying, playheadMs]); // 使用useMemo缓存结果
+  }, [boardClips, isPlaying, playheadMs]);
 
-  useEffect(() => {
-    if (!draggingClipId) {
-      frozenRevealRef.current = null;
+  // 按 zone 分组——每个分区是一个容器，里面的板书按顺序排
+  const clipsByZone = useMemo(() => {
+    const groups: Record<CoursewareZoneKey, TimelineClip[]> = {
+      problem: [],
+      analysis: [],
+      solution: [],
+      summary: [],
+    };
+    for (const clip of visibleBoardClips) {
+      const zone = getZoneNameFromChainKey(clip.chainKey);
+      groups[zone].push(clip);
     }
-  }, [draggingClipId]);
+    return groups;
+  }, [visibleBoardClips]);
 
+  // 录制用数据
   const recordingBoardClips = useMemo(() => {
     return visibleBoardClips.map((clip) => {
-      const previewPatch = getPreviewPatch(clip.id);
-      // 编辑态板书已"写完留场"显示全文(reveal=1)；播放态才按播放头逐字 reveal
       const liveRevealProgress = isPlaying ? readBoardClipRevealProgress(clip, playheadMs) : 1;
-      const revealProgress =
-        draggingClipId === clip.id && frozenRevealRef.current?.clipId === clip.id
-          ? frozenRevealRef.current.progress
-          : liveRevealProgress;
       const displayRoute = resolveBoardTextDisplayRoute(clip.label.trim());
       const zoneName = getZoneNameFromChainKey(clip.chainKey);
       const zoneOffset = zoneOffsets?.[zoneName];
 
       return {
         color: clip.color ?? '#111111',
-        fontSize: getBoardStickerFontSize(previewPatch?.fontSize ?? clip.fontSize, boardFontSize),
-        revealProgress,
+        fontSize: getBoardStickerFontSize(clip.fontSize, boardFontSize),
+        revealProgress: liveRevealProgress,
         text: displayRoute.text,
-        widthPercent: previewPatch?.widthPercent ?? clip.widthPercent ?? DEFAULT_BOARD_STICKER_WIDTH_PERCENT,
-        xPercent: (previewPatch?.xPercent ?? clip.xPercent ?? DEFAULT_BOARD_STICKER_X_PERCENT) + (zoneOffset?.xPct ?? 0),
-        yPercent: (previewPatch?.yPercent ?? clip.yPercent ?? DEFAULT_BOARD_STICKER_Y_PERCENT) + (zoneOffset?.yPct ?? 0),
+        widthPercent: clip.widthPercent ?? 100,
+        xPercent: (clip.xPercent ?? 0) + (zoneOffset?.xPct ?? 0),
+        yPercent: (clip.yPercent ?? 0) + (zoneOffset?.yPct ?? 0),
       };
     });
-  }, [boardFontSize, draggingClipId, getPreviewPatch, isPlaying, playheadMs, visibleBoardClips, zoneOffsets]);
+  }, [boardFontSize, isPlaying, playheadMs, visibleBoardClips, zoneOffsets]);
 
+  // 测量录制区域
   useEffect(() => {
     let frameId = 0;
 
@@ -142,99 +138,45 @@ export function AutoHandwritingLayer({
   return (
     <>
       <div className="courseware-board-area" ref={boardAreaRef}>
-        {visibleBoardClips.length
-          ? visibleBoardClips.map((clip, index) => {
-          const previewPatch = getPreviewPatch(clip.id);
-          const color = clip.color ?? '#111111';
-          const fontSize = getBoardStickerFontSize(previewPatch?.fontSize ?? clip.fontSize, boardFontSize);
-          const widthPercent = previewPatch?.widthPercent ?? clip.widthPercent ?? DEFAULT_BOARD_STICKER_WIDTH_PERCENT;
-          const xPercent = previewPatch?.xPercent ?? clip.xPercent ?? DEFAULT_BOARD_STICKER_X_PERCENT;
-          const yPercent = previewPatch?.yPercent ?? clip.yPercent ?? DEFAULT_BOARD_STICKER_Y_PERCENT;
-          const zoneName = getZoneNameFromChainKey(clip.chainKey);
-          // @cleanroom-fix 2026-06-07: 贴纸跟随分片容器一起挪
-          const zoneOffset = zoneOffsets?.[zoneName];
-          const effectiveXPercent = zoneOffset ? xPercent + zoneOffset.xPct : xPercent;
-          const effectiveYPercent = zoneOffset ? yPercent + zoneOffset.yPct : yPercent;
+        {COURSEWARE_ZONE_KEYS.map((zoneKey) => {
+          const zoneClips = clipsByZone[zoneKey];
+          if (!zoneClips.length) return null;
 
-          // 编辑态板书已"写完留场"显示全文(reveal=1)；播放态才按播放头逐字 reveal
-          const liveRevealProgress = isPlaying ? readBoardClipRevealProgress(clip, playheadMs) : 1;
-          const revealProgress =
-            draggingClipId === clip.id && frozenRevealRef.current?.clipId === clip.id
-              ? frozenRevealRef.current.progress
-              : liveRevealProgress;
+          const zoneOffset = zoneOffsets?.[zoneKey];
+          const offsetStyle = zoneOffset
+            ? { transform: `translate(${zoneOffset.xPct}%, ${zoneOffset.yPct}%)` }
+            : undefined;
 
           return (
-            <BoardTextSticker
-              color={color}
-              isDragging={draggingClipId === clip.id}
-              isSelected={selectedBoardClipId === clip.id}
-              key={clip.id}
-              onPointerDown={(event) => {
-                const areaRect = boardAreaRef.current?.getBoundingClientRect();
-                if (!areaRect) {
-                  return;
-                }
-                event.preventDefault();
-                event.currentTarget.setPointerCapture(event.pointerId);
-                frozenRevealRef.current = {
-                  clipId: clip.id,
-                  progress: liveRevealProgress,
-                };
-                onSelectBoardClip(clip.id);
-                startDrag({
-                  areaRect,
-                  clipId: clip.id,
-                  mode: 'move',
-                  originClientX: event.clientX,
-                  originClientY: event.clientY,
-                  originFontSize: getBoardStickerFontSize(clip.fontSize, boardFontSize),
-                  originXPercent: clip.xPercent ?? DEFAULT_BOARD_STICKER_X_PERCENT,
-                  originYPercent: clip.yPercent ?? DEFAULT_BOARD_STICKER_Y_PERCENT,
-                  originWidthPercent: clip.widthPercent ?? DEFAULT_BOARD_STICKER_WIDTH_PERCENT,
-                });
-              }}
-              onResizePointerDown={(event) => {
-                const areaRect = boardAreaRef.current?.getBoundingClientRect();
-                if (!areaRect) {
-                  return;
-                }
-                event.preventDefault();
-                event.stopPropagation();
-                const resizeHandle = event.currentTarget;
-                if (resizeHandle.parentElement instanceof HTMLButtonElement) {
-                  resizeHandle.parentElement.setPointerCapture(event.pointerId);
-                }
-                frozenRevealRef.current = {
-                  clipId: clip.id,
-                  progress: liveRevealProgress,
-                };
-                onSelectBoardClip(clip.id);
-                startDrag({
-                  areaRect,
-                  clipId: clip.id,
-                  mode: 'resize',
-                  originClientX: event.clientX,
-                  originClientY: event.clientY,
-                  originFontSize: getBoardStickerFontSize(clip.fontSize, boardFontSize),
-                  originXPercent: clip.xPercent ?? DEFAULT_BOARD_STICKER_X_PERCENT,
-                  originYPercent: clip.yPercent ?? DEFAULT_BOARD_STICKER_Y_PERCENT,
-                  originWidthPercent: clip.widthPercent ?? DEFAULT_BOARD_STICKER_WIDTH_PERCENT,
-                });
-              }}
-              stackIndex={index}
-              fontFamily={canvas.boardFontFamily}
-              fontLoadKey={boardFontLoadKey}
-              fontSize={fontSize}
-              revealProgress={revealProgress}
-              text={clip.label.trim()}
-              widthPercent={widthPercent}
-              xPercent={effectiveXPercent}
-              yPercent={effectiveYPercent}
-              zoneKey={zoneName}
-            />
+            <div
+              key={zoneKey}
+              className={`board-zone-container board-zone-container--${zoneKey}`}
+              data-zone={zoneKey}
+              style={offsetStyle}
+            >
+              {zoneClips.map((clip) => {
+                const liveRevealProgress = isPlaying ? readBoardClipRevealProgress(clip, playheadMs) : 1;
+                const fontSize = getBoardStickerFontSize(clip.fontSize, boardFontSize);
+                const zoneName = getZoneNameFromChainKey(clip.chainKey);
+
+                return (
+                  <BoardTextSticker
+                    color={clip.color ?? '#111111'}
+                    fontFamily={canvas.boardFontFamily}
+                    fontLoadKey={boardFontLoadKey}
+                    fontSize={fontSize}
+                    isSelected={selectedBoardClipId === clip.id}
+                    key={clip.id}
+                    onClick={() => onSelectBoardClip(clip.id)}
+                    revealProgress={liveRevealProgress}
+                    text={clip.label.trim()}
+                    zoneKey={zoneName}
+                  />
+                );
+              })}
+            </div>
           );
-          })
-          : null}
+        })}
       </div>
       <KonvaBoardContentRecordingSurface
         canvas={canvas}
@@ -387,8 +329,6 @@ function createKonvaTextLayout(clip: RecordingBoardClip, metrics: RecordingBoard
   const lineHeightPx = fontSize * RECORDING_TEXT_LINE_HEIGHT_RATIO;
   const textHeight = estimateKonvaTextHeight(clip.text, fontSize, width - padding * 2) + RECORDING_TEXT_PADDING_Y * metrics.scaleY * 2;
   const height = Math.max(lineHeightPx, textHeight);
-  // @xiaxia-2026-06-08 左上角定位：xPercent/yPercent 是内容左上角(与 DOM 去掉 translate 后一致)，
-  // 不再 -width/2 / -height/2 回中心。DOM 与录制同一套左上角坐标系。
   const left = metrics.left + metrics.width * (clip.xPercent / 100);
   const top = metrics.top + metrics.height * (clip.yPercent / 100);
 

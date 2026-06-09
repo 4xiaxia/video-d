@@ -1,14 +1,15 @@
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
 const root = process.cwd();
 const outDir = join(root, '.tmp-tts-batch-check');
 const checkFile = join(outDir, 'check.mjs');
+const nodePath = existsSync(join(root, 'runtime', 'node', 'node.exe')) ? join(root, 'runtime', 'node', 'node.exe') : process.execPath;
 
 mkdirSync(outDir, { recursive: true });
 
-execFileSync(join(root, 'runtime', 'node', 'node.exe'), [join(root, 'node_modules', 'typescript', 'bin', 'tsc'), '--noEmit', 'false', '--outDir', outDir], {
+execFileSync(nodePath, [join(root, 'node_modules', 'typescript', 'bin', 'tsc'), '--noEmit', 'false', '--outDir', outDir], {
   cwd: root,
   stdio: 'inherit',
 });
@@ -39,7 +40,7 @@ writeFileSync(
     `console.log('[tts-batch-jobs] passed', JSON.stringify(jobs, null, 2));\n`,
 );
 
-execFileSync(join(root, 'runtime', 'node', 'node.exe'), [checkFile], {
+execFileSync(nodePath, [checkFile], {
   cwd: outDir,
   stdio: 'inherit',
 });

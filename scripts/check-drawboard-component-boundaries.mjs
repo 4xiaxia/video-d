@@ -6,6 +6,9 @@ const root = process.cwd();
 const readProjectFile = (...parts) => readFileSync(join(root, ...parts), 'utf8');
 
 const stagePreviewText = readProjectFile('src', 'components', 'StagePreview.tsx');
+const stagePreviewToolbarText = readProjectFile('src', 'components', 'StagePreviewToolbar.tsx');
+const stageRecorderControlText = readProjectFile('src', 'components', 'StageRecorderControl.tsx');
+const useCanvasRecorderText = readProjectFile('src', 'modules', 'stageRecorder', 'useCanvasRecorder.ts');
 const drawboardStageText = readProjectFile('src', 'components', 'DrawboardStage.tsx');
 const canvasRecordingSurfaceText = readProjectFile('src', 'components', 'CanvasRecordingSurface.tsx');
 const autoHandwritingLayerText = readProjectFile('src', 'components', 'AutoHandwritingLayer.tsx');
@@ -42,10 +45,41 @@ assertIncludes(
 );
 assertIncludes(stagePreviewText, '<DrawboardStage', 'StagePreview must render DrawboardStage.');
 assertIncludes(stagePreviewText, '<AutoHandwritingLayer', 'StagePreview must render AutoHandwritingLayer.');
-assertMatches(
+assertIncludes(stagePreviewText, '<StagePreviewToolbar', 'StagePreview must render the recorder toolbar.');
+assertIncludes(
   stagePreviewText,
-  /<StageRecorderControl\b[^>]*targetRef=\{stageCanvasRef\}[^>]*\/>/,
-  'StageRecorderControl must still record the stage canvas ref.',
+  'recordingCanvases={recordingCanvases}',
+  'StagePreview must pass collected recording canvases to the recorder toolbar.',
+);
+assertIncludes(
+  stagePreviewText,
+  'onRecordingCanvasesReady={setStageRecordingCanvases}',
+  'StagePreview must collect base and overlay recording canvases from DrawboardStage.',
+);
+assertIncludes(
+  stagePreviewText,
+  'onRecordingCanvasReady={setContentRecordingCanvas}',
+  'StagePreview must collect C content recording canvas from AutoHandwritingLayer.',
+);
+assertIncludes(
+  stagePreviewToolbarText,
+  '<StageRecorderControl',
+  'StagePreviewToolbar must own the recorder control chrome.',
+);
+assertIncludes(
+  stagePreviewToolbarText,
+  'recordingCanvases={recordingCanvases}',
+  'StagePreviewToolbar must pass recording canvases to StageRecorderControl.',
+);
+assertIncludes(
+  stageRecorderControlText,
+  'startRecording(recordingCanvases.base, recordingCanvases.content, recordingCanvases.overlay)',
+  'StageRecorderControl must record the composed base, C content, and overlay canvases.',
+);
+assertIncludes(
+  useCanvasRecorderText,
+  '@io-input: baseCanvas(底图), contentCanvas(C板书内容层), overlayCanvas(金手指标注层)',
+  'useCanvasRecorder must keep the canvas-composition recording contract.',
 );
 
 for (const forbiddenStagePreviewImport of [
@@ -66,7 +100,9 @@ assertIncludes(
   'DrawboardStage must carry the drawboard house boundary marker.',
 );
 assertIncludes(drawboardStageText, 'stageRef: RefObject<HTMLDivElement | null>', 'DrawboardStage must receive the recordable ref.');
-assertIncludes(drawboardStageText, '{children}', 'DrawboardStage must expose a layer slot for C1/C2 actors.');
+assertIncludes(drawboardStageText, 'children: ReactNode', 'DrawboardStage must receive a layer slot for C1/C2 actors.');
+assertIncludes(drawboardStageText, '{enhancedChildren}', 'DrawboardStage must render the C1/C2 actor layer slot.');
+assertIncludes(drawboardStageText, 'cloneElement', 'DrawboardStage must be able to pass zone offsets into child actor layers.');
 assertIncludes(
   drawboardStageText,
   "import { CanvasRecordingSurface } from './CanvasRecordingSurface'",
@@ -74,12 +110,12 @@ assertIncludes(
 );
 assertMatches(
   drawboardStageText,
-  /<CanvasRecordingSurface\b[^>]*canvas=\{canvas\}[^>]*\/>[\s\S]*\{children\}/,
+  /<CanvasRecordingSurface\b[^>]*canvas=\{canvas\}[^>]*\/>[\s\S]*\{enhancedChildren\}/,
   'CanvasRecordingSurface must stay below C1/C2 layer slots so it is a foundation, not an overlay controller.',
 );
 assertMatches(
   drawboardStageText,
-  /<div\b[^>]*ref=\{stageRef\}[\s\S]*<GoldenFingerCanvasLayer\b[\s\S]*<\/div>\s*<BoardStageToolOverlay\b/,
+  /<BoardStageToolOverlay\b[\s\S]*<div\b[^>]*ref=\{stageRef\}[\s\S]*<GoldenFingerCanvasLayer\b/,
   'BoardStageToolOverlay must stay outside the stageRef recording canvas while GoldenFingerCanvasLayer remains recordable.',
 );
 

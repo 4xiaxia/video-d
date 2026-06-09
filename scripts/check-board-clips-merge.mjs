@@ -1,14 +1,15 @@
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
 const root = process.cwd();
 const outDir = join(root, '.tmp-board-clips-merge-check');
 const checkFile = join(outDir, 'check.mjs');
+const nodePath = existsSync(join(root, 'runtime', 'node', 'node.exe')) ? join(root, 'runtime', 'node', 'node.exe') : process.execPath;
 
 mkdirSync(outDir, { recursive: true });
 
-execFileSync(join(root, 'runtime', 'node', 'node.exe'), [join(root, 'node_modules', 'typescript', 'bin', 'tsc'), '--noEmit', 'false', '--outDir', outDir], {
+execFileSync(nodePath, [join(root, 'node_modules', 'typescript', 'bin', 'tsc'), '--noEmit', 'false', '--outDir', outDir], {
   cwd: root,
   stdio: 'inherit',
 });
@@ -16,7 +17,16 @@ execFileSync(join(root, 'runtime', 'node', 'node.exe'), [join(root, 'node_module
 const emittedMapBoardEventsPath = join(outDir, 'modules', 'timeline-factory', 'mapBoardEventsToTimelineClips.js');
 writeFileSync(
   emittedMapBoardEventsPath,
-  readFileSync(emittedMapBoardEventsPath, 'utf8').replace("../boardReveal/boardRevealConfig", "../boardReveal/boardRevealConfig.js"),
+  readFileSync(emittedMapBoardEventsPath, 'utf8')
+    .replace("../boardReveal/boardRevealConfig", "../boardReveal/boardRevealConfig.js")
+    .replace("../canvasStage/coursewareChrome", "../canvasStage/coursewareChrome.js")
+    .replace("../canvasStage/coursewareZoneLayout", "../canvasStage/coursewareZoneLayout.js"),
+);
+
+const emittedCoursewareZoneLayoutPath = join(outDir, 'modules', 'canvasStage', 'coursewareZoneLayout.js');
+writeFileSync(
+  emittedCoursewareZoneLayoutPath,
+  readFileSync(emittedCoursewareZoneLayoutPath, 'utf8').replace("./coursewareChrome", "./coursewareChrome.js"),
 );
 
 writeFileSync(
@@ -49,7 +59,7 @@ writeFileSync(
     `console.log('[board-clips-merge] passed', JSON.stringify(merged, null, 2));\n`,
 );
 
-execFileSync(join(root, 'runtime', 'node', 'node.exe'), [checkFile], {
+execFileSync(nodePath, [checkFile], {
   cwd: outDir,
   stdio: 'inherit',
 });

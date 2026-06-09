@@ -9,6 +9,7 @@ const shellStylesText = readFileSync(join(root, 'src', 'styles.css'), 'utf8');
 const stageStylesText = readFileSync(join(root, 'src', 'stage.css'), 'utf8');
 const stylesText = `${shellStylesText}\n${stageStylesText}`;
 const appText = readFileSync(join(root, 'src', 'App.tsx'), 'utf8');
+const stagePreviewText = readFileSync(join(root, 'src', 'components', 'StagePreview.tsx'), 'utf8');
 const assetTabsText = readFileSync(join(root, 'src', 'config', 'assetTabs.ts'), 'utf8');
 const formulaTextComponentText = readFileSync(join(root, 'src', 'components', 'FormulaText.tsx'), 'utf8');
 const mathTextComponentText = readFileSync(join(root, 'src', 'components', 'MathText.tsx'), 'utf8');
@@ -59,6 +60,7 @@ const scriptBoardSummaryStepText = readFileSync(join(root, 'src', 'components', 
 const scriptBoardAgentPromptText = readFileSync(join(root, 'src', 'agent', 'scriptBoardAgentPrompt.ts'), 'utf8');
 const activeVisibleBcUiText = [
   appText,
+  stagePreviewText,
   assetTabsText,
   stylesText,
   autoHandwritingLayerText,
@@ -520,7 +522,8 @@ for (const requiredActiveBcUiCopy of [
   '语音时序',
   '整张画布都是 C 素材演绎区',
   'C 素材：',
-  '调整 C 素材尺寸',
+  '分区容器',
+  '文档流',
   'C 素材、图章、标记',
   'C 素材候选',
   '控制 C 素材在画布上的位置、换行宽度和单素材字号',
@@ -545,6 +548,15 @@ for (const requiredActiveBcUiCopy of [
   if (!activeVisibleBcUiText.includes(requiredActiveBcUiCopy)) {
     throw new Error(`Active B/C UI missing synchronized wording: ${requiredActiveBcUiCopy}`);
   }
+}
+
+if (
+  !autoHandwritingLayerText.includes('COURSEWARE_ZONE_KEYS.map') ||
+  !autoHandwritingLayerText.includes('className={`board-zone-container board-zone-container--${zoneKey}`}') ||
+  !cStickerFrameText.includes('<p') ||
+  cStickerFrameText.includes('board-text-sticker__resize-handle')
+) {
+  throw new Error('Current C material layout must stay as zone containers with paragraph-flow stickers, without per-sticker resize handles.');
 }
 
 if (!boardRevealConfigText.includes('export const DEFAULT_BOARD_DRAW_SPEED = 2.9')) {

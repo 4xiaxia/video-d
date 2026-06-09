@@ -100,16 +100,10 @@ export function CStickerStandalonePage() {
           fontFamily={fontFamily}
           fontLoadKey={fontLoadKey}
           fontSize={fontSize}
-          isDragging={false}
           isSelected={true}
-          onPointerDown={() => undefined}
-          onResizePointerDown={() => undefined}
+          onClick={() => undefined}
           revealProgress={revealProgress}
-          stackIndex={0}
           text={text}
-          widthPercent={widthPercent}
-          xPercent={xPercent}
-          yPercent={yPercent}
           zoneKey="solution"
         />
       </section>

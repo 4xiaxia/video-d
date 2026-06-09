@@ -1,12 +1,13 @@
 // @cleanroom-component: CStickerFrame
 // @domain: board-sticker-rendering/frame
 // @slot: center-stage/c-canvas-sticker/frame
-// @depends: C visual x/y/width/fontSize/reveal state
-// @io-input: frame geometry, selected/dragging state, revealProgress, children
-// @io-output: pointer handlers and clipped content slot
+// @depends: C visual fontSize/reveal state
+// @io-input: frame geometry, selected state, revealProgress, children
+// @io-output: click handler for selection, clipped content slot
 // @boundary: C sticker frame only; does not decide handwriting vs math content rendering
+// @xiaxia-2026-06-08 返璞归真：板书内容是文本段落<p>，在容器内按文档流排列，不是button散落抢位置
 
-import type { CSSProperties, PointerEventHandler, ReactNode } from 'react';
+import type { CSSProperties, MouseEventHandler, ReactNode } from 'react';
 import type { CoursewareZoneKey } from '../modules/canvasStage/coursewareZoneLayout';
 
 export function CStickerFrame({
@@ -14,59 +15,41 @@ export function CStickerFrame({
   color,
   contentKind,
   fontSize,
-  isDragging,
   isSelected,
-  onPointerDown,
-  onResizePointerDown,
+  onClick,
   revealProgress,
-  stackIndex,
   text,
-  widthPercent,
-  xPercent,
-  yPercent,
   zoneKey,
 }: {
   children: ReactNode;
   color: string;
   contentKind: 'handwriting' | 'formula';
   fontSize: number;
-  isDragging: boolean;
   isSelected: boolean;
-  onPointerDown: PointerEventHandler<HTMLButtonElement>;
-  onResizePointerDown: PointerEventHandler<HTMLSpanElement>;
+  onClick: MouseEventHandler<HTMLParagraphElement>;
   revealProgress: number;
-  stackIndex: number;
   text: string;
-  widthPercent: number;
-  xPercent: number;
-  yPercent: number;
   zoneKey: CoursewareZoneKey;
 }) {
   const safeRevealProgress = clampRevealProgress(revealProgress);
 
   return (
-    <button
+    <p
       aria-label={`C 素材：${text}`}
       className={[
         'board-text-sticker',
         `board-text-sticker--zone-${zoneKey}`,
         contentKind === 'formula' ? 'board-text-sticker--math' : '',
-        isDragging ? 'is-dragging' : '',
         isSelected ? 'is-selected' : '',
       ].filter(Boolean).join(' ')}
       data-agent-content-kind={contentKind}
       data-agent-zone={zoneKey}
       data-role="courseware-c-sticker"
-      onPointerDown={onPointerDown}
+      onClick={onClick}
       style={{
         color,
-        left: `${xPercent}%`,
-        top: `${yPercent}%`,
         '--board-font-size': `${fontSize}px`,
-        width: `${widthPercent}%`,
-        zIndex: 10 + stackIndex,
       } as CSSProperties}
-      type="button"
     >
       <span
         className="board-text-sticker__write-ink"
@@ -74,15 +57,7 @@ export function CStickerFrame({
       >
         {children}
       </span>
-      {isSelected ? (
-        <span
-          aria-label="调整 C 素材尺寸"
-          className="board-text-sticker__resize-handle"
-          onPointerDown={onResizePointerDown}
-          role="slider"
-        />
-      ) : null}
-    </button>
+    </p>
   );
 }
 
